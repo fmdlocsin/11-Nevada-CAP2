@@ -1,0 +1,176 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+
+
+/* Basic styles for header */
+.manpowerheader {
+    height: 90px;
+    background: #1F375D;
+    color: white;
+    display: flex;
+    align-items: center; /* Center content vertically */
+}
+
+/* Container for header */
+.container-header {
+    margin-left: 30px;
+}
+
+.buttonContainer {
+    position: absolute;
+    right: 0;
+    margin-top: 30px;
+    margin-right: 15px;
+}
+
+.container {
+    width: 98%;
+    margin: 20px auto;
+    margin-left: 25px;
+}
+
+
+.filter-container {
+    margin-top: 2%;
+    margin-left: 15px;
+}
+
+.title {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+/* Employees section styling */
+#employees-section {
+    margin-top: 20px;
+    margin-bottom: 30px;
+    padding: 30px;
+    border-radius: 8px;
+    background: rgb(219, 219, 219);
+}
+
+#employees-section .text {
+    font-size: 24px;
+    font-weight: 500;
+}
+
+/* Table styling */
+table.content-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: none; /* Outer border */
+}
+
+table.content-table th, table.content-table td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid #ddd; /* Row lines */
+    border-right: none; /* Remove column borders */
+}
+
+table.content-table th {
+    border: none;
+    font-weight: bold;
+}
+
+table.content-table td {
+    font-size: 14px;
+}
+
+/* Hover effect for table rows */
+table.content-table tbody tr:hover {
+    background-color: #8cb2f5; /* Change to desired hover color */
+}
+
+tbody tr {
+    margin-bottom: 10px;
+    border-bottom: 10px solid rgb(219, 219, 219);
+    background-color: white;
+    padding: 20px;
+}
+
+/* Status Styles */
+.status {
+    display: inline-block;
+    width: 150px;
+    height: 22px;
+    border-radius: 8%;
+    text-align: center;
+    line-height: 20px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    margin: auto; /* Center horizontally */
+    cursor: pointer;
+}
+
+.status.active {
+    background-color: rgba(181, 247, 149, .5);
+    color: #3AAE00;
+}
+
+.status.incomplete {
+    background-color: rgba(247, 225, 149, .5);
+    color: #ff9500;
+}
+
+/* Branches section styling */
+.staffed-branches, .understaffed-branches {
+    width: 50%;
+    float: left; /* Ensure branches are side by side */
+}
+
+.branches {
+    margin-top: 30px;
+    padding: 50px;
+    border-radius: 8px;
+    background: rgb(219, 219, 219); /* Background color for branches section */
+    overflow: hidden; /* Clear floats */
+}
+
+/* Branch title styling */
+.branch-title {
+    font-size: 20px;
+    color: black;
+}
+
+/* Store link styling */
+a.store {
+    background: #7a1919; /* Blue background */
+    width: 250px; /* Ensure all store elements have the same width */
+    height: 120px; /* Set a consistent height */
+    border-radius: 8px;
+    text-align: center;
+    margin: 10px; /* Add margin to ensure spacing */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none; /* Remove underline from links */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+a.store:hover {
+    background: #0056b3; /* Darker blue on hover */
+}
+
+/* Store logo styling */
+.logo {
+    width: auto;
+    height: 80px;
+    display: block;
+    margin-bottom: 10px; /* Space between logo and text */
+}
+
+/* Store text styling */
+#store-text {
+    color: white;
+    font-size: 18px; /* Adjust font size if needed */
+    font-weight: bold;
+}
