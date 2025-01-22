@@ -59,7 +59,12 @@ include("../../phpscripts/check-login.php");
                     <label for="licenseGranted">LICENSE GRANTED:</label>
                     <div class="input-field">
                         <label for="classification" class="subLabel">Classification: <span class="text-danger">*</span> </label>
-                        <input type="text" id="classification" name="classification" class="short-input" required>
+                        <select id="classification" name="classification" class="short-input" required>
+                            <option value="">-- Select Classification --</option>
+                            <option value="In Line Store">In Line Store</option>
+                            <option value="Counter Type">Counter Type</option>
+                            <option value="Kiosk">Kiosk</option>
+                        </select>
                     </div>
 
                     <!-- Rights granted -->

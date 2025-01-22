@@ -90,8 +90,12 @@ include("../../phpscripts/check-login.php");
                             </div>
                             <div class="input-group">
                                 <label for="classification" class="subLabel">Classification: <span class="text-danger">*</span> </label>
-                                <input type="text" id="classification" name="classification" class="notarizationInput"
-                                    required>
+                                <select id="classification" name="classification" class="notarizationInput" required>
+                                    <option value="">-- Select Classification --</option>
+                                    <option value="In Line Store">In Line Store</option>
+                                    <option value="Counter Type">Counter Type</option>
+                                    <option value="Kiosk">Kiosk</option>
+                                </select>
                             </div>
                         </div>
                         <div class="form-row">
