@@ -98,9 +98,11 @@ $eatTypeFormatted = isset($eatTypeFormattedMap[$eatType]) ? $eatTypeFormattedMap
                     class="myButton">Encode
                     Sales Report</a>
 
-                <!-- Upload File Button
-            <label for="file-upload" class="myButton">Upload File</label>
-            <input type="file" id="file-upload" style="display: none;"> -->
+              <!-- Upload Sales Report -->
+                <label for="file-upload" class="myButton">Upload Sales Report</label>
+                <input type="file" id="file-upload" accept=".xls,.xlsx,.csv" style="display: none;">
+
+
 
 
             </div>

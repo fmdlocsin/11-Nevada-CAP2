@@ -108,3 +108,53 @@ function toTitleCase(str) {
         return text.charAt(0).toUpperCase() + text.substr(1).toLowerCase();
     });
 }
+
+
+$(document).ready(function () {
+    $("#file-upload").on("change", function () {
+        var file = this.files[0];
+        if (file) {
+            // Validate file type by extension
+            var allowedExtensions = /(\.xls|\.xlsx|\.csv)$/i;
+            if (!allowedExtensions.exec(file.name)) {
+                alert("Error: Please upload a valid file (Excel or CSV: .xls, .xlsx, .csv only).");
+                this.value = ""; // Clear the file input
+                return;
+            }
+
+            // Create FormData to send file to the server
+            var formData = new FormData();
+            formData.append("sales_report", file);
+
+            // Send the file via AJAX
+            $.ajax({
+                url: "../../phpscripts/upload-sales-report.php", // Server-side script to handle the upload
+                type: "POST",
+                data: formData,
+                processData: false, // Prevent jQuery from converting the FormData object
+                contentType: false, // Set content type to false for file uploads
+                success: function (response) {
+                    if (response.status === "success") {
+                        // Show success message
+                        alert("Upload Successful: The file was uploaded successfully.");
+                        // Redirect to encodeSales.php after a delay
+                        setTimeout(() => {
+                            window.location.href = "encodeSales.php";
+                        }, 2000);
+                    } else {
+                        // Show error message from the server
+                        alert("Error: " + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Show general error message
+                    alert("Error: An unexpected error occurred while uploading the file.");
+                    console.error(error);
+                },
+            });
+        }
+    });
+});
+
+
+
