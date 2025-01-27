@@ -44,6 +44,7 @@ function formatFranchiseeName($name)
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../../assets/css/navbar.css">
     <link rel="stylesheet" href="../../assets/css/franchiseeDetails.css">
+    <link rel="stylesheet" href="../../assets/css/edit-franchisedetails.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 
@@ -59,66 +60,46 @@ function formatFranchiseeName($name)
     </header>
 
     <div class="container">
-        <?php if (isset($data['error'])): ?>
-            <div class="alert alert-danger"><?php echo $data['error']; ?></div>
-        <?php else: ?>
-            <form action="update-franchise.php" method="POST">
-                <input type="hidden" name="id" value="<?php echo htmlspecialchars($data['ac_id']); ?>">
 
-                <div class="mb-3">
-                    <label for="franchisee" class="form-label">Franchisee Name</label>
-                    <input type="text" class="form-control" id="franchisee" name="franchisee"
-                           value="<?php echo htmlspecialchars($data['franchisee']); ?>" required>
-                </div>
+        <header>Edit Franchise Details</header>
 
-                <div class="mb-3">
-                    <label for="location" class="form-label">Location</label>
-                    <input type="text" class="form-control" id="location" name="location"
-                           value="<?php echo htmlspecialchars($data['location']); ?>" required>
-                </div>
+    <form action="update-franchise.php" method="POST">
+        <input type="hidden" name="id" value="<?php echo htmlspecialchars($data['ac_id']); ?>">
 
-                <div class="mb-3">
-                    <label for="classification" class="form-label">Classification</label>
-                    <input type="text" class="form-control" id="classification" name="classification"
-                           value="<?php echo htmlspecialchars($data['classification']); ?>" required>
-                </div>
+        <label for="franchisee">Franchisee Name</label>
+        <input type="text" id="franchisee" name="franchisee" value="<?php echo htmlspecialchars($data['franchisee']); ?>" required>
 
-                <div class="mb-3">
-                    <label for="agreement_date" class="form-label">Agreement Date</label>
-                    <input type="date" class="form-control" id="agreement_date" name="agreement_date"
-                           value="<?php echo htmlspecialchars($data['agreement_date']); ?>" required>
-                </div>
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" value="<?php echo htmlspecialchars($data['location']); ?>" required>
 
-                <div class="mb-3">
-                    <label for="franchise_fee" class="form-label">Franchise Fee</label>
-                    <input type="number" step="0.01" class="form-control" id="franchise_fee" name="franchise_fee"
-                           value="<?php echo htmlspecialchars($data['franchise_fee']); ?>" required>
-                </div>
+        <label for="classification">Classification</label>
+        <input type="text" id="classification" name="classification" value="<?php echo htmlspecialchars($data['classification']); ?>" required>
 
-                <div class="mb-3">
-                    <label for="franchise_package" class="form-label">Franchise Package</label>
-                    <input type="number" step="0.01" class="form-control" id="franchise_package" name="franchise_package"
-                           value="<?php echo htmlspecialchars($data['franchise_package']); ?>" required>
-                </div>
+        <label for="agreement_date">Agreement Date</label>
+        <input type="date" id="agreement_date" name="agreement_date" value="<?php echo htmlspecialchars($data['agreement_date']); ?>" required>
 
-                <div class="mb-3">
-                    <label for="bond" class="form-label">Bond</label>
-                    <input type="number" step="0.01" class="form-control" id="bond" name="bond"
-                           value="<?php echo htmlspecialchars($data['bond']); ?>" required>
-                </div>
+        <label for="franchise_fee">Franchise Fee</label>
+        <input type="number" id="franchise_fee" name="franchise_fee" value="<?php echo htmlspecialchars($data['franchise_fee']); ?>" required>
 
-                <div class="mb-3">
-                    <label for="extra_note" class="form-label">Extra Note</label>
-                    <textarea class="form-control" id="extra_note" name="extra_note"
-                              rows="3"><?php echo htmlspecialchars($data['extra_note']); ?></textarea>
-                </div>
+        <label for="franchise_package">Franchise Package</label>
+        <input type="number" id="franchise_package" name="franchise_package" value="<?php echo htmlspecialchars($data['franchise_package']); ?>" required>
 
-                <button type="submit" class="btn btn-primary">Update</button>
-                <a href="javascript:history.back()" class="btn btn-secondary">Cancel</a>
+        <label for="bond">Bond</label>
+        <input type="number" id="bond" name="bond" value="<?php echo htmlspecialchars($data['bond']); ?>" required>
 
-            </form>
-        <?php endif; ?>
-    </div>
+        <label for="extra_note">Extra Note</label>
+        <textarea id="extra_note" name="extra_note" rows="4"><?php echo htmlspecialchars($data['extra_note']); ?></textarea>
+
+        
+    </form>
+    <div class="button-group">
+    <button type="submit" class="btn-update">Update</button>
+    <a href="javascript:history.back()" class="btn-cancel">Cancel</a>
+</div>
+
+</div>
+
+
 </section>
 
 <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
