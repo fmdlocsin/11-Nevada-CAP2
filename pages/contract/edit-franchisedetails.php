@@ -75,7 +75,7 @@ function formatFranchiseeName($name)
         <label for="classification">Classification</label>
         <input type="text" id="classification" name="classification" value="<?php echo htmlspecialchars($data['classification']); ?>" required>
 
-        <label for="agreement_date">Agreement Date</label>
+        <label for="agreement_date">End Date</label>
         <input type="date" id="agreement_date" name="agreement_date" value="<?php echo htmlspecialchars($data['agreement_date']); ?>" required>
 
         <label for="franchise_fee">Franchise Fee</label>
