@@ -309,4 +309,24 @@ tbody tr {
     text-align: center;
 }
 
+/* Smaller button with custom size */
+.small-action-btn {
+    font-size: 12px; /* Smaller text size */
+    padding: 4px 8px; /* Adjust padding for smaller size */
+    border-radius: 4px; /* Slightly rounded corners */
+}
+
+/* Change button color */
+.small-action-btn {
+    background-color: #6c757d; /* Gray background */
+    color: white; /* White text */
+    border: 1px solid #6c757d; /* Border matching the background */
+}
+
+.small-action-btn:hover {
+    background-color: #5a6268; /* Darker gray for hover */
+    border-color: #5a6268;
+}
+
+
 /* MODAL */

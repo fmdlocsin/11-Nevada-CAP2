@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -57,6 +58,12 @@ function formatFranchiseeName($name)
                 <h1 class="title">Franchisee Details</h1>
             </div>
         </header>
+
+        <?php if (isset($_GET['status']) && $_GET['status'] === 'success'): ?>
+         <div class="alert alert-success">
+        Franchise details updated successfully!
+        </div>
+        <?php endif; ?>
 
         <div class="container">
             <!-- Your content for the new document franchise page -->
@@ -182,12 +189,12 @@ function formatFranchiseeName($name)
                 </div>
 
             </div>
-            <div class="button-group">
+            <!-- <div class="button-group">
                 <a href="editDocumentFranchise<?php echo $id; ?>" class=" text-decoration-none myButton">Edit
                     Details</a>
                 <a href="editDocumentFranchise<?php echo $id; ?>" class=" text-decoration-none myButton">Print
                     Contract</a>
-            </div>
+            </div> -->
         </div>
 
     </section>
