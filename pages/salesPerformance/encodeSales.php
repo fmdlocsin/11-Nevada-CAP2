@@ -56,6 +56,11 @@ $user_data = check_login($con);
                             <input type="date" class="input-date" disabled>
                         </div>
                     </div>
+                    
+                    <div class="form-group">
+                        <label for="csvUploadSales" class="form-label">Upload Sales CSV</label>
+                        <input type="file" id="csvUploadSales" accept=".csv" class="form-control">
+                    </div>
 
                     <div class=" form-group">
                         <button type="button" class="myButton save-encoded-sales">Save</button>
