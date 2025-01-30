@@ -43,7 +43,7 @@ $(document).ready(function () {
         }
     });
 
-    displayItemsInTable();
+    displayItemsInTable();  
 
     $("#save-button").on("click", function () {
         if (validateInputs()) {
@@ -74,6 +74,47 @@ $(document).ready(function () {
         // Logic for the 'Download' button
         // E.g., initiate a file download or generate a report
     });
+
+    $(document).ready(function () { // this one 
+        $("#csvUpload").on("change", function () {
+            uploadCsvFile();
+        });
+    });
+    
+    function uploadCsvFile() {
+        let fileInput = document.getElementById("csvUpload");
+        if (fileInput.files.length === 0) {
+            alert("Please select a CSV file.");
+            return;
+        }
+    
+        let file = fileInput.files[0];
+        let reader = new FileReader();
+    
+        reader.onload = function (event) {
+            let csvData = event.target.result;
+            let rows = csvData.split("\n").map(row => row.split(",")); // Split CSV into rows and columns
+    
+            let tableRows = document.querySelectorAll(".clickedInventory-table tbody tr");
+    
+            rows.forEach((data, index) => {
+                if (index === 0) return; // Skip header row
+    
+                let row = tableRows[index - 1]; // Match CSV row to table row
+    
+                if (row) {
+                    row.querySelector("input[name^='beginning']").value = data[1] || 0; // Beginning
+                    row.querySelector("input[name^='delivery']").value = data[2] || 0; // Delivery
+                    row.querySelector("input[name^='waste']").value = data[3] || 0; // Waste
+                    row.querySelector("input[name^='sold']").value = data[4] || 0; // Sold
+                    row.querySelector("input[name^='remarks']").value = data[5] || ""; // Remarks
+                }
+            });
+        };
+    
+        reader.readAsText(file);
+    }
+    
 
     displayReports();
 

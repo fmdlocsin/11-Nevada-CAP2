@@ -31,6 +31,7 @@ if (isset($_SERVER['REQUEST_URI'])) {
             $franchise = "Unknown Franchise";
             break;
     }
+    
 }
 ?>
 
@@ -69,9 +70,13 @@ if (isset($_SERVER['REQUEST_URI'])) {
                 <div class="regularText">Location: <?php echo $branch; ?></divp>
                     <div class="regularText">Filled by: <?php echo $user_data['user_name']; ?></div>
                     <div class="filters">
+                        <!-- Upload button -->
+                        <input type="file" id="csvUpload" accept=".csv">
+                        <button onclick="uploadCsvFile()">Upload CSV</button>
                         <!-- removed search -->
                         <!-- <input type="text" placeholder="Search Item"> -->
                         <button id="save-button">Save</button>
+                    
                     </div>
                     <table class="clickedInventory-table">
                         <thead>
