@@ -62,21 +62,25 @@ if (isset($_SERVER['REQUEST_URI'])) {
     <section class="home">
         <header class="contractheader">
             <div class="container-header">
-                <h1 class="title">Daily Ending Inventory</h1>
+                <h1 class="title">Inventory</h1>
             </div>
         </header>
             <div class="container">
-                <div class="regularText">Franchise: <span class="text-uppercase"><?php echo $franchise ?></span></div>
-                <div class="regularText">Location: <?php echo $branch; ?></divp>
-                    <div class="regularText">Filled by: <?php echo $user_data['user_name']; ?></div>
+             <header class="header-report">Daily Ending Inventory</header>
+                <div class="header-info">
+                    <div class="regularText"><strong>Franchise:</strong> <?php echo $franchise ?></div>
+                    <div class="regularText"><strong>Location:</strong> <?php echo $branch; ?></div>
+                    <div class="regularText"><strong>Filled by:</strong> <?php echo $user_data['user_name']; ?></div>
+            </div>
                     <div class="filters">
                         <!-- Upload button -->
-                        <input type="file" id="csvUpload" accept=".csv">
-                        <button onclick="uploadCsvFile()">Upload CSV</button>
-                        <!-- removed search -->
-                        <!-- <input type="text" placeholder="Search Item"> -->
-                        <button id="save-button">Save</button>
-                    
+                        <div class="filters d-flex align-items-center justify-content-end gap-3">
+                            <button class="btn btn-primary" id="uploadCsvBtn">Upload CSV</button>
+                            <input type="file" id="csvUpload" class="form-control w-auto d-none">
+                            <!-- <span id="fileName" class="fw-bold text-secondary"></span> Placeholder for file name -->
+                            <button id="save-button" class="btn btn-success">Save</button>
+                        </div>
+
                     </div>
                     <table class="clickedInventory-table">
                         <thead>

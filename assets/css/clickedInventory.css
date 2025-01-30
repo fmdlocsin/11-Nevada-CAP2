@@ -1,5 +1,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
+
+/* Primary colors */
+:root {
+    --header-color: #1F375D;
+}
+
 .header {
     background-color: #1f375d;
     position: fixed;
@@ -48,18 +54,55 @@
     font-family: "Poppins", sans-serif;
 }
 .container {
-    width: 80%;
-    margin: 30px auto 0 auto;
-    padding: 20px;
+    position: absolute;
+    top: 120px; /* Adjust based on header height */
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 1200px;
+    width: 100%;
+    border-radius: 6px;
+    padding: 30px;
     background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
 }
 
-.filters {
+.container .header-report {
+    position: relative;
+    font-size: 25px;
+    font-weight: 600;
+    color: #333;
+}
+
+.container .header-report::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    height: 3px;
+    width: 27px;
+    border-radius: 8px;
+    background-color: var(--header-color);
+}
+
+
+.header-report {
+    margin-bottom: 20px;
+}
+
+
+/* Header section above the table */
+.header-info {
+    margin-bottom: 10px;
+    /* display: flex;
+    justify-content: space-between; Align items with space between them */
+}
+/* .filters {
     display: flex;
     justify-content: space-between;
     padding: 10px 0;
 }
+
+
 
 .filters input,
 .filters select,
@@ -80,6 +123,37 @@
 
 .filters button:hover {
     background-color: #27ae60;
+} */
+
+.filters {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px; /* Space between buttons */
+    padding: 5px 0;
+}
+
+/* Ensure input file is properly styled */
+#csvUpload {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    max-width: 250px; /* Set a reasonable max width */
+}
+
+input[type="file"]::file-selector-button {
+    display: none; /* Hide default file input button */
+}
+
+
+/* Buttons styling */
+.filters button {
+    padding: 10px 15px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap; /* Prevents text wrapping */
 }
 
 .content {
