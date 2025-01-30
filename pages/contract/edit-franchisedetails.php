@@ -87,7 +87,7 @@ function formatFranchiseeName($name)
                 </div>
 
                 <div class="mb-3">
-                    <label for="agreement_date" class="form-label">Agreement Date</label>
+                    <label for="agreement_date" class="form-label">End Date</label>
                     <input type="date" class="form-control" id="agreement_date" name="agreement_date"
                            value="<?php echo htmlspecialchars($data['agreement_date']); ?>" required>
                 </div>
