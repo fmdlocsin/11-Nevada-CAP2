@@ -134,7 +134,7 @@ if ($result) {
                                             alt="Franchise Image">
                                     </td>
                                     <td><?php echo ucwords($row['services']); ?></td>
-                                    <td>₱ <?php echo end($transactions); ?></td>
+                                    <td>₱ <?php echo number_format(end($transactions), 2, '.', ','); ?></td>
                                     <td><?php echo $row['date_added']; ?></td>
                                 </tr>
                             <?php }

@@ -345,3 +345,16 @@ function closeModal() {
 }
 
 $(document).on("click", "#modalCloseBtn", closeModal);
+
+$(document).ready(function () {
+    $("#uploadCsvSalesBtn").on("click", function () {
+        $("#csvUploadSales").click();
+    });
+
+    $("#csvUploadSales").on("change", function () {
+        let fileName = this.files.length > 0 ? this.files[0].name : "No file selected";
+        $("#fileNameDisplay").text(fileName);
+        $("#uploadCsvSalesBtn").text("File Selected ✓").addClass("btn-success");
+    });
+});
+
