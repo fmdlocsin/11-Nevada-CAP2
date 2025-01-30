@@ -72,7 +72,7 @@ if (isset($_SERVER['REQUEST_URI'])) {
                     <div class="filters">
                         <!-- Upload button -->
                         <input type="file" id="csvUpload" accept=".csv">
-                        <button onclick="uploadCsvFile()">Upload CSV</button>
+                        <!-- <button onclick="uploadCsvFile()">Upload CSV</button>  do not need this anymore-->
                         <!-- removed search -->
                         <!-- <input type="text" placeholder="Search Item"> -->
                         <button id="save-button">Save</button>
