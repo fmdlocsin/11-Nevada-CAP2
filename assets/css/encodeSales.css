@@ -114,6 +114,10 @@ form .fields .input-field.grandtotal {
     margin: 4px 0;
 }
 
+form .fields {
+    margin-bottom: 8px;
+}
+
 
 .container form .details {
     margin-top: 15px;

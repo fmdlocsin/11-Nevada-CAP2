@@ -37,11 +37,14 @@ include ("../../phpscripts/check-login.php");
             </div>
         </header>
             <div class="container">
-                <h2 class="subheadertext">Daily Ending Inventory</h2>
-                <div class="regularText">Franchisee: <span id="franchisee"></span></div>
-                <div class="regularText">Filled By: <span id="filledBy"></span></div>
-                <div class="regularText">Location: <span id="branch"></span></div>
-                <div class="regularText">Date: <span id="date"></span></div>
+            <header class="header-report">Daily Ending Inventory</header>
+            <div class="header-info">
+                <div class="regularText"><strong>Franchisee:</strong> <span id="franchisee"></span></div>
+                <div class="regularText"><strong>Filled By:</strong> <span id="filledBy"></span></div>
+                <div class="regularText"><strong>Location:</strong> <span id="branch"></span></div>
+                <div class="regularText"><strong>Date:</strong> <span id="date"></span></div>
+
+            </div>
                 <div class="filters">
                     <button id="Download">Download</button>
                 </div>

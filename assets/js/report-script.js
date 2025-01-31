@@ -471,3 +471,25 @@ function displaySelectedReport() {
         });
     }
 }
+
+$(document).ready(function () {
+    $("#uploadCsvBtn").on("click", function () {
+        if (!$(this).data("clicked")) {
+            $(this).text("Choose File").data("clicked", true); // Change button text on first click
+            $("#csvUpload").removeClass("d-none").insertAfter($(this)).click(); // Show file input and move it
+        } else {
+            $("#csvUpload").click(); // If already clicked, just trigger file selection
+        }
+    });
+
+    $("#csvUpload").on("change", function () {
+        let file = this.files[0]; // Get the selected file
+        if (file) {
+            $("#fileName").text(file.name); // Display only the file name
+            $("#uploadCsvBtn").text("File Selected ✓").addClass("btn-success"); // Update button text
+        }
+    });
+});
+
+
+

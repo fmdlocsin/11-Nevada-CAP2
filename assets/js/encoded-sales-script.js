@@ -1,11 +1,134 @@
 $(document).ready(function () {
     createEncodedSales();
-
     var urlParams = getEatTypeAndBranchFromUrl();
     updateSalesSectionForm(urlParams);
-    addAnotherTransaction();
     calculateGrandTotal();
+
+    // Ensure CSV Upload Button Exists
+    if ($("#csvUploadSales").length === 0) {
+        $(".form-group").append(`
+            <label for="csvUploadSales" class="form-label">Upload Sales CSV</label>
+            <input type="file" id="csvUploadSales" accept=".csv" class="form-control">
+        `);
+    }
+
+    // CSV Upload Event Listener
+    $("#csvUploadSales").on("change", function () {
+        uploadCsvFileSales();
+    });
+
+    function uploadCsvFileSales() {
+        let fileInput = document.getElementById("csvUploadSales");
+        if (fileInput.files.length === 0) {
+            alert("Please select a CSV file.");
+            return;
+        }
+
+        let file = fileInput.files[0];
+        let reader = new FileReader();
+
+        reader.onload = function (event) {
+            let csvData = event.target.result;
+            let rows = csvData.split("\n").map(row => row.split(",")); // Split CSV into rows and columns
+
+            let urlParams = getEatTypeAndBranchFromUrl();
+            let eatType = urlParams.eatTypeFormatted.trim();
+
+            console.log("CSV Data Loaded:", rows);
+            console.log("Detected Transaction Type:", eatType);
+
+            setTimeout(() => {
+                let salesSection = document.querySelector("#salesSectionForm");
+
+                if (!salesSection) {
+                    console.warn("Sales section not found. Cannot fill data.");
+                    return;
+                }
+
+                console.log("Filling in sales data...");
+
+                let cashCardField = salesSection.querySelector(".input-cash-card");
+                let gcashField = salesSection.querySelector(".input-gcash");
+                let paymayaField = salesSection.querySelector(".input-paymaya");
+                let otherSalesField = salesSection.querySelector(".input-total-sales");
+                let grabFoodField = salesSection.querySelector(".input-grab-food");
+                let foodPandaField = salesSection.querySelector(".input-food-panda");
+
+                if (rows.length > 1) { // Ensure we skip the CSV header
+                    let data = rows[1]; // First row of actual data
+
+                    if (eatType === "Dine-In" || eatType === "Take-Out") {
+                        if (cashCardField) {
+                            cashCardField.value = data[0] || 0;
+                            cashCardField.dispatchEvent(new Event("input"));
+                        }
+                        if (gcashField) {
+                            gcashField.value = data[1] || 0;
+                            gcashField.dispatchEvent(new Event("input"));
+                        }
+                        if (paymayaField) {
+                            paymayaField.value = data[2] || 0;
+                            paymayaField.dispatchEvent(new Event("input"));
+                        }
+                        if (otherSalesField) {
+                            otherSalesField.value = data[3] || 0;
+                            otherSalesField.dispatchEvent(new Event("input"));
+                        }
+                    } else if (eatType === "Delivery") {
+                        if (grabFoodField) {
+                            grabFoodField.value = data[0] || 0;
+                            grabFoodField.dispatchEvent(new Event("input"));
+                        }
+                        if (foodPandaField) {
+                            foodPandaField.value = data[1] || 0;
+                            foodPandaField.dispatchEvent(new Event("input"));
+                        }
+                        if (otherSalesField) {
+                            otherSalesField.value = data[2] || 0;
+                            otherSalesField.dispatchEvent(new Event("input"));
+                        }
+                    }
+                } else {
+                    console.warn("CSV file does not contain data rows.");
+                }
+            }, 500); // Ensure form fields exist before inserting values
+        };
+
+        reader.readAsText(file);
+    }
 });
+
+function calculateGrandTotal() {
+    $(".amount-input").on("input", function () {
+        let grandTotal = 0;
+
+        $(".amount-input").each(function () {
+            let value = parseFloat($(this).val());
+            if (!isNaN(value)) {
+                grandTotal += value;
+            }
+        });
+
+        $(".input-grand-total").val(grandTotal.toFixed(2));
+    });
+
+    // 🔥🔥 Auto-trigger calculation after CSV upload 🔥🔥
+    setTimeout(() => {
+        let grandTotal = 0;
+        $(".amount-input").each(function () {
+            let value = parseFloat($(this).val());
+            if (!isNaN(value)) {
+                grandTotal += value;
+            }
+        });
+
+        $(".input-grand-total").val(grandTotal.toFixed(2));
+    }, 600);
+}
+
+
+
+
 
 function getEatTypeAndBranchFromUrl() {
     var queryString = window.location.search.substring(1);
@@ -135,20 +258,6 @@ function addAnotherTransaction() {
     });
 }
 
-function calculateGrandTotal() {
-    $(document).on("input", ".amount-input", function () {
-        var grandTotal = 0;
-
-        $(".amount-input").each(function () {
-            var value = parseFloat($(this).val());
-            if (!isNaN(value)) {
-                grandTotal += value;
-            }
-        });
-
-        $(".grandtotal-form .input-field input").val(grandTotal.toFixed(2));
-    });
-}
 
 function createEncodedSales() {
     $(document).on("click", ".save-encoded-sales", function () {
@@ -236,3 +345,16 @@ function closeModal() {
 }
 
 $(document).on("click", "#modalCloseBtn", closeModal);
+
+$(document).ready(function () {
+    $("#uploadCsvSalesBtn").on("click", function () {
+        $("#csvUploadSales").click();
+    });
+
+    $("#csvUploadSales").on("change", function () {
+        let fileName = this.files.length > 0 ? this.files[0].name : "No file selected";
+        $("#fileNameDisplay").text(fileName);
+        $("#uploadCsvSalesBtn").text("File Selected ✓").addClass("btn-success");
+    });
+});
+
