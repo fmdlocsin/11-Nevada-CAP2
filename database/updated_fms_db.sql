@@ -252,7 +252,8 @@ CREATE TABLE `sales_report` (
   `services` varchar(120) NOT NULL,
   `transactions` text NOT NULL,
   `grand_total` text NOT NULL,
-  `date_added` date NOT NULL
+  `date_added` date NOT NULL,
+  `product_name` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
