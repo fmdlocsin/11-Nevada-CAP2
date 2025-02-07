@@ -38,53 +38,61 @@ $(document).ready(function () {
             console.log("Detected Transaction Type:", eatType);
 
             setTimeout(() => {
-                let salesSection = document.querySelector("#salesSectionForm");
+                let productNameField = document.querySelector(".input-product-name"); // Directly reference field
+                let cashCardField = document.querySelector(".input-cash-card");
+                let gcashField = document.querySelector(".input-gcash");
+                let paymayaField = document.querySelector(".input-paymaya");
+                let otherSalesField = document.querySelector(".input-total-sales");
+                let grabFoodField = document.querySelector(".input-grab-food");
+                let foodPandaField = document.querySelector(".input-food-panda");
 
-                if (!salesSection) {
-                    console.warn("Sales section not found. Cannot fill data.");
+                if (!productNameField) {
+                    console.warn("Product Name field not found. Retrying...");
                     return;
                 }
 
-                console.log("Filling in sales data...");
+                if (rows.length > 1) { // Skip header row
+                    let data = rows[1].map(value => value.trim()); // Trim whitespace from each value
 
-                let cashCardField = salesSection.querySelector(".input-cash-card");
-                let gcashField = salesSection.querySelector(".input-gcash");
-                let paymayaField = salesSection.querySelector(".input-paymaya");
-                let otherSalesField = salesSection.querySelector(".input-total-sales");
-                let grabFoodField = salesSection.querySelector(".input-grab-food");
-                let foodPandaField = salesSection.querySelector(".input-food-panda");
+                    let requiredColumns = (eatType === "Delivery") ? 4 : 5; // Delivery needs 4, others need 5
 
-                if (rows.length > 1) { // Ensure we skip the CSV header
-                    let data = rows[1]; // First row of actual data
+                    if (data.length < requiredColumns) {
+                        console.warn(`CSV row does not have enough columns. Expected ${requiredColumns}, but got ${data.length}.`);
+                        return;
+                    }
+
+                    console.log("Assigning Product Name:", data[0]);
+                    productNameField.value = data[0] || "";
+                    productNameField.dispatchEvent(new Event("input"));
 
                     if (eatType === "Dine-In" || eatType === "Take-Out") {
                         if (cashCardField) {
-                            cashCardField.value = data[0] || 0;
+                            cashCardField.value = data[1] || 0;
                             cashCardField.dispatchEvent(new Event("input"));
                         }
                         if (gcashField) {
-                            gcashField.value = data[1] || 0;
+                            gcashField.value = data[2] || 0;
                             gcashField.dispatchEvent(new Event("input"));
                         }
                         if (paymayaField) {
-                            paymayaField.value = data[2] || 0;
+                            paymayaField.value = data[3] || 0;
                             paymayaField.dispatchEvent(new Event("input"));
                         }
                         if (otherSalesField) {
-                            otherSalesField.value = data[3] || 0;
+                            otherSalesField.value = data[4] || 0;
                             otherSalesField.dispatchEvent(new Event("input"));
                         }
                     } else if (eatType === "Delivery") {
                         if (grabFoodField) {
-                            grabFoodField.value = data[0] || 0;
+                            grabFoodField.value = data[1] || 0;
                             grabFoodField.dispatchEvent(new Event("input"));
                         }
                         if (foodPandaField) {
-                            foodPandaField.value = data[1] || 0;
+                            foodPandaField.value = data[2] || 0;
                             foodPandaField.dispatchEvent(new Event("input"));
                         }
                         if (otherSalesField) {
-                            otherSalesField.value = data[2] || 0;
+                            otherSalesField.value = data[3] || 0;
                             otherSalesField.dispatchEvent(new Event("input"));
                         }
                     }
@@ -112,7 +120,7 @@ function calculateGrandTotal() {
         $(".input-grand-total").val(grandTotal.toFixed(2));
     });
 
-    // 🔥🔥 Auto-trigger calculation after CSV upload 🔥🔥
+    // Auto-trigger calculation after CSV upload
     setTimeout(() => {
         let grandTotal = 0;
         $(".amount-input").each(function () {
