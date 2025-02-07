@@ -74,7 +74,8 @@ if ($result) {
             </div>
         </header>
         <div class="container">
-            <header class="header-report">Sales Report</header>
+            <header class="header-report">Daily Sales Report</header>
+            <!-- <header class="header-report">Daily Sales Report: <?php echo date("l, F d", strtotime($data['date_added'])); ?></header> -->
             <!-- Header section above the table -->
             <header class="header-info">
                 <div class="header-section encoder">
@@ -89,7 +90,7 @@ if ($result) {
             </div>
             <!-- Table for Sales Report -->
             <table>
-                 <caption>Daily Sales Report: <strong><?php echo date("l, F d", strtotime($data['date_added'])); ?></strong> </caption>
+                 <caption>Product Name: <strong><?php echo htmlspecialchars($data['product_name']); ?></strong></caption>
 
                 <thead>
                     <tr>

@@ -68,7 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             services,
             transactions,
             grand_total,
-            date_added
+            date_added,
+            product_name
         ) VALUES (
             '$acId',
             '$logged_in_user',
@@ -76,7 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             '$services',
             '$transactionsString',
             '$grandTotal',
-            '$date'
+            '$date',
+            '$productName'
         )";
 
         if (mysqli_query($con, $insert_query)) {

@@ -70,20 +70,20 @@ function formatFranchiseeName($name)
 
                 <div class="mb-3">
                     <label for="franchisee" class="form-label">Franchisee Name</label>
-                    <input type="text" class="form-control" id="franchisee" name="franchisee"
-                           value="<?php echo htmlspecialchars($data['franchisee']); ?>" required>
+                    <input type="text" class="form-control readonly-input" id="franchisee" name="franchisee"
+                           value="<?php echo htmlspecialchars($data['franchisee']); ?>" readonly>
                 </div>
 
                 <div class="mb-3">
                     <label for="location" class="form-label">Location</label>
-                    <input type="text" class="form-control" id="location" name="location"
-                           value="<?php echo htmlspecialchars($data['location']); ?>" required>
+                    <input type="text" class="form-control readonly-input" id="location" name="location"
+                           value="<?php echo htmlspecialchars($data['location']); ?>" readonly>
                 </div>
 
                 <div class="mb-3">
                     <label for="classification" class="form-label">Classification</label>
-                    <input type="text" class="form-control" id="classification" name="classification"
-                           value="<?php echo htmlspecialchars($data['classification']); ?>" required>
+                    <input type="text" class="form-control readonly-input" id="classification" name="classification"
+                           value="<?php echo htmlspecialchars($data['classification']); ?>" readonly>
                 </div>
 
                 <div class="mb-3">
