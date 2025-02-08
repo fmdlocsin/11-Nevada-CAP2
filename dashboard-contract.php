@@ -1,9 +1,43 @@
 <?php
+
 session_start();
 
 include ("phpscripts/database-connection.php");
 include ("phpscripts/check-login.php");
+
+// Validate connection
+if (!isset($con) || !$con) {
+    die("Database connection failed: " . mysqli_connect_error());
+}
+
+
+// Fetch Active Franchise Contracts (Using agreement_contract table)
+$activeContractsQuery = "SELECT COUNT(*) as total FROM agreement_contract WHERE status = 'active'";
+$activeContractsResult = mysqli_query($con, $activeContractsQuery);
+$activeContracts = ($activeContractsResult) ? mysqli_fetch_assoc($activeContractsResult)['total'] : 0;
+
+// Fetch Agreement Contracts Expiring in the Next 30 Days
+$expiringContractsQuery = "SELECT COUNT(*) as total 
+                           FROM agreement_contract 
+                           WHERE DATE(agreement_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+                           AND LOWER(TRIM(status)) = 'active'";
+
+$expiringContractsResult = mysqli_query($con, $expiringContractsQuery);
+$expiringContracts = ($expiringContractsResult) ? mysqli_fetch_assoc($expiringContractsResult)['total'] : 0;
+
+
+// Fetch Contracts Renewed in the Last 12 Months (Using agreement_date instead of renewal_date)
+$renewedContractsQuery = "SELECT COUNT(*) as total FROM agreement_contract WHERE agreement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)";
+$renewedContractsResult = mysqli_query($con, $renewedContractsQuery);
+$renewedContracts = ($renewedContractsResult) ? mysqli_fetch_assoc($renewedContractsResult)['total'] : 0;
+
+
+// Close the database connection
+mysqli_close($con);
+
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,6 +51,7 @@ include ("phpscripts/check-login.php");
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/css/navbar.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/contract-dashboard.css">
     <!-- ===== Boxicons CSS ===== -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
@@ -88,55 +123,47 @@ include ("phpscripts/check-login.php");
                         <div class="greeting">
                             <h2>Hi, <strong>Business Development Officer</strong>!</h2>
                         </div>
-                        <div class="boxes-container">
+                        <div class="container">
+                            <h2 class="dashboard-title">Franchise Agreement Monitoring</h2>
+
+                            <!-- KPI Cards -->
+                            <div class="row kpi-row">
+                                <div class="col-md-4 kpi-col">
+                                    <div class="card kpi-card">
+                                        <div class="card-body">
+                                            <i class="kpi-icon ni ni-chart-bar-32"></i> <!-- Icon -->
+                                            <h4>Active Contracts</h4>
+                                            <h2 class="kpi-number" id="activeContracts"><?php echo $activeContracts; ?></h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 kpi-col">
+                                    <div class="card kpi-card">
+                                        <div class="card-body">
+                                            <i class="kpi-icon ni ni-time-alarm"></i> <!-- Icon -->
+                                            <h4>Contracts Expiring Next Month</h4>
+                                            <h2 class="kpi-number" id="expiringContracts"><?php echo $expiringContracts; ?></h2>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 kpi-col">
+                                    <div class="card kpi-card">
+                                        <div class="card-body">
+                                            <i class="kpi-icon ni ni-check-bold"></i> <!-- Icon -->
+                                            <h4>Contracts Renewed</h4> <!-- Shortened Title -->
+                                            <h2 class="kpi-number" id="renewedContracts"><?php echo $renewedContracts; ?></h2>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
                             
-                            <div class="box-group">
-                                <h3 class="box-group-title">Franchising Agreement</h3>
-                                <a href="#" class="box box1">
-                                    <i class='bx bx-folder-open'></i>
-                                    <span class="text">Agreement Contract</span>
-                                </a>
-                                <a href="#" id="dineInSales-link" class="box box2">
-                                    <i class='bx bx-food-menu'></i>
-                                    <span class="text">Leasing Contract</span>
-                                </a>
-                            </div>
-                            <div class="box-group">
-                                <h3 class="box-group-title">Sales Performance</h3>
-                                <a href="#" id="takeOutSales-link" class="box box3">
-                                    <i class='bx bxs-bar-chart-alt-2'></i>
-                                    <span class="text">Sales</span>
-                                </a>
-                                <a href="#" id="deliverySales-link" class="box box4">
-                                    <i class='bx bx-money-withdraw'></i>
-                                    <span class="text">Expenses</span>
-                                </a>
-                            </div>
-                            <div class="box-group">
-                                <h3 class="box-group-title">Manpower Deployment</h3>
-                                <a href="#" class="box box5">
-                                    <i class='bx bxs-time-five'></i>
-                                    <span class="text">Scheduling</span>
-                                </a>
-                                <a href="#" class="box box6">
-                                    <i class='bx bx-body'></i>
-                                    <span class="text">Attendance</span>
-                                </a>
-                                <a href="#" class="box box6">
-                                    <i class='bx bx-user-check'></i>
-                                    <span class="text">Certifications</span>
-                                </a>
-                            </div>
-                            <div class="box-group">
-                                <h3 class="box-group-title">Inventory</h3>
-                                <a href="#" class="box box7">
-                                    <i class='bx bx-spreadsheet'></i>
-                                    <span class="text">Reports</span>
-                                </a>
-                                <a href="#" class="box box8">
-                                    <i class='bx bx-edit-alt'></i>
-                                    <span class="text">New Report</span>
-                                </a>
+                            <!-- Graphs -->
+                            <div class="chart-container">
+                                <canvas id="contractRenewalChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -154,6 +181,8 @@ include ("phpscripts/check-login.php");
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
         crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="assets/js/dashboard-contract-script.js"></script>
     <script src="assets/js/navbar.js"></script>
     <!-- <script src="assets/js/content.js"></script> -->
 </body>
