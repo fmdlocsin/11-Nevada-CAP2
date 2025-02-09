@@ -84,7 +84,11 @@ body {
     display: flex;
     justify-content: space-between; /* Align items with space between them */
 }
-
+.header-info2 {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between; /* Align items with space between them */
+}
 .header-section {
     font-size: 15px;
 }
@@ -97,11 +101,15 @@ body {
     text-align: right; /* Align content to the right */
 }
 
+.header-section.location {
+    text-align: right; /* Align content to the right */
+}
+
 
 .header-section2 {
     display: block; /* Display block to move to a new line */
     font-size: 15px;
-    margin-top: 5px; /* Adjust margin-top to create space between sections */
+    
 }
 
 

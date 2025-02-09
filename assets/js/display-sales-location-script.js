@@ -46,7 +46,7 @@ function displayBranches() {
                     var img = getFranchiseImage(branchInfo.franchisee);
 
                     var cardHTML = `
-                        <a href="salesInformation?tp=${eatType}/franchise=${franchisee}" class="text-decoration-none">
+                        <a href="salesInformation.php?tp=${eatType}&franchise=${franchisee}&location=${encodeURIComponent(branchInfo.location)}" class="text-decoration-none">
                             <div class="card branch-button">
                                 <img src="../../assets/images/${img}" alt="img">
                                 <span>${formattedName}</span>

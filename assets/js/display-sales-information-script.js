@@ -11,52 +11,50 @@ $(document).ready(function () {
 });
 
 function getEatTypeAndBranchFromUrl() {
-    var queryString = window.location.search.substring(1);
-    var queryParts = queryString.split("/");
+    var urlParams = new URLSearchParams(window.location.search);
 
-    var eatType = "";
-    var franchise = "";
+    var eatType = urlParams.get("tp") || ""; // Get eat type or default to empty string
+    var franchise = urlParams.get("franchise") || ""; // Get franchise or default to empty string
+    var location = urlParams.get("location") || ""; // Get location or default to empty string
 
-    queryParts.forEach(function (part) {
-        if (part.startsWith("tp=")) {
-            eatType = part.substring(3);
-        } else if (part.startsWith("franchise=")) {
-            franchise = part.substring(10);
-        }
-    });
-
+    // Map franchise names to database-compatible formats
     var franchiseFormattedMap = {
-        PotatoCorner: "Potato Corner",
-        MacaoImperial: "Macao Imperial",
-        AuntieAnne: "Auntie Anne",
+        "PotatoCorner": "Potato Corner",
+        "MacaoImperial": "Macao Imperial",
+        "AuntieAnne": "Auntie Anne"
     };
 
     var eatTypeFormattedMap = {
-        DineIn: "Dine-In",
-        TakeOut: "Take-Out",
-        Delivery: "Delivery",
+        "DineIn": "Dine-In",
+        "TakeOut": "Take-Out",
+        "Delivery": "Delivery"
     };
 
+    // Format retrieved values
     var franchiseFormatted = franchiseFormattedMap[franchise] || franchise;
     var eatTypeFormatted = eatTypeFormattedMap[eatType] || eatType;
+    var locationFormatted = decodeURIComponent(location); // Ensure location is properly decoded
 
     return {
         eatType: eatType,
         franchise: franchise,
+        location: locationFormatted, // Use the correctly formatted location
         eatTypeFormatted: eatTypeFormatted,
-        franchiseFormatted: franchiseFormatted,
+        franchiseFormatted: franchiseFormatted
     };
 }
+
 
 function displaySalesReport(urlParams) {
     var dashFranchise = urlParams.franchiseFormatted
         .toLowerCase()
         .replace(/\s+/g, "-");
     var dashServices = urlParams.eatTypeFormatted.toLowerCase();
+    var branchLocation = urlParams.location; // Capture location
 
     $.ajax({
         method: "POST",
-        data: { dashFranchise, dashServices },
+        data: { dashFranchise, dashServices, branchLocation },
         url: "../../phpscripts/display-sales-information.php",
         dataType: "json",
         success: function (response) {

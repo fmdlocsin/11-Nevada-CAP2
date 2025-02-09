@@ -3,6 +3,26 @@ session_start();
 
 include ("phpscripts/database-connection.php");
 include ("phpscripts/check-login.php");
+
+$expenses_query = "SELECT SUM(expense_amount) AS total_expenses FROM expenses";
+$expenses_result = mysqli_query($con, $expenses_query);
+
+$sales_query = "SELECT SUM(grand_total) AS total_sales FROM sales_report";
+$sales_result = mysqli_query($con, $sales_query);
+
+$totalExpenses = 0;
+$totalSales = 0;
+
+if ($expenses_result || $sales_result) {
+    $sales_row = mysqli_fetch_assoc($sales_result);
+    $expenses_row = mysqli_fetch_assoc($expenses_result);
+
+    $totalSales = $sales_row['total_sales'];
+    $totalExpenses = $expenses_row['total_expenses'];
+} else {
+    $error = "Database query failed: " . mysqli_error($con);
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,7 +36,8 @@ include ("phpscripts/check-login.php");
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="assets/css/navbar.css">
-    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <!-- <link rel="stylesheet" href="assets/css/dashboard.css"> -->
+    <link rel="stylesheet" href="assets/css/expenses.css">
     <!-- ===== Boxicons CSS ===== -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
@@ -83,69 +104,30 @@ include ("phpscripts/check-login.php");
     </nav>
 
     <section class="home">
-    <header class="contractheader">
-        <div class="container-header">
-            <h1 class="title">Dashboard</h1>
-        </div>
-    </header>
-
-        <div class="content" id="content-area">
-            <div class="container">
-                <div class="dash-content">
-                    <div class="overview">
-                        <div class="greeting">
-                            <h2>Hi, <strong>Group/Branch Manager</strong>!</h2>
-                        </div>
-                        <div class="boxes-container">
-                            
-                            <div class="box-group">
-                                <h3 class="box-group-title">Franchising Agreement</h3>
-                                <a href="#" class="box box1">
-                                    <i class='bx bx-folder-open'></i>
-                                    <span class="text">Agreement Contract</span>
-                                </a>
-                                <a href="#" id="dineInSales-link" class="box box2">
-                                    <i class='bx bx-food-menu'></i>
-                                    <span class="text">Leasing Contract</span>
-                                </a>
-                            </div>
-                            <div class="box-group">
-                                <h3 class="box-group-title">Sales Performance</h3>
-                                <a href="#" id="takeOutSales-link" class="box box3">
-                                    <i class='bx bxs-bar-chart-alt-2'></i>
-                                    <span class="text">Sales</span>
-                                </a>
-                                <a href="#" id="deliverySales-link" class="box box4">
-                                    <i class='bx bx-money-withdraw'></i>
-                                    <span class="text">Expenses</span>
-                                </a>
-                            </div>
-                            <div class="box-group">
-                                <h3 class="box-group-title">Manpower Deployment</h3>
-                                <a href="#" class="box box5">
-                                    <i class='bx bxs-time-five'></i>
-                                    <span class="text">Scheduling</span>
-                                </a>
-                                <a href="#" class="box box6">
-                                    <i class='bx bx-body'></i>
-                                    <span class="text">Attendance</span>
-                                </a>
-                                <a href="#" class="box box6">
-                                    <i class='bx bx-user-check'></i>
-                                    <span class="text">Certifications</span>
-                                </a>
-                            </div>
-                            <div class="box-group">
-                                <h3 class="box-group-title">Inventory</h3>
-                                <a href="#" class="box box7">
-                                    <i class='bx bx-spreadsheet'></i>
-                                    <span class="text">Reports</span>
-                                </a>
-                                <a href="#" class="box box8">
-                                    <i class='bx bx-edit-alt'></i>
-                                    <span class="text">New Report</span>
-                                </a>
-                            </div>
+        <header class="contractheader">
+            <div class="container-header">
+                <h1 class="title">Dashboard</h1>
+            </div>
+        </header>
+        <div class="container">
+            <div class="dash-content">
+                <div class="overview">
+                    <div class="title">
+                        <i class='bx bxs-tachometer'></i>
+                        <span class="text">Analytics</span>
+                    </div>
+                    <div class="boxes">
+                        <a href="pages/salesPerformance/totalExpenses" class="box box1">
+                            <span class="text1"><?php echo number_format($totalExpenses, 2) ?></span>
+                            <span class="text">Total Expenses</span>
+                        </a>
+                        <a href="pages/salesPerformance/chooseFranchisee" class="box box2">
+                            <span class="text1"><?php echo number_format($totalSales, 2) ?></span>
+                            <span class="text">Total Sales</span>
+                        </a>
+                        <div class="box box3">
+                            <span class="text1"><?php echo number_format($totalSales - $totalExpenses, 2) ?></span>
+                            <span class="text">Profit</span>
                         </div>
                     </div>
                 </div>

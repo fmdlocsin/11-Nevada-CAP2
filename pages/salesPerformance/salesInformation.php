@@ -9,6 +9,10 @@ parse_str(str_replace('/', '&', $queryString), $queryParams);
 
 $eatType = isset($queryParams['tp']) ? mysqli_real_escape_string($con, $queryParams['tp']) : '';
 $franchise = isset($queryParams['franchise']) ? mysqli_real_escape_string($con, $queryParams['franchise']) : '';
+$location = isset($queryParams['location']) ? mysqli_real_escape_string($con, $queryParams['location']) : '';
+
+
+
 
 $franchiseFormattedMap = [
     "PotatoCorner" => "Potato Corner",
@@ -94,9 +98,10 @@ $eatTypeFormatted = isset($eatTypeFormattedMap[$eatType]) ? $eatTypeFormattedMap
                 <!-- <button id="btn-reset" class="resetButton">Reset</button> -->
 
                 <!-- Encode Sales Report -->
-                <a href="encodeSales?tp=<?php echo $eatType ?>/franchise=<?php echo $franchise ?>"
-                    class="myButton">Encode
-                    Sales Report</a>
+                <a href="encodeSales?tp=<?php echo $eatType ?>&franchise=<?php echo $franchise ?>&location=<?php echo urlencode($location); ?>"
+                class="myButton">Encode Sales Report</a>
+
+
 
                 <!-- Upload File Button
             <label for="file-upload" class="myButton">Upload File</label>
