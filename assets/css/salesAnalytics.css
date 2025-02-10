@@ -1,0 +1,398 @@
+
+
+/* Title Styles */
+h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-top: 20px;
+}
+
+/* Overview Cards */
+.boxes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.box {
+    flex: 1;
+    min-width: 250px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.box:hover {
+    transform: translateY(-5px);
+}
+
+.box1 {
+    border-top: 5px solid #ff4d4d; /* Red for Expenses */
+}
+.box2 {
+    border-top: 5px solid #1e90ff; /* Blue for Sales */
+}
+.box3 {
+    border-top: 5px solid #28a745; /* Green for Profit */
+}
+
+.text1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Franchise Sales Chart */
+#franchiseSalesChart {
+    max-width: 500px;
+    max-height: 500px;
+    margin: auto;
+    display: block;
+}
+
+/* Franchise & Branch Sales Section */
+
+#franchiseBranchChart {
+    max-width: 500px;
+    max-height: 500px;
+    margin: auto;
+    display: block;
+}
+
+
+/* Title Alignment */
+.chart-box h2 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+
+/* Title Styling */
+.chart-box h2 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+
+/* Bar Charts */
+.bar-charts-container .chart-box {
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Responsive Layout */
+@media screen and (max-width: 992px) {
+    .charts-container {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* Canvas Size */
+.chart-container canvas {
+    max-width: 300px;
+    max-height: 300px;
+}
+
+/* Legend Styling (Now Below Charts) */
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 15px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Legend Items */
+.chart-legend div {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+    margin-bottom: 5px;
+}
+
+/* Legend Color Box */
+.chart-legend span {
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+    margin-right: 6px;
+    border-radius: 3px;
+}
+
+/* Checkbox Container */
+#franchiseCheckboxes {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center; /* Ensures vertical alignment */
+    padding: 8px 10px;
+    width: fit-content;
+    margin: auto;
+    gap: 15px; /* Adds spacing between checkboxes */
+}
+
+/* Checkbox Labels */
+#franchiseCheckboxes label {
+    display: flex;
+    align-items: center; /* Ensures perfect alignment */
+    gap: 1px; /* Adjusts spacing between checkbox and text */
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+    line-height: 1.2; /* Ensures text and checkbox align properly */
+}
+
+/* Checkbox Input */
+#franchiseCheckboxes input[type="checkbox"] {
+    appearance: none; /* Hide default checkbox */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #007bff;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: 0.2s;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle; /* Ensures checkbox aligns with text */
+}
+
+/* Custom Checkbox Check Effect */
+#franchiseCheckboxes input[type="checkbox"]:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* Checkmark when selected */
+#franchiseCheckboxes input[type="checkbox"]:checked::before {
+    content: "✔";
+    font-size: 12px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Hover Effect */
+#franchiseCheckboxes label:hover {
+    color: #007bff;
+}
+
+
+
+
+/* Main Charts Container */
+.charts-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: 1700px;
+    margin: auto;
+    margin-top: 10px;
+    /* padding: 10px; */
+}
+
+
+/* Right Chart Container (Holds Pie + Stacked Bar Charts) */
+.right-chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex: 1;
+}
+
+/* Stacked Bar Charts (Best-Selling & Worst-Selling Products) */
+.stacked-bar-charts {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between stacked bar charts */
+    align-items: center;
+}
+
+/* Stacked Bar Charts (Best-Selling & Worst-Selling) */
+.bar-charts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between stacked bar charts */
+}
+
+/* Smaller Bar Charts */
+.small-chart {
+    width: 100%;
+    max-width: 350px;
+}
+
+
+/* General Chart Box Styling */
+.chart-box {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 400px; /* Reduced size */
+    width: 100%;
+}
+
+/* Franchise & Branch Sales Pie Chart */
+#franchiseBranchChartContainer {
+    max-width: 500px; /* Adjusted width */
+    padding: 10px;
+}
+
+/* Canvas Size Reduction */
+.chart-box canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 300px; /* Reduces width */
+    max-height: 200px; /* Reduces height */
+}
+
+/* Legend Styling */
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Franchise & Branch Sales Pie Chart Container */
+
+/* Canvas Size Reduction */
+#franchiseBranchChart {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 300px; /* Reduced width */
+    max-height: 250px; /* Reduced height */
+}
+
+
+/* Responsive Layout */
+@media screen and (max-width: 992px) {
+    .charts-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .right-chart-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .small-chart {
+        max-width: 100%;
+    }
+}
+/* Main Charts Container */
+.charts-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: 1700px;
+    margin: auto;
+    margin-top: 15px;
+    /* padding: 20px; */
+}
+
+/* Left Section (Franchise Sales Chart) */
+.chart-box {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 500px;
+    width: 100%;
+}
+
+/* Right Section: Pie Chart & Bar Charts */
+.right-content {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    flex: 2;
+    align-items: flex-start;
+}
+
+/* Franchise & Branch Sales Pie Chart */
+#franchiseBranchChartContainer {
+    max-width: 500px;
+    padding: 10px;
+}
+
+/* Bar Charts Container: Stacked Beside Pie Chart */
+.bar-charts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space between stacked bar charts */
+    width: 100%;
+    max-width: 300px; /* Adjust width to fit in the right side */
+}
+
+/* Smaller Bar Charts */
+.small-chart {
+    width: 100%;
+    max-width: 300px; /* Adjust width to ensure it fits */
+}
+
+/* Pie Chart & Bar Chart Canvas */
+.chart-box canvas {
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 200px; /* Further reduced height */
+}
+
+/* Legend Styling */
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Responsive Layout */
+@media screen and (max-width: 992px) {
+    .charts-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .right-content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .bar-charts-container {
+        max-width: 100%;
+    }
+
+    .small-chart {
+        max-width: 100%;
+    }
+}
