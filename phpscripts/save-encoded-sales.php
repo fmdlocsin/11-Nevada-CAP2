@@ -36,14 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $acId = mysqli_real_escape_string($con, $transaction['acId']);
         $grandTotal = isset($transaction['grandTotal']) ? mysqli_real_escape_string($con, $transaction['grandTotal']) : 0;
 
-        // Ensure consistent service name formatting
+        // Ensure consistent service name formatting (lowercase)
+        $servicesRaw = strtolower(trim(mysqli_real_escape_string($con, $transaction['services'])));
         $servicesMap = [
-            "dine-in" => "Dine-In",
-            "take-out" => "Take-Out",
-            "delivery" => "Delivery"
+            "dine-in" => "dine-in",
+            "take-out" => "take-out",
+            "delivery" => "delivery"
         ];
-        $services = strtolower(mysqli_real_escape_string($con, $transaction['services']));
-        $services = $servicesMap[$services] ?? "Unknown";
+        $services = isset($servicesMap[$servicesRaw]) ? $servicesMap[$servicesRaw] : "unknown";
 
         // Payment details
         $cashCard = isset($transaction['cashCard']) ? mysqli_real_escape_string($con, $transaction['cashCard']) : 0;
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         }
 
         // Store transactions as a comma-separated string
-        if ($services === "Dine-In" || $services === "Take-Out") {
+        if ($services === "dine-in" || $services === "take-out") {
             $transactionsString = implode(",", [$cashCard, $gCash, $paymaya, $totalSales]);
         } else {
             $transactionsString = implode(",", [$grabFood, $foodPanda, $totalSales]);
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             '$acId',
             '$logged_in_user',
             '$franchise',
-            '$services',
+            LOWER('$services'),
             '$transactionsString',
             '$grandTotal',
             '$date',

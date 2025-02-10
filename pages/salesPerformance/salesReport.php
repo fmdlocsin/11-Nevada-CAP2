@@ -24,10 +24,31 @@ $result = mysqli_query($con, $query);
 if ($result && mysqli_num_rows($result) > 0) {
     $data = mysqli_fetch_assoc($result);
 
-    // Convert transactions from a string back to an array
+$servicesRaw = strtolower(trim($data['services']));
+$serviceMap = [
+    'dine-in' => 'Dine-In',
+    'take-out' => 'Take-Out',
+    'delivery' => 'Delivery'
+];
+
+$servicesFormatted = isset($serviceMap[$servicesRaw]) ? $serviceMap[$servicesRaw] : 'Delivery';
+
+// Convert transactions from a string back to an array
 $transactions = explode(",", $data['transactions']);
 
-if ($data['services'] === "Dine-In" || $data['services'] === "Take-Out") {
+// Ensure transactions have correct indexes
+if (count($transactions) < 4 && ($servicesFormatted === "Dine-In" || $servicesFormatted === "Take-Out")) {
+    while (count($transactions) < 4) {
+        $transactions[] = 0; // Fill missing values with 0
+    }
+} elseif (count($transactions) < 3 && $servicesFormatted === "Delivery") {
+    while (count($transactions) < 3) {
+        $transactions[] = 0;
+    }
+}
+
+// Assign transactions based on service type
+if ($servicesFormatted === "Dine-In" || $servicesFormatted === "Take-Out") {
     $data['transactions'] = [
         "Cash/Card" => $transactions[0],
         "GCash" => $transactions[1],
@@ -103,30 +124,49 @@ if ($data['services'] === "Dine-In" || $data['services'] === "Take-Out") {
                     </tr>
                 </thead>
                 <tbody>
-                     <?php if ($data['services'] === "Dine-In" || $data['services'] === "Take-Out"): ?>
-            <tr>
-                <td rowspan="3"><?php echo htmlspecialchars($data['services']); ?></td>
-                <td>Cash/Card</td>
-                <td>₱ <?php echo number_format($data['transactions']['Cash/Card'], 2); ?></td>
-            </tr>
-            <tr>
-                <td>GCash</td>
-                <td>₱ <?php echo number_format($data['transactions']['GCash'], 2); ?></td>
-            </tr>
-        <?php else: ?>
-            <tr>
-                <td rowspan="2">Delivery</td>
-                <td>GrabFood</td>
-                <td>₱ <?php echo number_format($data['transactions']['GrabFood'], 2); ?></td>
-            </tr>
-        <?php endif; ?>
-                    <!-- Grand Total Row -->
-                <tfoot>
-                    <tr>
-                        <td colspan="2" style="text-align: right;">Grand Total:</td>
-                        <td>₱ <?php echo number_format($data['grand_total'], 2); ?></td>
-                    </tr>
-                </tfoot>
+    <?php if ($servicesFormatted === "Dine-In" || $servicesFormatted === "Take-Out"): ?>
+        <tr>
+    <td rowspan="4"><?php echo htmlspecialchars($servicesFormatted); ?></td>
+    <td>Cash/Card</td>
+    <td>₱ <?php echo number_format(isset($data['transactions']['Cash/Card']) ? $data['transactions']['Cash/Card'] : 0, 2); ?></td>
+</tr>
+<tr>
+    <td>GCash</td>
+    <td>₱ <?php echo number_format(isset($data['transactions']['GCash']) ? $data['transactions']['GCash'] : 0, 2); ?></td>
+</tr>
+<tr>
+    <td>Paymaya</td>
+    <td>₱ <?php echo number_format(isset($data['transactions']['Paymaya']) ? $data['transactions']['Paymaya'] : 0, 2); ?></td>
+</tr>
+<tr>
+    <td>Other Sales</td>
+    <td>₱ <?php echo number_format(isset($data['transactions']['Other Sales']) ? $data['transactions']['Other Sales'] : 0, 2); ?></td>
+</tr>
+
+    <?php else: ?>
+        <tr>
+    <td rowspan="3"><?php echo htmlspecialchars($servicesFormatted); ?></td>
+    <td>GrabFood</td>
+    <td>₱ <?php echo number_format(isset($data['transactions']['GrabFood']) ? $data['transactions']['GrabFood'] : 0, 2); ?></td>
+</tr>
+<tr>
+    <td>FoodPanda</td>
+    <td>₱ <?php echo number_format(isset($data['transactions']['FoodPanda']) ? $data['transactions']['FoodPanda'] : 0, 2); ?></td>
+</tr>
+<tr>
+    <td>Other Sales</td>
+    <td>₱ <?php echo number_format(isset($data['transactions']['Other Sales']) ? $data['transactions']['Other Sales'] : 0, 2); ?></td>
+</tr>
+
+    <?php endif; ?>
+</tbody>
+<tfoot>
+    <tr>
+        <td colspan="2" style="text-align: right;">Grand Total:</td>
+        <td>₱ <?php echo number_format($data['grand_total'], 2); ?></td>
+    </tr>
+</tfoot>
+
 
                 </tbody>
             </table>

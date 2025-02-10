@@ -153,14 +153,18 @@ function getEatTypeAndBranchFromUrl() {
     };
 
     var eatTypeFormattedMap = {
-        "DineIn": "Dine-In",
-        "TakeOut": "Take-Out",
-        "Delivery": "Delivery"
+        "dinein": "Dine-In",
+        "takeout": "Take-Out",
+        "delivery": "Delivery"
     };
+    
+    var eatTypeLower = eatType.toLowerCase().replace(/\s/g, ''); // Normalize input
+    var eatTypeFormatted = eatTypeFormattedMap[eatTypeLower] || eatType;
+    
 
     // Format retrieved values
     var franchiseFormatted = franchiseFormattedMap[franchise] || franchise;
-    var eatTypeFormatted = eatTypeFormattedMap[eatType] || eatType;
+    // var eatTypeFormatted = eatTypeFormattedMap[eatType] || eatType;
     var locationFormatted = decodeURIComponent(location); // Ensure location is properly decoded
 
     console.log("Extracted Parameters:", {
