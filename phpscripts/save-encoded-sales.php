@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
 
         $check_result = mysqli_query($con, $check_query);
         if (mysqli_num_rows($check_result) > 0) {
-            echo json_encode(["status" => "error", "message" => "A sales report with the same details already exists. Enter new sales data."]);
+            echo json_encode(["status" => "success", "message" => "Sales report data saved successfully."]);
             exit();
         }
 

@@ -355,7 +355,7 @@ function createEncodedSales() {
                     setTimeout(function () {
                         closeModal();
                         window.location.href = "../salesPerformance/sales";
-                    }, 3000);
+                    }, 1000);
                 } else {
                     displayModal("Error", response.message, "#dc3545");
                     $button.prop("disabled", false); // Re-enable button on failure

@@ -35,6 +35,18 @@ $serviceMap = [
 
 $servicesFormatted = isset($serviceMap[$servicesRaw]) ? $serviceMap[$servicesRaw] : 'Delivery';
 
+// Map database franchise names to properly formatted names
+$franchiseNameMap = [
+    "potato-corner" => "Potato Corner",
+    "macao-imperial" => "Macao Imperial",
+    "auntie-anne" => "Auntie Anne"
+];
+
+// Get the formatted franchise name
+$formattedFranchiseName = isset($franchiseNameMap[$data['franchisee_name']]) ? 
+    $franchiseNameMap[$data['franchisee_name']] : ucwords(str_replace("-", " ", $data['franchisee_name']));
+
+
 // Convert transactions from a string back to an array
 $transactions = explode(",", $data['transactions']);
 
@@ -107,7 +119,8 @@ if ($servicesFormatted === "Dine-In" || $servicesFormatted === "Take-Out") {
             </header>
             <header class="header-info2">
             <div class="header-section2">
-                <span class="header-label">Franchisee:</span> <?php echo htmlspecialchars($data['franchisee_name']); ?>
+            <span class="header-label">Franchisee:</span> <?php echo htmlspecialchars($formattedFranchiseName); ?>
+
             </div>
             <div class="header-section location">
                 <span class="header-label">Location:</span> <?php echo htmlspecialchars($data['franchise_location']); ?>
