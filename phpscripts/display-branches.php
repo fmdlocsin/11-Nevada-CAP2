@@ -7,25 +7,27 @@ $data = [];
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $formattedFranchisee = isset($_POST['formattedFranchisee']) ? mysqli_real_escape_string($con, $_POST['formattedFranchisee']) : "";
     $branchLocation = isset($_POST['branchLocation']) ? mysqli_real_escape_string($con, $_POST['branchLocation']) : "";
+    $eatType = isset($_POST['eatType']) ? mysqli_real_escape_string($con, $_POST['eatType']) : ""; // Get eat type
 
     if (empty($formattedFranchisee)) {
         echo json_encode(["status" => "error", "message" => "Missing franchise"]);
         exit;
     }
 
-    // If `branchLocation` is provided, filter by both franchise and location
+    // Base SQL query
+    $sql = "SELECT ac_id, franchisee, location, classification 
+            FROM agreement_contract 
+            WHERE franchisee = '$formattedFranchisee' 
+            AND status = 'active'";
+
+    // Exclude kiosks if "Dine In" is selected
+    if ($eatType === "DineIn") {
+        $sql .= " AND classification != 'Kiosk'";
+    }
+
+    // If filtering by specific location
     if (!empty($branchLocation)) {
-        $sql = "SELECT ac_id, franchisee, location 
-                FROM agreement_contract 
-                WHERE franchisee = '$formattedFranchisee' 
-                AND location = '$branchLocation' 
-                AND status = 'active'";
-    } else {
-        // If `branchLocation` is not provided, return all active branches for the franchise
-        $sql = "SELECT ac_id, franchisee, location 
-                FROM agreement_contract 
-                WHERE franchisee = '$formattedFranchisee' 
-                AND status = 'active'";
+        $sql .= " AND location = '$branchLocation'";
     }
 
     $result = mysqli_query($con, $sql);
