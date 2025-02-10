@@ -4,7 +4,7 @@ body {
 }
 
 .container {
-    width: 90%;
+    width: 95%;
     margin: 20px auto;
     padding: 20px;
 }
@@ -63,6 +63,27 @@ body {
     min-width: 250px; /* Ensures responsiveness */
 }
 
+.kpi-subtext {
+    font-size: 12px;
+    color: #ddd;
+    margin-top: 5px;
+}
+
+.kpi-card.expiration {
+    background: #F0AD4E; /* Orange for warning */
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+}
+
+.kpi-card.expiration:hover {
+    transform: scale(1.05);
+}
+
+
 /* Ensure responsive behavior */
 @media (max-width: 768px) {
     .kpi-card {
@@ -98,4 +119,30 @@ body {
     #contractRenewalChart {
         max-height: 250px !important; /* Smaller chart on mobile */
     }
+}
+
+
+.content-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.content-table th, .content-table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.content-table thead {
+    background: #1F375D;
+    color: white;
+}
+
+.content-table tbody tr:hover {
+    background-color: #8cb2f5;
 }

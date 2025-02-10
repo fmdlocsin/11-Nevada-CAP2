@@ -1,19 +1,10 @@
 window.onload = function () {
     console.log("Chart script loaded successfully!");
 
-    let expiringElem = document.getElementById("expiringContracts");
-    let renewedElem = document.getElementById("renewedContracts");
-
-    if (!expiringElem || !renewedElem) {
-        console.error("Could not find elements for contract values.");
+    if (!expiredContractsData || expiredContractsData.length === 0) {
+        console.error("No expired contracts data available.");
         return;
     }
-
-    let expiringContracts = parseInt(expiringElem.textContent.trim()) || 0;
-    let renewedContracts = parseInt(renewedElem.textContent.trim()) || 0;
-
-    console.log("Expiring Contracts:", expiringContracts);
-    console.log("Renewed Contracts:", renewedContracts);
 
     let chartCanvas = document.getElementById("contractRenewalChart");
     if (!chartCanvas) {
@@ -23,36 +14,36 @@ window.onload = function () {
 
     let ctx = chartCanvas.getContext("2d");
 
+    // Extract months and counts
+    let labels = expiredContractsData.map(entry => entry.month);
+    let expiredCounts = expiredContractsData.map(entry => entry.count);
+
     // Create gradient effect
-    let gradientExpiring = ctx.createLinearGradient(0, 0, 0, 400);
-    gradientExpiring.addColorStop(0, "#FF6A88"); // Brighter red
-    gradientExpiring.addColorStop(1, "#FF9472"); // Softer orange
+    let gradientExpired = ctx.createLinearGradient(0, 0, 0, 400);
+    gradientExpired.addColorStop(0, "#FF6A88");
+    gradientExpired.addColorStop(1, "#FF9472");
 
-    let gradientRenewed = ctx.createLinearGradient(0, 0, 0, 400);
-    gradientRenewed.addColorStop(0, "#56CCF2"); // Bright blue
-    gradientRenewed.addColorStop(1, "#2F80ED"); // Darker blue
-
-    // Generate Chart
+    // Generate Expired Contracts Trend Chart
     new Chart(ctx, {
-        type: "bar",
+        type: "line",
         data: {
-            labels: ["Expiring Contracts", "Renewed Contracts"],
+            labels: labels,
             datasets: [{
-                label: "Contract Status",
-                data: [expiringContracts, renewedContracts],
-                backgroundColor: [gradientExpiring, gradientRenewed],
-                borderColor: ["#FF6A88", "#56CCF2"],
-                borderWidth: 1,
-                borderRadius: 10, // Rounded edges
-                barThickness: 60 // Ensures bars are evenly spaced
+                label: "Expired Contracts Over Time",
+                data: expiredCounts,
+                borderColor: "#FF6A88",
+                backgroundColor: gradientExpired,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
             plugins: {
-                legend: { display: false },
+                legend: { display: true },
                 tooltip: {
-                    backgroundColor: "#1F375D", // Matches dashboard theme
+                    backgroundColor: "#1F375D",
                     titleFont: { weight: "bold" },
                     bodyFont: { size: 14 },
                     bodyColor: "#fff",
@@ -65,16 +56,16 @@ window.onload = function () {
                     ticks: {
                         precision: 0,
                         font: { size: 14 },
-                        color: "#1F375D" // Matches theme
+                        color: "#1F375D"
                     },
                     grid: {
-                        color: "rgba(0,0,0,0.1)" // Subtle grid
+                        color: "rgba(0,0,0,0.1)"
                     }
                 },
                 x: {
                     ticks: {
                         font: { size: 14 },
-                        color: "#1F375D" // Matches theme
+                        color: "#1F375D"
                     },
                     grid: { display: false }
                 }

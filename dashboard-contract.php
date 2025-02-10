@@ -11,10 +11,22 @@ if (!isset($con) || !$con) {
 }
 
 
-// Fetch Active Franchise Contracts (Using agreement_contract table)
-$activeContractsQuery = "SELECT COUNT(*) as total FROM agreement_contract WHERE status = 'active'";
-$activeContractsResult = mysqli_query($con, $activeContractsQuery);
-$activeContracts = ($activeContractsResult) ? mysqli_fetch_assoc($activeContractsResult)['total'] : 0;
+// Fetch Active Agreement Contracts (Dynamically calculated)
+$activeAgreementContractsQuery = "
+    SELECT COUNT(*) as total 
+    FROM agreement_contract 
+    WHERE agreement_date >= CURDATE()";
+$activeAgreementContractsResult = mysqli_query($con, $activeAgreementContractsQuery);
+$activeAgreementContracts = ($activeAgreementContractsResult) ? mysqli_fetch_assoc($activeAgreementContractsResult)['total'] : 0;
+
+
+// Fetch Active Leasing Contracts
+$activeLeasingContractsQuery = "SELECT COUNT(*) as total FROM lease_contract WHERE status = 'active'";
+$activeLeasingContractsResult = mysqli_query($con, $activeLeasingContractsQuery);
+$activeLeasingContracts = ($activeLeasingContractsResult) ? mysqli_fetch_assoc($activeLeasingContractsResult)['total'] : 0;
+
+// Calculate Total Active Contracts
+$totalActiveContracts = $activeAgreementContracts + $activeLeasingContracts;
 
 // Fetch Agreement Contracts Expiring in the Next 30 Days
 $expiringContractsQuery = "SELECT COUNT(*) as total 
@@ -32,8 +44,43 @@ $renewedContractsResult = mysqli_query($con, $renewedContractsQuery);
 $renewedContracts = ($renewedContractsResult) ? mysqli_fetch_assoc($renewedContractsResult)['total'] : 0;
 
 
+// Fetch Expired Agreement Contracts (Dynamically Calculated)
+$expiredContractsQuery = "
+    SELECT COUNT(*) as total 
+    FROM agreement_contract 
+    WHERE agreement_date < CURDATE()";
+$expiredContractsResult = mysqli_query($con, $expiredContractsQuery);
+$expiredContracts = ($expiredContractsResult) ? mysqli_fetch_assoc($expiredContractsResult)['total'] : 0;
+
+// Fetch Total Contracts
+$totalContractsQuery = "SELECT COUNT(*) as total FROM agreement_contract";
+$totalContractsResult = mysqli_query($con, $totalContractsQuery);
+$totalContracts = ($totalContractsResult) ? mysqli_fetch_assoc($totalContractsResult)['total'] : 1;
+
+// Fetch Expired Contracts Trend (Grouped by Month)
+$expiredContractsTrendQuery = "
+    SELECT YEAR(agreement_date) AS year, MONTH(agreement_date) AS month, COUNT(*) AS expired_count
+    FROM agreement_contract
+    WHERE agreement_date < CURDATE()
+    GROUP BY YEAR(agreement_date), MONTH(agreement_date)
+    ORDER BY YEAR(agreement_date), MONTH(agreement_date)";
+
+$expiredContractsTrendResult = mysqli_query($con, $expiredContractsTrendQuery);
+
+$expiredContractsData = [];
+while ($row = mysqli_fetch_assoc($expiredContractsTrendResult)) {
+    $expiredContractsData[] = [
+        "month" => "{$row['year']}-{$row['month']}",
+        "count" => $row["expired_count"]
+    ];
+}
+
+// Calculate Expiration Rate
+$expirationRate = ($expiredContracts / $totalContracts) * 100;
+
+
 // Close the database connection
-mysqli_close($con);
+// mysqli_close($con);
 
 ?>
 
@@ -55,6 +102,10 @@ mysqli_close($con);
     <!-- ===== Boxicons CSS ===== -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
+    <!-- Send Expired Contracts Data to JavaScript -->
+    <script>
+        var expiredContractsData = <?php echo json_encode($expiredContractsData); ?>;
+    </script>
 
 </head>
 
@@ -131,9 +182,10 @@ mysqli_close($con);
                                 <div class="col-md-4 kpi-col">
                                     <div class="card kpi-card">
                                         <div class="card-body">
-                                            <i class="kpi-icon ni ni-chart-bar-32"></i> <!-- Icon -->
+                                            <i class="kpi-icon ni ni-chart-bar-32"></i>
                                             <h4>Active Contracts</h4>
-                                            <h2 class="kpi-number" id="activeContracts"><?php echo $activeContracts; ?></h2>
+                                            <h2 class="kpi-number"><?php echo $totalActiveContracts; ?></h2>
+                                            <p class="kpi-subtext">Agreement: <strong><?php echo $activeAgreementContracts; ?></strong> | Leasing: <strong><?php echo $activeLeasingContracts; ?></strong></p>
                                         </div>
                                     </div>
                                 </div>
@@ -149,22 +201,87 @@ mysqli_close($con);
                                 </div>
 
                                 <div class="col-md-4 kpi-col">
-                                    <div class="card kpi-card">
+                                    <div class="card kpi-card expired">
                                         <div class="card-body">
-                                            <i class="kpi-icon ni ni-check-bold"></i> <!-- Icon -->
-                                            <h4>Contracts Renewed</h4> <!-- Shortened Title -->
-                                            <h2 class="kpi-number" id="renewedContracts"><?php echo $renewedContracts; ?></h2>
+                                            <i class="kpi-icon ni ni-alert-circle-exc"></i> <!-- Warning Icon -->
+                                            <h4>Expired Contracts</h4>
+                                            <h2 class="kpi-number" id="expiredContracts"><?php echo $expiredContracts; ?></h2>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="col-md-4 kpi-col">
+                                    <div class="card kpi-card expiration">
+                                        <div class="card-body">
+                                            <i class="kpi-icon ni ni-chart-pie-35"></i>
+                                            <h4>Expiration Rate</h4>
+                                            <h2 class="kpi-number"><?php echo round($expirationRate, 2); ?>%</h2>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
 
+                <!-- ----------------------------------- TABLE ----------------------------------- -->
 
-                            
-                            <!-- Graphs -->
+                            <table class="content-table">
+                                <thead>
+                                    <tr>
+                                        <th>Franchise Name</th>
+                                        <th>Active Contracts</th>
+                                        <th>Expiring Next Month</th>
+                                        <th>Expired Contracts</th> <!-- New Column -->
+                                        <th>Renewal Rate (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $franchiseQuery = "
+                                        SELECT franchisee, 
+                                            COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_contracts,
+                                            COUNT(CASE WHEN agreement_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_contracts,
+                                            COUNT(CASE WHEN agreement_date < CURDATE() THEN 1 END) AS expired_contracts,  /* New Query */
+                                            COUNT(CASE WHEN agreement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) THEN 1 END) AS renewed_contracts
+                                        FROM agreement_contract
+                                        GROUP BY franchisee";
+                                    
+                                    $franchiseResult = mysqli_query($con, $franchiseQuery);
+
+                                    // Define mapping of database names to formatted names
+                                    $franchiseNameMap = [
+                                        "auntie-anne" => "Auntie Anne",
+                                        "macao-imperial" => "Macao Imperial",
+                                        "potato-corner" => "Potato Corner"
+                                    ];
+
+                                    while ($row = mysqli_fetch_assoc($franchiseResult)) {
+                                        // Convert franchisee name using the mapping
+                                        $formattedFranchiseName = isset($franchiseNameMap[$row['franchisee']]) ? 
+                                                                $franchiseNameMap[$row['franchisee']] : 
+                                                                ucfirst(str_replace("-", " ", $row['franchisee'])); // Fallback for unexpected names
+
+                                        $renewalRate = ($row['renewed_contracts'] / max(1, ($row['renewed_contracts'] + $row['expired_contracts']))) * 100;
+
+
+                                        
+                                        echo "<tr>
+                                                <td>{$formattedFranchiseName}</td>
+                                                <td>{$row['active_contracts']}</td>
+                                                <td>{$row['expiring_contracts']}</td>
+                                                <td>{$row['expired_contracts']}</td> <!-- New Column Data -->
+                                                <td>" . round($renewalRate, 2) . "%</td>
+                                            </tr>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+
+                <!-- ----------------------------------- GRAPH ----------------------------------- -->
                             <div class="chart-container">
+                                <h3>Expired Contracts Over Time</h3>
                                 <canvas id="contractRenewalChart"></canvas>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -185,6 +302,10 @@ mysqli_close($con);
     <script src="assets/js/dashboard-contract-script.js"></script>
     <script src="assets/js/navbar.js"></script>
     <!-- <script src="assets/js/content.js"></script> -->
+
+    <!-- Close the connection at the very end -->
+    <?php mysqli_close($con); ?>
+
 </body>
 
 </html>
