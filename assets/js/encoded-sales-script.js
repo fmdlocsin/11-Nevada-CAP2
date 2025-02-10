@@ -139,66 +139,74 @@ function calculateGrandTotal() {
 
 
 function getEatTypeAndBranchFromUrl() {
-    var queryString = window.location.search.substring(1);
-    var queryParts = queryString.split("/");
+    var urlParams = new URLSearchParams(window.location.search);
 
-    var eatType = "";
-    var franchise = "";
-
-    queryParts.forEach(function (part) {
-        if (part.startsWith("tp=")) {
-            eatType = part.substring(3);
-        } else if (part.startsWith("franchise=")) {
-            franchise = part.substring(10);
-        }
-    });
+    var eatType = urlParams.get("tp") || ""; // Get eat type
+    var franchise = urlParams.get("franchise") || ""; // Get franchise
+    var location = urlParams.get("location") || ""; // Get location
 
     // Map franchise names to database-compatible formats
     var franchiseFormattedMap = {
-        PotatoCorner: "potato-corner",
-        MacaoImperial: "macao-imperial",
-        AuntieAnne: "auntie-anne",
+        "PotatoCorner": "potato-corner",
+        "MacaoImperial": "macao-imperial",
+        "AuntieAnne": "auntie-anne"
     };
 
     var eatTypeFormattedMap = {
-        DineIn: "Dine-In",
-        TakeOut: "Take-Out",
-        Delivery: "Delivery",
+        "dinein": "Dine-In",
+        "takeout": "Take-Out",
+        "delivery": "Delivery"
     };
+    
+    var eatTypeLower = eatType.toLowerCase().replace(/\s/g, ''); // Normalize input
+    var eatTypeFormatted = eatTypeFormattedMap[eatTypeLower] || eatType;
+    
 
+    // Format retrieved values
     var franchiseFormatted = franchiseFormattedMap[franchise] || franchise;
-    var eatTypeFormatted = eatTypeFormattedMap[eatType] || eatType;
+    // var eatTypeFormatted = eatTypeFormattedMap[eatType] || eatType;
+    var locationFormatted = decodeURIComponent(location); // Ensure location is properly decoded
+
+    console.log("Extracted Parameters:", {
+        eatType,
+        franchise,
+        location: locationFormatted,
+        eatTypeFormatted,
+        franchiseFormatted
+    });
 
     return {
         eatType: eatType,
         franchise: franchise,
+        location: locationFormatted,
         eatTypeFormatted: eatTypeFormatted,
-        franchiseFormatted: franchiseFormatted,
+        franchiseFormatted: franchiseFormatted
     };
 }
 
-function updateSalesSectionForm(urlParams, salesSectionForm = $("#salesSectionForm")) {
+function updateSalesSectionForm(urlParams) {
     var salesSectionHTML = "";
-    if (urlParams.eatType === "TakeOut" || urlParams.eatType === "DineIn") {
+
+    if (urlParams.eatTypeFormatted === "Take-Out" || urlParams.eatTypeFormatted === "Dine-In") {
         salesSectionHTML = `
             <div class="sales-section">
                 <div class="details transactionType">
                     <p>${urlParams.eatTypeFormatted}</p>
                     <div class="fields">
                         <div class="input-field transactionType">
-                            <label>Cash/Card: <span class="text-danger">*</span></label>
+                            <label>Cash/Card:</label>
                             <input type="number" class="amount-input input-cash-card" placeholder="Enter Amount" required>
                         </div>
                         <div class="input-field transactionType">
-                            <label>GCash: <span class="text-danger">*</span></label>
+                            <label>GCash:</label>
                             <input type="number" class="amount-input input-gcash" placeholder="Enter Amount" required>
                         </div>
                         <div class="input-field transactionType">
-                            <label>Paymaya: <span class="text-danger">*</span></label>
+                            <label>Paymaya:</label>
                             <input type="number" class="amount-input input-paymaya" placeholder="Enter Amount" required>
                         </div>
                         <div class="input-field transactionType">
-                            <label>Other ${urlParams.eatTypeFormatted} Sales: <span class="text-danger">*</span></label>
+                            <label>Other Sales:</label>
                             <input type="number" class="amount-input input-total-sales" placeholder="Enter Amount" required>
                         </div>
                     </div>
@@ -212,15 +220,15 @@ function updateSalesSectionForm(urlParams, salesSectionForm = $("#salesSectionFo
                     <p>${urlParams.eatTypeFormatted}</p>
                     <div class="fields">
                         <div class="input-field transactionType">
-                            <label>GrabFood: <span class="text-danger">*</span></label>
+                            <label>GrabFood:</label>
                             <input type="number" class="amount-input input-grab-food" placeholder="Enter Amount" required>
                         </div>
                         <div class="input-field transactionType">
-                            <label>foodpanda: <span class="text-danger">*</span></label>
+                            <label>FoodPanda:</label>
                             <input type="number" class="amount-input input-food-panda" placeholder="Enter Amount" required>
                         </div>
                         <div class="input-field transactionType">
-                            <label>Other ${urlParams.eatTypeFormatted} Sales: <span class="text-danger">*</span></label>
+                            <label>Other Sales:</label>
                             <input type="number" class="amount-input input-total-sales" placeholder="Enter Amount" required>
                         </div>
                     </div>
@@ -228,35 +236,49 @@ function updateSalesSectionForm(urlParams, salesSectionForm = $("#salesSectionFo
             </div>
         `;
     }
-    salesSectionForm.html(salesSectionHTML);
 
-    var dashFranchise = urlParams.franchiseFormatted; // Already formatted as "auntie-anne"
-    var dashServices = urlParams.eatTypeFormatted.toLowerCase();
-    var encoderName = $("body").data("user-name");
+    $("#salesSectionForm").html(salesSectionHTML);
 
-    $.ajax({
-        method: "POST",
-        data: { formattedFranchisee: dashFranchise },
-        url: "../../phpscripts/display-branches.php",
-        dataType: "json",
-        success: function (response) {
-            if (response.status === "success") {
-                var info = response.details[0];
-                $(".input-franchise-name").val(urlParams.franchiseFormatted);
-                $(".input-location").val(info.location);
-                $(".input-encoders-name").val(encoderName);
-                var currentDate = new Date().toISOString().slice(0, 10);
-                $(".input-date").val(currentDate);
-                $(".save-encoded-sales").attr("data-ac-id", info.ac_id);
-                $(".save-encoded-sales").attr("data-services", dashServices);
-                $(".save-encoded-sales").attr("data-franchise", dashFranchise);
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error("AJAX Error fetching agreement contracts:", error);
-        },
-    });
+    // Wait for form update before setting values
+    setTimeout(() => {
+        var encoderName = $("body").data("user-name");
+        var branchLocation = urlParams.location; // Capture the correct location
+
+        console.log("Sending Franchise & Location:", { formattedFranchisee: urlParams.franchiseFormatted, branchLocation });
+
+        $.ajax({
+            method: "POST",
+            data: { formattedFranchisee: urlParams.franchiseFormatted, branchLocation: branchLocation },
+            url: "../../phpscripts/display-branches.php",
+            dataType: "json",
+            success: function (response) {
+                if (response.status === "success" && response.details.length > 0) {
+                    var info = response.details[0];
+
+                    console.log("Branch Info Retrieved:", info); // Verify correct branch is returned
+
+                    $(".input-franchise-name").val(urlParams.franchiseFormatted);
+                    $(".input-location").val(info.location); // Ensure correct location is set
+                    $(".input-encoders-name").val(encoderName);
+                    $(".input-date").val(new Date().toISOString().slice(0, 10));
+
+                    $(".save-encoded-sales").attr("data-ac-id", info.ac_id);
+                    $(".save-encoded-sales").attr("data-services", urlParams.eatTypeFormatted);
+                    $(".save-encoded-sales").attr("data-franchise", urlParams.franchiseFormatted);
+                } else {
+                    console.error("Branch details not found:", response);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error fetching branch details:", error);
+            },
+        });
+    }, 500);
 }
+
+
+
+
 
 function addAnotherTransaction() {
     $(document).on("click", ".add-transaction-btn", function () {
@@ -269,29 +291,36 @@ function addAnotherTransaction() {
 
 function createEncodedSales() {
     $(document).on("click", ".save-encoded-sales", function () {
+        var $button = $(this);
+    
+        // Prevent double submission
+        if ($button.prop("disabled")) {
+            console.warn("Save button clicked multiple times, preventing duplicate request.");
+            return;
+        }
+        
+        $button.prop("disabled", true); // Disable button to prevent multiple clicks
+    
         var urlParams = getEatTypeAndBranchFromUrl();
         var encoderName = $("body").data("user-name");
-        var franchise = urlParams.franchiseFormatted;
+        var franchise = $(".input-franchise-name").val();
         var location = $(".input-location").val();
         var date = $(".input-date").val();
-        var acId = $(this).data("ac-id");
-        var services = $(this).data("services");
-        var dashFranchise = $(this).data("franchise");
-
+        var acId = $(this).attr("data-ac-id");
+        var services = urlParams.eatTypeFormatted; // Ensure correct service type
+    
         var transactions = [];
-
         $(".transaction-form").each(function () {
             var productName = $(this).find(".input-product-name").val();
-            var cashCard = $(this).find(".input-cash-card").val();
-            var gCash = $(this).find(".input-gcash").val();
-            var paymaya = $(this).find(".input-paymaya").val();
-            var grabFood = $(this).find(".input-grab-food").val();
-            var foodPanda = $(this).find(".input-food-panda").val();
-            var totalSales = $(this).find(".input-total-sales").val();
-            var grandTotal = $(".input-grand-total").val();
-
-            console.log(totalSales);
-            var transaction = {
+            var cashCard = $(this).find(".input-cash-card").val() || 0;
+            var gCash = $(this).find(".input-gcash").val() || 0;
+            var paymaya = $(this).find(".input-paymaya").val() || 0;
+            var grabFood = $(this).find(".input-grab-food").val() || 0;
+            var foodPanda = $(this).find(".input-food-panda").val() || 0;
+            var totalSales = $(this).find(".input-total-sales").val() || 0;
+            var grandTotal = $(".input-grand-total").val() || 0;
+    
+            transactions.push({
                 encoderName: encoderName,
                 franchise: franchise,
                 location: location,
@@ -305,12 +334,12 @@ function createEncodedSales() {
                 totalSales: totalSales,
                 grandTotal: grandTotal,
                 acId: acId,
-                services: services,
-                dashFranchise: dashFranchise,
-            };
-            transactions.push(transaction);
+                services: services
+            });
         });
-
+    
+        console.log("Submitting Transactions:", transactions);
+    
         $.ajax({
             method: "POST",
             url: "../../phpscripts/save-encoded-sales.php",
@@ -318,27 +347,33 @@ function createEncodedSales() {
             contentType: "application/json",
             dataType: "json",
             success: function (response) {
+                console.log("AJAX Response:", response);
                 if (response.status === "success") {
-                    $("input, button, textarea, select, a").prop(
-                        "disabled",
-                        true
-                    );
+                    $("input, button, textarea, select, a").prop("disabled", true);
                     displayModal("Success", response.message, "#198754");
-
+    
                     setTimeout(function () {
                         closeModal();
                         window.location.href = "../salesPerformance/sales";
-                    }, 3000);
+                    }, 1000);
                 } else {
                     displayModal("Error", response.message, "#dc3545");
+                    $button.prop("disabled", false); // Re-enable button on failure
                 }
             },
             error: function (xhr, status, error) {
-                console.error("AJAX Error:", error);
+                console.error("AJAX Error:", xhr.responseText);
+                displayModal("Error", "Failed to save sales report. Please try again.", "#dc3545");
+                $button.prop("disabled", false); // Re-enable button on error
             },
         });
     });
+    
 }
+
+
+
+
 
 function displayModal(title, message, backgroundColor) {
     $("#modalTitle").text(title);
@@ -364,5 +399,16 @@ $(document).ready(function () {
         $("#fileNameDisplay").text(fileName);
         $("#uploadCsvSalesBtn").text("File Selected ✓").addClass("btn-success");
     });
+});
+
+
+$(document).ready(function () {
+    urlParams = getEatTypeAndBranchFromUrl(); // Assign global variable
+
+    console.log("Captured URL Parameters:", urlParams); // Debugging Log
+
+    updateSalesSectionForm(urlParams);
+    createEncodedSales();
+    calculateGrandTotal();
 });
 
