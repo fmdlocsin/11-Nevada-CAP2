@@ -29,14 +29,19 @@ function displayBranches() {
 
     $.ajax({
         method: "POST",
-        data: { formattedFranchisee: formattedFranchisee },
+        data: { formattedFranchisee: formattedFranchisee, eatType: eatType },
         url: "../../phpscripts/display-branches.php",
-        dataType: "json",
+        dataType: "json",    
         success: function (response) {
             if (response.status === "success") {
                 form.empty();
 
                 response.details.forEach(function (branchInfo) {
+                    // Exclude Kiosk when Dine In is selected
+                    if (eatType === "DineIn" && branchInfo.classification === "Kiosk") {
+                        return; // Skip kiosks
+                    }
+
                     var formattedName = branchInfo.franchisee
                         .replace(/-/g, " ")
                         .replace(/\b\w/g, function (match) {
@@ -58,7 +63,6 @@ function displayBranches() {
                 });
             } else {
                 console.log(response.message);
-
                 form.append(`<p class="text-danger">${response.message}.</p>`);
             }
         },
