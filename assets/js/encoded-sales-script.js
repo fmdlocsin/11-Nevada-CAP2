@@ -291,6 +291,16 @@ function addAnotherTransaction() {
 
 function createEncodedSales() {
     $(document).on("click", ".save-encoded-sales", function () {
+        var $button = $(this);
+    
+        // Prevent double submission
+        if ($button.prop("disabled")) {
+            console.warn("Save button clicked multiple times, preventing duplicate request.");
+            return;
+        }
+        
+        $button.prop("disabled", true); // Disable button to prevent multiple clicks
+    
         var urlParams = getEatTypeAndBranchFromUrl();
         var encoderName = $("body").data("user-name");
         var franchise = $(".input-franchise-name").val();
@@ -298,7 +308,7 @@ function createEncodedSales() {
         var date = $(".input-date").val();
         var acId = $(this).attr("data-ac-id");
         var services = urlParams.eatTypeFormatted; // Ensure correct service type
-
+    
         var transactions = [];
         $(".transaction-form").each(function () {
             var productName = $(this).find(".input-product-name").val();
@@ -309,7 +319,7 @@ function createEncodedSales() {
             var foodPanda = $(this).find(".input-food-panda").val() || 0;
             var totalSales = $(this).find(".input-total-sales").val() || 0;
             var grandTotal = $(".input-grand-total").val() || 0;
-
+    
             transactions.push({
                 encoderName: encoderName,
                 franchise: franchise,
@@ -327,9 +337,9 @@ function createEncodedSales() {
                 services: services
             });
         });
-
+    
         console.log("Submitting Transactions:", transactions);
-
+    
         $.ajax({
             method: "POST",
             url: "../../phpscripts/save-encoded-sales.php",
@@ -341,21 +351,24 @@ function createEncodedSales() {
                 if (response.status === "success") {
                     $("input, button, textarea, select, a").prop("disabled", true);
                     displayModal("Success", response.message, "#198754");
-
+    
                     setTimeout(function () {
                         closeModal();
                         window.location.href = "../salesPerformance/sales";
                     }, 3000);
                 } else {
                     displayModal("Error", response.message, "#dc3545");
+                    $button.prop("disabled", false); // Re-enable button on failure
                 }
             },
             error: function (xhr, status, error) {
                 console.error("AJAX Error:", xhr.responseText);
                 displayModal("Error", "Failed to save sales report. Please try again.", "#dc3545");
+                $button.prop("disabled", false); // Re-enable button on error
             },
         });
     });
+    
 }
 
 

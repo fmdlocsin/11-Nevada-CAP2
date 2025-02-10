@@ -9,7 +9,7 @@ $data = [];
 
 // Updated query
 $query = "
-    SELECT sr.*, 
+    SELECT DISTINCT sr.*, 
            ua.user_name AS encoder_name, 
            ac.franchisee AS franchisee_name, 
            ac.location AS franchise_location 
@@ -17,7 +17,9 @@ $query = "
     LEFT JOIN users_accounts ua ON sr.encoder_id = ua.user_id
     LEFT JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
     WHERE sr.report_id = '$id'
+    LIMIT 1
 ";
+
 
 $result = mysqli_query($con, $query);
 

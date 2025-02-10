@@ -66,6 +66,21 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
             $transactionsString = implode(",", [$grabFood, $foodPanda, $totalSales]);
         }
 
+        // Check if an exact sales report entry already exists for the same branch, service, and date
+        $check_query = "SELECT report_id FROM sales_report 
+                        WHERE ac_id = '$acId' 
+                        AND services = LOWER('$services') 
+                        AND date_added = '$date'
+                        AND transactions = '$transactionsString'
+                        AND grand_total = '$grandTotal'
+                        LIMIT 1";
+
+        $check_result = mysqli_query($con, $check_query);
+        if (mysqli_num_rows($check_result) > 0) {
+            echo json_encode(["status" => "error", "message" => "A sales report with the same details already exists. Enter new sales data."]);
+            exit();
+        }
+
         // Insert into the database
         $productNameValue = $productName ? "'$productName'" : "NULL";
 
