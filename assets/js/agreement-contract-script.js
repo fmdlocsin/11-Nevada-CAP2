@@ -27,7 +27,9 @@ function createDocumentFranchise() {
             rightsGranted.push($(this).val());
         });
 
-        var franchiseTerm = $("#franchise-term").val();
+        var agreementStart = $("#agreement-start").val();
+
+
         var agreementDate = $("#agreement-date").val();
         var location = $("#location").val();
 
@@ -50,7 +52,7 @@ function createDocumentFranchise() {
         formData.append("classification", classification);
 
         formData.append("rightsGranted", rightsGranted);
-        formData.append("franchiseTerm", franchiseTerm);
+        formData.append("agreementStart", agreementStart);
         formData.append("agreementDate", agreementDate);
         formData.append("location", location);
 

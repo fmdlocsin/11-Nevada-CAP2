@@ -116,7 +116,7 @@ function formatFranchiseeName($name)
                     </div>
                     <div class="detail-item">
                         <span>Agreement Date:</span>
-                        <p><?php echo $data['franchise_term']; ?> years</p>
+                        <p><?php echo $data['franchise_term']; ?></p>
                     </div>
                     <div class="detail-item">
                         <span>End Date:</span>

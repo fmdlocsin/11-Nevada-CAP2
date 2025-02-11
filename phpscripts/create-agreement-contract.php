@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $franchise = isset($_POST['franchise']) ? $_POST['franchise'] : '';
     $classification = isset($_POST['classification']) ? $_POST['classification'] : '';
     $rightsGranted = isset($_POST['rightsGranted']) ? $_POST['rightsGranted'] : [];
-    $franchiseTerm = isset($_POST['franchiseTerm']) ? $_POST['franchiseTerm'] : '';
+    $agreementStart = isset($_POST['agreementStart']) ? $_POST['agreementStart'] : '';
     $agreementDate = isset($_POST['agreementDate']) ? $_POST['agreementDate'] : '';
     $location = isset($_POST['location']) ? $_POST['location'] : '';
     $franchiseFee = isset($_POST['franchiseFee']) ? $_POST['franchiseFee'] : '';
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $ac_id = random_int(100000, 999999);
 
     // Check for required fields
-    if (empty($franchise) || empty($classification) || empty($franchiseTerm) || empty($agreementDate) || empty($location)) {
+    if (empty($franchise) || empty($classification) || empty($agreementStart) || empty($agreementDate) || empty($location)) {
         $data['status'] = "error";
         $data['message'] = "Please fill in all required fields.";
     } elseif (!isset($_FILES['notarySealFranchise']) || $_FILES['notarySealFranchise']['error'] != 0) {
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                                 '$franchise',
                                 '$classification',
                                 '$rightsGranted',
-                                '$franchiseTerm',
+                                '$agreementStart',
                                 '$agreementDate',
                                 '$location',
                                 '$franchiseFee',
