@@ -9,9 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $currentDate = new DateTime(); // Today's date
 
     // SQL Query to fetch active contracts with location
-    $sql = "SELECT ac_id, franchisee, location, agreement_date, datetime_added 
+    $sql = "SELECT ac_id, franchisee, location, franchise_term, agreement_date, datetime_added 
         FROM agreement_contract 
         WHERE status = 'active'";
+
 
 $result = mysqli_query($con, $sql);
 

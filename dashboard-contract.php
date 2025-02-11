@@ -78,6 +78,56 @@ while ($row = mysqli_fetch_assoc($expiredContractsTrendResult)) {
 // Calculate Expiration Rate
 $expirationRate = ($expiredContracts / $totalContracts) * 100;
 
+// Determine expiration rate color class
+$expirationRateClass = "low-risk"; // Default to green (good)
+
+if ($expirationRate >= 50) {
+    $expirationRateClass = "high-risk"; // Red (bad)
+} elseif ($expirationRate >= 30) {
+    $expirationRateClass = "medium-risk"; // Yellow (warning)
+}
+
+
+
+// Fetch Average Contract Duration (In Months)
+$avgDurationQuery = "
+    SELECT AVG(TIMESTAMPDIFF(MONTH, franchise_term, agreement_date)) AS avg_duration 
+    FROM agreement_contract";
+$avgDurationResult = mysqli_query($con, $avgDurationQuery);
+$avgContractDuration = ($avgDurationResult) ? round(mysqli_fetch_assoc($avgDurationResult)['avg_duration'], 2) : 0;
+
+// Fetch Contract Duration Per Franchise
+$durationPerFranchiseQuery = "
+    SELECT franchisee, AVG(TIMESTAMPDIFF(MONTH, franchise_term, agreement_date)) AS avg_duration
+    FROM agreement_contract
+    GROUP BY franchisee";
+$durationPerFranchiseResult = mysqli_query($con, $durationPerFranchiseQuery);
+
+$durationPerFranchiseData = [];
+while ($row = mysqli_fetch_assoc($durationPerFranchiseResult)) {
+    $durationPerFranchiseData[] = [
+        "franchise" => $row["franchisee"],
+        "duration" => round($row["avg_duration"], 2)
+    ];
+}
+
+// Fetch Contract Duration Trend (Grouped by Month)
+$contractDurationTrendQuery = "
+    SELECT YEAR(franchise_term) AS year, MONTH(franchise_term) AS month, 
+           AVG(TIMESTAMPDIFF(MONTH, franchise_term, agreement_date)) AS avg_duration
+    FROM agreement_contract
+    GROUP BY YEAR(franchise_term), MONTH(franchise_term)
+    ORDER BY YEAR(franchise_term), MONTH(franchise_term)";
+$contractDurationTrendResult = mysqli_query($con, $contractDurationTrendQuery);
+
+$contractDurationTrendData = [];
+while ($row = mysqli_fetch_assoc($contractDurationTrendResult)) {
+    $contractDurationTrendData[] = [
+        "month" => "{$row['year']}-{$row['month']}",
+        "duration" => round($row["avg_duration"], 2)
+    ];
+}
+
 
 // Close the database connection
 // mysqli_close($con);
@@ -106,6 +156,12 @@ $expirationRate = ($expiredContracts / $totalContracts) * 100;
     <script>
         var expiredContractsData = <?php echo json_encode($expiredContractsData); ?>;
     </script>
+
+    <script>
+        var contractDurationTrendData = <?php echo json_encode($contractDurationTrendData); ?>;
+        var durationPerFranchiseData = <?php echo json_encode($durationPerFranchiseData); ?>;
+    </script>
+
 
 </head>
 
@@ -177,18 +233,18 @@ $expirationRate = ($expiredContracts / $totalContracts) * 100;
                         <div class="container">
                             <h2 class="dashboard-title">Franchise Agreement Monitoring</h2>
 
-                            <!-- KPI Cards -->
+                <!-- ----------------------------------- KPI CARDS PART ----------------------------------- -->
                             <div class="row kpi-row">
                                 <div class="col-md-4 kpi-col">
-                                    <div class="card kpi-card">
+                                    <div class="card kpi-card active-contracts">
                                         <div class="card-body">
-                                            <i class="kpi-icon ni ni-chart-bar-32"></i>
                                             <h4>Active Contracts</h4>
                                             <h2 class="kpi-number"><?php echo $totalActiveContracts; ?></h2>
                                             <p class="kpi-subtext">Agreement: <strong><?php echo $activeAgreementContracts; ?></strong> | Leasing: <strong><?php echo $activeLeasingContracts; ?></strong></p>
                                         </div>
                                     </div>
                                 </div>
+
 
                                 <div class="col-md-4 kpi-col">
                                     <div class="card kpi-card">
@@ -211,7 +267,7 @@ $expirationRate = ($expiredContracts / $totalContracts) * 100;
                                 </div>
 
                                 <div class="col-md-4 kpi-col">
-                                    <div class="card kpi-card expiration">
+                                    <div class="card kpi-card expiration <?php echo $expirationRateClass; ?>">
                                         <div class="card-body">
                                             <i class="kpi-icon ni ni-chart-pie-35"></i>
                                             <h4>Expiration Rate</h4>
@@ -219,11 +275,10 @@ $expirationRate = ($expiredContracts / $totalContracts) * 100;
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
 
-                <!-- ----------------------------------- TABLE ----------------------------------- -->
-
+                <!-- ----------------------------------- TABLE PART ----------------------------------- -->
+                            <h3 class="table-title">Franchise Agreement Contracts Breakdown</h3>
                             <table class="content-table">
                                 <thead>
                                     <tr>
@@ -276,11 +331,94 @@ $expirationRate = ($expiredContracts / $totalContracts) * 100;
                                 </tbody>
                             </table>
 
-                <!-- ----------------------------------- GRAPH ----------------------------------- -->
-                            <div class="chart-container">
-                                <h3>Expired Contracts Over Time</h3>
-                                <canvas id="contractRenewalChart"></canvas>
-                            </div>
+                            <h3 class="table-title">Leasing Contracts Breakdown</h3>
+                            <table class="content-table">
+                                <thead>
+                                    <tr>
+                                        <th>Franchise Name</th>
+                                        <th>Active Leases</th>
+                                        <th>Expiring Next Month</th>
+                                        <th>Expired Leases</th>
+                                        <th>Occupancy Rate (%)</th> <!-- Added similar to renewal rate -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    // Fetch Leasing Contracts Breakdown Per Franchise
+                                    $leasingContractsQuery = "
+                                    SELECT franchisee, 
+                                        COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_contracts,
+                                        COUNT(CASE WHEN end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_contracts,
+                                        COUNT(CASE WHEN end_date < CURDATE() THEN 1 END) AS expired_contracts
+                                    FROM lease_contract
+                                    GROUP BY franchisee";
+
+                                    $leasingResult = mysqli_query($con, $leasingContractsQuery);
+
+                                    // Check if query execution failed
+                                    if (!$leasingResult) {
+                                    die("Error in leasing contracts query: " . mysqli_error($con));
+                                    }
+
+                                    while ($row = mysqli_fetch_assoc($leasingResult)) {
+                                        // Format Franchise Name
+                                        $formattedFranchiseName = isset($franchiseNameMap[$row['franchisee']]) ? 
+                                            $franchiseNameMap[$row['franchisee']] : 
+                                            ucfirst(str_replace("-", " ", $row['franchisee']));
+
+                                        // Calculate Occupancy Rate (similar logic to renewal rate)
+                                        $occupancyRate = ($row['active_contracts'] / max(1, ($row['active_contracts'] + $row['expired_contracts']))) * 100;
+
+                                        echo "<tr>
+                                                <td>{$formattedFranchiseName}</td>
+                                                <td>{$row['active_contracts']}</td>
+                                                <td>{$row['expiring_contracts']}</td>
+                                                <td>{$row['expired_contracts']}</td>
+                                                <td>" . round($occupancyRate, 2) . "%</td>
+                                            </tr>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+    
+
+                <!-- ----------------------------------- CONTRACT DURATION PART ----------------------------------- -->
+                            <!-- KPI Cards -->
+                                <div class="row kpi-row">
+                                    <div class="col-md-12">
+                                        <div class="card kpi-card avg-duration-card">
+                                            <div class="card-body">
+                                                <h4>Average Contract Duration</h4>
+                                                <h2 class="kpi-number"><?php echo $avgContractDuration; ?> Months</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Graphs Row -->
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="chart-container small-chart">
+                                            <h5>Contract Duration Over Time</h5>
+                                            <canvas id="contractDurationTrendChart"></canvas>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="chart-container small-chart">
+                                            <h5>Contract Duration Per Franchise</h5>
+                                            <canvas id="contractDurationPerFranchiseChart"></canvas>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="chart-container small-chart">
+                                            <h5>Expired Contracts Over Time</h5>
+                                            <canvas id="contractRenewalChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
 
                         </div>
                     </div>
