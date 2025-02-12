@@ -67,7 +67,7 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
                 <?php endif; ?>
 
                 <!-- Sales Performance Link -->
-                <?php if ($userRole == 'admin' || $userRole == 'sales') : ?>
+                <?php if ($userRole == 'admin' || $userRole == 'sales' || $userRole == 'area_manager' || $userRole == 'branch_manager') : ?>
                 <li class="nav-link <?php echo ($currentPage === 'sales.php') ? 'active' : ''; ?>" id="sales-link">
                     <a href="../../pages/salesPerformance/sales">
                         <i class='bx bx-bar-chart-alt-2 icon'></i>
