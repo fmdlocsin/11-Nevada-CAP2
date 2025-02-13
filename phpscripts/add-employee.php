@@ -22,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = mysqli_real_escape_string($con, $_POST['email']);
     $mobile = mysqli_real_escape_string($con, $_POST['mobile']);
     $franchisee = isset($_POST['franchisee']) ? mysqli_real_escape_string($con, $_POST['franchisee']) : '';
+    $userType = mysqli_real_escape_string($con, $_POST['employeeRole']); // Employee Role
     $branch = isset($_POST['branch']) ? mysqli_real_escape_string($con, $_POST['branch']) : '';
     $shift = isset($_POST['shift']) ? mysqli_real_escape_string($con, $_POST['shift']) : ''; // Add isset to prevent undefined warning
 
@@ -35,6 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data['message'] = 'All fields are required.';
     } else {
         
+        if ($userType === "Area Manager") {
+            $branch = null;
+            $shift = null;
+        }
+
         if (empty($branch) || empty($franchisee)){
             $branch = '0';
             $isassigned = 'unassigned';
@@ -47,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Insert into users_accounts
         $sqlAccounts = "
         INSERT INTO users_accounts (user_id, user_name, user_photo, user_email, user_password, user_phone_number, user_address, user_birthdate, user_type, user_status, date_created)
-        VALUES ('$userId', '$employeeName', '', '$email', '', '$mobile', '$address', '$dob', 'user', 'active', NOW())
+        VALUES ('$userId', '$employeeName', '', '$email', '', '$mobile', '$address', '$dob', '$userType', 'active', NOW())
     ";
     $resultAccounts = mysqli_query($con, $sqlAccounts);
 
@@ -87,7 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             //         VALUES ('$branch', 'assigned', '$franchisee', '$branchName', '$shift', '$certificationList', '', '')
             //     ";
             //     $resultInfo = mysqli_query($con, $sqlInfo);
-
+            
+        // ADD IF STATEMENT IF USERTYPE == AREA MANAGER $BRANCH WILL BE AREA CODE
         // Insert into user_information with branch name instead of ID
         $sqlInfo = "
         INSERT INTO user_information (assigned_at, user_id, employee_status, franchisee, branch, user_shift, certification_name, certification_date, certificate_file_name)

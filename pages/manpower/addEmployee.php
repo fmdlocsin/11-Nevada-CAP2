@@ -60,6 +60,20 @@ include("../../phpscripts/check-login.php");
             <div class="form-section">
                 <h3>Employee Information</h3>
                 <div class="form-group">
+                    <label for="employeeRole">Employee Role <span class="text-danger">*</span></label>
+                    <select id="employeeRole" name="employeeRole" required>
+                        <option value="" disabled selected>Select Role</option>
+                        <option value="sales">Sales</option>
+                        <option value="inventory">Inventory</option>
+                        <option value="manpower">Manpower</option>
+                        <option value="business-development">Business Development</option>
+                        <option value="field-employee">Field Employee</option>
+                        <option value="area-manager">Area Manager</option>
+                        <option value="branch-manager">Branch Manager</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="franchisee">Franchisee</label>
                     <select id="franchisee" name="franchisee" required>
                         <option value="" disabled selected>Select Franchisee</option>

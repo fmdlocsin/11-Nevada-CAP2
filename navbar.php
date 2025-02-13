@@ -45,7 +45,7 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
                                 ? '../../dashboard-inventory' 
                                 : (($userRole == 'business_development') 
                                     ? '../../dashboard-contract' 
-                                    : (($userRole == 'sales') 
+                                    : (($userRole == 'sales' || $userRole == 'area_manager' || $userRole == 'branch_manager') 
                                         ? '../../dashboard-sales' 
                                         : (($userRole == 'manpower') 
                                             ? '../../dashboard-manpower' 
@@ -77,7 +77,7 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
                 <?php endif; ?>
 
                 <!-- Expenses Link -->
-                <?php if ($userRole == 'admin' || $userRole == 'sales') : ?>
+                <?php if ($userRole == 'admin' || $userRole == 'sales' || $userRole == 'area_manager' || $userRole == 'branch_manager') : ?>
                 <li class="nav-link <?php echo ($currentPage === 'expenses.php') ? 'active' : ''; ?>" id="expenses-link">
                     <a href="../../pages/salesPerformance/expenses">
                         <i class='bx bx-wallet icon'></i>
@@ -87,7 +87,7 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
                 <?php endif; ?>
 
                 <!-- Inventory Link -->
-                <?php if ($userRole == 'admin' || $userRole == 'inventory') : ?>
+                <?php if ($userRole == 'admin' || $userRole == 'inventory' || $userRole == 'area_manager' || $userRole == 'branch_manager') : ?>
                 <li class="nav-link <?php echo ($currentPage === 'inventory2.php') ? 'active' : ''; ?>" id="inventory-link">
                     <a href="../../pages/inventory/inventory2">
                         <i class='bx bx-store-alt icon'></i>
