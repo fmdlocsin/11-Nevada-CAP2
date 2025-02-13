@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $agreementStart = isset($_POST['agreementStart']) ? $_POST['agreementStart'] : '';
     $agreementDate = isset($_POST['agreementDate']) ? $_POST['agreementDate'] : '';
     $location = isset($_POST['location']) ? $_POST['location'] : '';
+    $areaCode = isset($_POST['areaCode']) ? $_POST['areaCode'] : '';
     $franchiseFee = isset($_POST['franchiseFee']) ? $_POST['franchiseFee'] : '';
     $franchiseFeeNote = isset($_POST['franchiseFeeNote']) ? $_POST['franchiseFeeNote'] : '';
     $franchisePackage = isset($_POST['franchisePackage']) ? $_POST['franchisePackage'] : '';
@@ -30,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $ac_id = random_int(100000, 999999);
 
     // Check for required fields
-    if (empty($franchise) || empty($classification) || empty($agreementStart) || empty($agreementDate) || empty($location)) {
+    if (empty($franchise) || empty($classification) || empty($agreementStart) || empty($agreementDate) || empty($location) || empty($areaCode)) {
         $data['status'] = "error";
         $data['message'] = "Please fill in all required fields.";
     } elseif (!isset($_FILES['notarySealFranchise']) || $_FILES['notarySealFranchise']['error'] != 0) {
@@ -55,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                                 franchise_term,
                                 agreement_date,
                                 location,
+                                area_code,
                                 franchise_fee,
                                 ff_note,
                                 franchise_package,
@@ -77,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                                 '$agreementStart',
                                 '$agreementDate',
                                 '$location',
+                                '$areaCode',
                                 '$franchiseFee',
                                 '$franchiseFeeNote',
                                 '$franchisePackage',

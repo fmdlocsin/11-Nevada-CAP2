@@ -131,4 +131,47 @@ window.onload = function () {
     } else {
         console.error("No contract duration per franchise data available.");
     }
+
+    // ==================== Active Contracts Pie Chart ====================
+    if (typeof franchiseNames !== "undefined" && franchiseNames.length > 0) {
+        let ctxActiveContracts = document.getElementById("activeContractsChart").getContext("2d");
+
+        new Chart(ctxActiveContracts, {
+            type: "pie",
+            data: {
+                labels: franchiseNames,
+                datasets: [{
+                    data: activeContracts,
+                    backgroundColor: ["#36A2EB", "#FF6384", "#FFCE56"],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, 
+                layout: {
+                    padding: {
+                        top: 5, // Reduce padding above chart
+                        bottom: 5, // Reduce space below chart
+                        left: 5,
+                        right: 5
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: "right", // Move legend below chart
+                        align: "center", // Align legend vertically centered
+                        labels: {
+                            font: {
+                                size: 14 // Reduce font size to prevent overlap
+                            },
+                            padding: 15 // Adjust padding to avoid overlap
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        console.error("No active contracts data available.");
+    }
 };

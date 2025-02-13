@@ -32,6 +32,7 @@ function createDocumentFranchise() {
 
         var agreementDate = $("#agreement-date").val();
         var location = $("#location").val();
+        var areaCode = $("#area-code").val();
 
         var franchiseFee = $("#franchise-fee").val();
         var franchiseFeeNote = $("#franchise-fee-note").val();
@@ -55,6 +56,7 @@ function createDocumentFranchise() {
         formData.append("agreementStart", agreementStart);
         formData.append("agreementDate", agreementDate);
         formData.append("location", location);
+        formData.append("areaCode", areaCode);
 
         formData.append("franchiseFee", franchiseFee);
         formData.append("franchiseFeeNote", franchiseFeeNote);

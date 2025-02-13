@@ -130,6 +130,10 @@ function formatFranchiseeName($name)
                         <span>Location:</span>
                         <p><?php echo $data['location']; ?></p>
                     </div>
+                    <div class="detail-item">
+                        <span>Area Code:</span>
+                        <p><?php echo $data['area_code']; ?></p>
+                    </div>
 
                     <div class="contract-subtitle">
                         <span>FEES</span>

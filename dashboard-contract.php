@@ -128,6 +128,33 @@ while ($row = mysqli_fetch_assoc($contractDurationTrendResult)) {
     ];
 }
 
+// Fetch Franchise Agreement Data
+$franchiseQuery = "
+    SELECT franchisee, 
+        COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_contracts,
+        COUNT(CASE WHEN agreement_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_contracts,
+        COUNT(CASE WHEN agreement_date < CURDATE() THEN 1 END) AS expired_contracts,
+        COUNT(CASE WHEN agreement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) THEN 1 END) AS renewed_contracts
+    FROM agreement_contract
+    GROUP BY franchisee";
+
+$franchiseResult = mysqli_query($con, $franchiseQuery);
+
+// Arrays to store franchise data for JavaScript
+$franchiseNames = [];
+$activeContracts = [];
+
+while ($row = mysqli_fetch_assoc($franchiseResult)) {
+    $franchiseNames[] = ucfirst(str_replace("-", " ", $row['franchisee'])); // Format name
+    $activeContracts[] = $row['active_contracts'];
+}
+
+// Convert PHP data to JavaScript variables
+echo "<script> 
+        var franchiseNames = " . json_encode($franchiseNames) . ";
+        var activeContracts = " . json_encode($activeContracts) . ";
+      </script>";
+
 
 // Close the database connection
 // mysqli_close($con);
@@ -160,6 +187,12 @@ while ($row = mysqli_fetch_assoc($contractDurationTrendResult)) {
     <script>
         var contractDurationTrendData = <?php echo json_encode($contractDurationTrendData); ?>;
         var durationPerFranchiseData = <?php echo json_encode($durationPerFranchiseData); ?>;
+    </script>
+
+    <!-- Send Franchise Data to JavaScript -->
+    <script>
+        var franchiseNames = <?php echo json_encode($franchiseNames); ?>;
+        var activeContracts = <?php echo json_encode($activeContracts); ?>;
     </script>
 
 
@@ -279,57 +312,49 @@ while ($row = mysqli_fetch_assoc($contractDurationTrendResult)) {
 
                 <!-- ----------------------------------- TABLE PART ----------------------------------- -->
                             <h3 class="table-title">Franchise Agreement Contracts Breakdown</h3>
-                            <table class="content-table">
-                                <thead>
-                                    <tr>
-                                        <th>Franchise Name</th>
-                                        <th>Active Contracts</th>
-                                        <th>Expiring Next Month</th>
-                                        <th>Expired Contracts</th> <!-- New Column -->
-                                        <th>Renewal Rate (%)</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $franchiseQuery = "
-                                        SELECT franchisee, 
-                                            COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_contracts,
-                                            COUNT(CASE WHEN agreement_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_contracts,
-                                            COUNT(CASE WHEN agreement_date < CURDATE() THEN 1 END) AS expired_contracts,  /* New Query */
-                                            COUNT(CASE WHEN agreement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) THEN 1 END) AS renewed_contracts
-                                        FROM agreement_contract
-                                        GROUP BY franchisee";
-                                    
-                                    $franchiseResult = mysqli_query($con, $franchiseQuery);
 
-                                    // Define mapping of database names to formatted names
-                                    $franchiseNameMap = [
-                                        "auntie-anne" => "Auntie Anne",
-                                        "macao-imperial" => "Macao Imperial",
-                                        "potato-corner" => "Potato Corner"
-                                    ];
+                            <!-- Flexbox Row: Pie Chart on the Left, Table on the Right -->
+                            <div class="row align-items-center">
+                                <!-- Pie Chart Column -->
+                                <div class="col-md-6 d-flex justify-content-center">
+                                    <div class="chart-container pie-chart-container">
+                                        <h5 class="text-center">Active Contracts Distribution</h5>
+                                        <canvas id="activeContractsChart"></canvas>
+                                    </div>
+                                </div>
 
-                                    while ($row = mysqli_fetch_assoc($franchiseResult)) {
-                                        // Convert franchisee name using the mapping
-                                        $formattedFranchiseName = isset($franchiseNameMap[$row['franchisee']]) ? 
-                                                                $franchiseNameMap[$row['franchisee']] : 
-                                                                ucfirst(str_replace("-", " ", $row['franchisee'])); // Fallback for unexpected names
+                                <!-- Table Column -->
+                                <div class="col-md-6">
+                                    <table class="content-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Franchise Name</th>
+                                                <th>Expiring Next Month</th>
+                                                <th>Expired Contracts</th>
+                                                <th>Renewal Rate (%)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            $franchiseResult = mysqli_query($con, $franchiseQuery);
+                                            while ($row = mysqli_fetch_assoc($franchiseResult)) {
+                                                $franchiseName = ucfirst(str_replace("-", " ", $row['franchisee'])); // Format name
+                                                $renewalRate = ($row['renewed_contracts'] / max(1, ($row['renewed_contracts'] + $row['expired_contracts']))) * 100;
+                                                
+                                                echo "<tr>
+                                                        <td>{$franchiseName}</td>
+                                                        <td>{$row['expiring_contracts']}</td>
+                                                        <td>{$row['expired_contracts']}</td>
+                                                        <td>" . round($renewalRate, 2) . "%</td>
+                                                    </tr>";
+                                            }
+                                            ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
 
-                                        $renewalRate = ($row['renewed_contracts'] / max(1, ($row['renewed_contracts'] + $row['expired_contracts']))) * 100;
 
-
-                                        
-                                        echo "<tr>
-                                                <td>{$formattedFranchiseName}</td>
-                                                <td>{$row['active_contracts']}</td>
-                                                <td>{$row['expiring_contracts']}</td>
-                                                <td>{$row['expired_contracts']}</td> <!-- New Column Data -->
-                                                <td>" . round($renewalRate, 2) . "%</td>
-                                            </tr>";
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
 
                             <h3 class="table-title">Leasing Contracts Breakdown</h3>
                             <table class="content-table">

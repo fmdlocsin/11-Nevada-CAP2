@@ -197,6 +197,51 @@ body {
     width: 100% !important;
 }
 
+/* Ensure the pie chart and table are close together */
+.row.align-items-center {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Ensures proper wrapping on smaller screens */
+}
+
+/* Reduce extra padding around pie chart */
+.pie-chart-container {
+    width: 470px; /* Fixed width */
+    height: 230px; /* Fixed height */
+    padding: 10px; /* Reduce padding */
+    margin-right: 20px; /* Space between table and chart */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure canvas does not stretch */
+#activeContractsChart {
+    max-width: 70% !important;
+    max-height: 70% !important;
+}
+
+/* Fix table alignment */
+.content-table {
+    width: auto;
+    flex-grow: 1; /* Let table take remaining space */
+}
+
+/* Adjust legend spacing */
+.chartjs-legend {
+    font-size: 14px;
+    text-align: center;
+    padding-top: 5px; /* Reduce space above legend */
+}
+
+
+
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .chart-container {
