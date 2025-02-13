@@ -118,6 +118,10 @@ include("../../phpscripts/check-login.php");
                             <label for="location" class="locLabel">Location: <span class="text-danger">*</span></label>
                             <input type="text" id="location" name="location"
                                 class="long-input">
+
+                            <label for="areaCcode" class="locLabel">Area Code <span class="text-danger">*</span></label>
+                            <input type="number" id="area-code" name="areacode" min="0" step="any">
+                            
                         </div>
                     </div>
                 </div>
