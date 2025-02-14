@@ -149,6 +149,26 @@ while ($row = mysqli_fetch_assoc($franchiseResult)) {
     $activeContracts[] = $row['active_contracts'];
 }
 
+// Fetch Leasing Contracts Breakdown Per Franchise
+$leasingContractsQuery = "
+    SELECT franchisee, 
+        COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_leases,
+        COUNT(CASE WHEN end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_leases,
+        COUNT(CASE WHEN end_date < CURDATE() THEN 1 END) AS expired_leases
+    FROM lease_contract
+    GROUP BY franchisee";
+
+$leasingResult = mysqli_query($con, $leasingContractsQuery);
+
+// Prepare data for JavaScript
+$leasingFranchiseNames = [];
+$activeLeases = [];
+
+while ($row = mysqli_fetch_assoc($leasingResult)) {
+    $leasingFranchiseNames[] = ucfirst(str_replace("-", " ", $row['franchisee']));
+    $activeLeases[] = $row['active_leases'];
+}
+
 // Convert PHP data to JavaScript variables
 echo "<script> 
         var franchiseNames = " . json_encode($franchiseNames) . ";
@@ -193,6 +213,11 @@ echo "<script>
     <script>
         var franchiseNames = <?php echo json_encode($franchiseNames); ?>;
         var activeContracts = <?php echo json_encode($activeContracts); ?>;
+    </script>
+
+    <script>
+        var leasingFranchiseNames = <?php echo json_encode($leasingFranchiseNames); ?>;
+        var activeLeases = <?php echo json_encode($activeLeases); ?>;
     </script>
 
 
@@ -357,54 +382,70 @@ echo "<script>
 
 
                             <h3 class="table-title">Leasing Contracts Breakdown</h3>
-                            <table class="content-table">
-                                <thead>
-                                    <tr>
-                                        <th>Franchise Name</th>
-                                        <th>Active Leases</th>
-                                        <th>Expiring Next Month</th>
-                                        <th>Expired Leases</th>
-                                        <th>Occupancy Rate (%)</th> <!-- Added similar to renewal rate -->
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    // Fetch Leasing Contracts Breakdown Per Franchise
-                                    $leasingContractsQuery = "
-                                    SELECT franchisee, 
-                                        COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_contracts,
-                                        COUNT(CASE WHEN end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_contracts,
-                                        COUNT(CASE WHEN end_date < CURDATE() THEN 1 END) AS expired_contracts
-                                    FROM lease_contract
-                                    GROUP BY franchisee";
 
-                                    $leasingResult = mysqli_query($con, $leasingContractsQuery);
+                            <!-- Flexbox Row: Pie Chart on the Left, Table on the Right -->
+                            <div class="row align-items-center">
+                                <!-- Leasing Pie Chart Column -->
+                                <div class="col-md-6 d-flex justify-content-center">
+                                    <div class="chart-container pie-chart-container">
+                                        <h4 class="text-center">Leasing Contracts Distribution</h4>
+                                        <canvas id="leasingContractsChart"></canvas>
+                                    </div>
+                                </div>
 
-                                    // Check if query execution failed
-                                    if (!$leasingResult) {
-                                    die("Error in leasing contracts query: " . mysqli_error($con));
-                                    }
+                                <!-- Leasing Contracts Table Column -->
+                                <div class="col-md-6">
+                                    <table class="content-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Franchise Name</th>
+                                                <th>Active Leases</th>
+                                                <th>Expiring Next Month</th>
+                                                <th>Expired Leases</th>
+                                                <th>Occupancy Rate (%)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            // Fetch Leasing Contracts Breakdown Per Franchise
+                                            $leasingContractsQuery = "
+                                                SELECT franchisee, 
+                                                    COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_leases,
+                                                    COUNT(CASE WHEN end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_leases,
+                                                    COUNT(CASE WHEN end_date < CURDATE() THEN 1 END) AS expired_leases
+                                                FROM lease_contract
+                                                GROUP BY franchisee";
 
-                                    while ($row = mysqli_fetch_assoc($leasingResult)) {
-                                        // Format Franchise Name
-                                        $formattedFranchiseName = isset($franchiseNameMap[$row['franchisee']]) ? 
-                                            $franchiseNameMap[$row['franchisee']] : 
-                                            ucfirst(str_replace("-", " ", $row['franchisee']));
+                                            $leasingResult = mysqli_query($con, $leasingContractsQuery);
 
-                                        // Calculate Occupancy Rate (similar logic to renewal rate)
-                                        $occupancyRate = ($row['active_contracts'] / max(1, ($row['active_contracts'] + $row['expired_contracts']))) * 100;
+                                            // Check if query execution failed
+                                            if (!$leasingResult) {
+                                                die("Error in leasing contracts query: " . mysqli_error($con));
+                                            }
 
-                                        echo "<tr>
-                                                <td>{$formattedFranchiseName}</td>
-                                                <td>{$row['active_contracts']}</td>
-                                                <td>{$row['expiring_contracts']}</td>
-                                                <td>{$row['expired_contracts']}</td>
-                                                <td>" . round($occupancyRate, 2) . "%</td>
-                                            </tr>";
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
+                                            while ($row = mysqli_fetch_assoc($leasingResult)) {
+                                                // Format Franchise Name
+                                                $formattedFranchiseName = isset($franchiseNameMap[$row['franchisee']]) ? 
+                                                    $franchiseNameMap[$row['franchisee']] : 
+                                                    ucfirst(str_replace("-", " ", $row['franchisee']));
+
+                                                // Calculate Occupancy Rate (similar to renewal rate)
+                                                $occupancyRate = ($row['active_leases'] / max(1, ($row['active_leases'] + $row['expired_leases']))) * 100;
+
+                                                echo "<tr>
+                                                        <td>{$formattedFranchiseName}</td>
+                                                        <td>{$row['active_leases']}</td>
+                                                        <td>{$row['expiring_leases']}</td>
+                                                        <td>{$row['expired_leases']}</td>
+                                                        <td>" . round($occupancyRate, 2) . "%</td>
+                                                    </tr>";
+                                            }
+                                            ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
     
 
                 <!-- ----------------------------------- CONTRACT DURATION PART ----------------------------------- -->

@@ -1,0 +1,176 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.container {
+    width: 95%;
+    margin: 20px auto;
+    padding: 5px;
+}
+
+.dashboard-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #1F375D;
+}
+
+.kpi-card {
+    background: #1F375D;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.kpi-card:hover {
+    transform: scale(1.05);
+}
+
+.kpi-card h4 {
+    font-size: 16px;
+    margin-bottom: 5px;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.kpi-number {
+    font-size: 34px;
+    font-weight: bold;
+}
+
+.kpi-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.kpi-col {
+    flex: 1;
+    min-width: 250px;
+}
+
+.content-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.content-table th, .content-table td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.content-table thead {
+    background: #1F375D;
+    color: white;
+}
+
+.content-table tbody tr:hover {
+    background-color: #8cb2f5;
+}
+
+.chart-container {
+    width: 60%;
+    max-width: 600px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .kpi-card {
+        height: auto;
+        padding: 15px;
+    }
+    .kpi-number {
+        font-size: 28px;
+    }
+    .chart-container {
+        width: 90%;
+    }
+}
+
+
+
+/* ---------------------------- FILTER ---------------------------- */
+
+.filter-buttons {
+    margin-bottom: 20px;
+}
+
+.filter-buttons button {
+    margin: 5px;
+    padding: 10px 15px;
+    border: 2px solid #1F375D;
+    background-color: white;
+    color: #1F375D;
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.filter-buttons button.active {
+    background-color: #1F375D;
+    color: white;
+}
+
+.filter-buttons button:hover {
+    background-color: #8cb2f5;
+    color: white;
+}
+
+
+
+/* General button styling */
+.franchisee-btn, .branch-btn {
+    background-color: #002D62;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+/* Active button state */
+.franchisee-btn.active, .branch-btn.active {
+    background-color: #FFD700;
+    color: black;
+}
+
+.btn-selected {
+    background-color: #198754 !important; /* Bootstrap 'btn-success' color */
+    color: white !important;
+    border-color: #198754 !important;
+}
+
+
+/* Fixing overlapping text */
+.kpi-number {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Prevent JSON output from breaking layout */
+body {
+    overflow-x: hidden;
+}

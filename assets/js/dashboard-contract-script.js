@@ -174,4 +174,48 @@ window.onload = function () {
     } else {
         console.error("No active contracts data available.");
     }
+
+    // ==================== Leasing Contracts Pie Chart ====================
+    if (typeof leasingFranchiseNames !== "undefined" && leasingFranchiseNames.length > 0) {
+        let ctxLeasingContracts = document.getElementById("leasingContractsChart").getContext("2d");
+
+        new Chart(ctxLeasingContracts, {
+            type: "pie",
+            data: {
+                labels: leasingFranchiseNames,
+                datasets: [{
+                    data: activeLeases,
+                    backgroundColor: ["#4BC0C0", "#9966FF", "#FF9F40"],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 5,
+                        bottom: 5,
+                        left: 5,
+                        right: 5
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: "right",
+                        align: "center",
+                        labels: {
+                            font: {
+                                size: 14
+                            },
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        console.error("No leasing contracts data available.");
+    }
+
 };
