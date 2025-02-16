@@ -230,7 +230,7 @@ mysqli_close($con);
     <section class="home">
     <header class="contractheader">
         <div class="container-header">
-            <h1 class="title">Inventory Dashboard</h1>
+            <h1 class="title">Dashboard</h1>
         </div>
     </header>
 
@@ -240,6 +240,10 @@ mysqli_close($con);
                     <div class="overview">
                         <div class="greeting">
                             <h2>Hi, <strong>Group/Branch Manager</strong>!</h2>
+                        </div>
+                        <div class="title">
+                        <i class='bx bx-time-five'></i>
+                        <span class="text">Analytics</span>
                         </div>
                         <div class="container">
                             <h2 class="dashboard-title">Inventory Monitoring</h2>
