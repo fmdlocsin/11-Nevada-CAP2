@@ -1,3 +1,4 @@
+// Sales Performance per Franchise
 document.addEventListener("DOMContentLoaded", function () {
     var franchiseDataElement = document.querySelector("#franchiseSalesData");
 
@@ -13,11 +14,18 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    // Franchise color mapping
+    var franchiseColors = {
+        "Potato Corner": "#2E7D32", // Green
+        "Auntie Anne's": "#1565C0", // Blue
+        "Macao Imperial": "#B71C1C" // Red
+    };
+
     var franchiseNames = franchiseSalesData.map(item => item.franchise);
     var franchiseSales = franchiseSalesData.map(item => item.sales);
-    var colors = [
-        '#ff4d4d', '#1e90ff', '#ffcc00', '#32cd32', '#8a2be2', '#ff69b4'
-    ];
+    
+    // Assign colors based on franchise names
+    var colors = franchiseNames.map(name => franchiseColors[name] || '#ffcc00'); // Default to yellow if not listed
 
     var ctx = document.getElementById('franchiseSalesChart').getContext('2d');
 
@@ -39,30 +47,29 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true, // Ensures proper scaling
+            maintainAspectRatio: true,
             layout: {
-                padding: 5 // Adjusts padding for a smaller chart
+                padding: 5
             },
-
             plugins: {
                 legend: {
-                    display: false // Hide the default legend
+                    display: false
                 },
                 datalabels: {
-                    color: 'white', // Text color
+                    color: 'white',
                     font: {
                         size: 14,
                         weight: 'bold'
                     },
-                    anchor: 'center', // Centers the value
+                    anchor: 'center',
                     align: 'center',
-                    formatter: function(value, context) {
-                        return value.toLocaleString(); // Format number (e.g., 1,000 instead of 1000)
+                    formatter: function(value) {
+                        return value.toLocaleString();
                     }
                 }
             }
         },
-        plugins: [ChartDataLabels] // Enables the data labels plugin
+        plugins: [ChartDataLabels]
     });
 
     // 🔹 Custom Legend (Manually Styled)
@@ -78,7 +85,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-
+// Sales Performance by Franchise & Branch
 document.addEventListener("DOMContentLoaded", function () {
     var franchiseDataElement = document.querySelector("#franchiseBranchSalesData");
 
@@ -112,18 +119,19 @@ document.addEventListener("DOMContentLoaded", function () {
     var branchLegendContainer = document.getElementById('branchLegend');
     var currentChart;
 
-    // Color Palette: Ensures all branches get unique colors
-    const colorPalette = [
-        '#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF', '#33FFF5', '#FF8C33', 
-        '#8C33FF', '#33FFA1', '#A1FF33', '#FF338C', '#338CFF', '#8CFF33', '#FF8333'
-    ];
+    // Franchise Color Mapping (Shades)
+    const franchiseColors = {
+        "Potato Corner": ["#2E7D32", "#388E3C", "#43A047", "#4CAF50", "#66BB6A"], // Dark to Light Green
+        "Auntie Anne's": ["#1565C0", "#1976D2", "#1E88E5", "#2196F3", "#42A5F5"], // Dark to Light Blue
+        "Macao Imperial": ["#B71C1C", "#C62828", "#D32F2F", "#E53935", "#F44336"] // Dark to Light Red
+    };
 
-    let colorIndex = 0;
-
-    function getColor() {
-        const color = colorPalette[colorIndex % colorPalette.length];
-        colorIndex++;
-        return color;
+    // Function to get shades for a franchise
+    function getColor(franchise, index) {
+        if (franchiseColors[franchise]) {
+            return franchiseColors[franchise][index % franchiseColors[franchise].length];
+        }
+        return "#BDBDBD"; // Default gray for unknown franchises
     }
 
     // Create checkboxes for each franchise
@@ -154,14 +162,13 @@ document.addEventListener("DOMContentLoaded", function () {
         var labels = [];
         var salesData = [];
         var colors = [];
-        colorIndex = 0; // Reset color index to ensure consistency
 
         selectedFranchises.forEach(franchise => {
             if (franchiseBranchSalesData[franchise]) {
-                franchiseBranchSalesData[franchise].forEach((branch) => {
+                franchiseBranchSalesData[franchise].forEach((branch, index) => {
                     labels.push(`${franchise} - ${branch.location}`);
                     salesData.push(branch.sales);
-                    colors.push(getColor()); // Use color function to ensure uniqueness
+                    colors.push(getColor(franchise, index)); // Assign shades based on franchise
                 });
             }
         });
@@ -224,7 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-
+// Top 5 Best/Worst-Selling Products
 document.addEventListener("DOMContentLoaded", function () {
     function createBarChart(chartId, data, title) {
         var ctx = document.getElementById(chartId).getContext('2d');
@@ -232,7 +239,14 @@ document.addEventListener("DOMContentLoaded", function () {
         var productNames = data.map(item => item.product);
         var productSales = data.map(item => item.sales);
 
-        var colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF'];
+        // Muted color palette (non-neon)
+        var colors = [
+            '#4E79A7', // Muted Blue
+            '#F28E2B', // Warm Orange
+            '#E15759', // Deep Red
+            '#76B7B2', // Muted Teal
+            '#59A14F'  // Forest Green
+        ];
 
         new Chart(ctx, {
             type: 'bar',
@@ -293,6 +307,7 @@ document.addEventListener("DOMContentLoaded", function () {
         createBarChart("worstSellingChart", worstSellingData, "Worst-Selling Products");
     }
 });
+
 
 
 

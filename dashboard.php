@@ -66,7 +66,7 @@ include ("phpscripts/check-login.php");
                         </a>
                     </li>
                     <li class="nav-link" id="expenses-link">
-                        <a href="pages/salesPerformance/expenses">
+                        <a href="pages/salesPerformance/totalExpenses">
                             <i class='bx bx-wallet icon'></i>
                             <span class="text nav-text">Expenses</span>
                         </a>

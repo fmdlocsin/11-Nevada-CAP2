@@ -56,7 +56,7 @@ $userRole = isset($_SESSION['user_type']) ? $_SESSION['user_type'] : 'guest';
                 <?php endif; ?>
                 <?php if ($userRole == 'admin' || $userRole == 'sales') : ?>
                 <li class="nav-link" id="expenses-link">
-                    <a href="../../pages/salesPerformance/expenses">
+                    <a href="../../pages/salesPerformance/totalExpenses">
                         <i class='bx bx-wallet icon'></i>
                         <span class="text nav-text">Expenses</span>
                     </a>

@@ -201,7 +201,7 @@ $worst_selling_json = json_encode($worst_selling_data);
                         </a>
                     </li>
                     <li class="nav-link" id="expenses-link">
-                        <a href="pages/salesPerformance/expenses">
+                        <a href="pages/salesPerformance/totalExpenses">
                             <i class='bx bx-wallet icon'></i>
                             <span class="text nav-text">Expenses</span>
                         </a>
@@ -231,8 +231,11 @@ $worst_selling_json = json_encode($worst_selling_data);
         <div class="container">
             <div class="dash-content">
                 <div class="overview">
+                <div class="greeting">
+                            <h2>Hi, <strong>Group/Branch Manager</strong>!</h2>
+                        </div>
                     <div class="title">
-                        <i class='bx bxs-tachometer'></i>
+                        <i class='bx bx-time-five'></i>
                         <span class="text">Analytics</span>
                     </div>
                      <!-- Summary Boxes (Still Inside .boxes) -->

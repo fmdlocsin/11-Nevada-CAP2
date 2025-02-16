@@ -288,8 +288,13 @@ echo "<script>
                         <div class="greeting">
                             <h2>Hi, <strong>Business Development Officer</strong>!</h2>
                         </div>
+                        <div class="title">
+                        <i class='bx bx-time-five'></i>
+                        <span class="text">Analytics</span>
+                        </div>
                         <div class="container">
-                            <h2 class="dashboard-title">Franchise Agreement Monitoring</h2>
+                        
+                            <!-- <h2 class="dashboard-title">Franchise Agreement Monitoring</h2> -->
 
                 <!-- ----------------------------------- KPI CARDS PART ----------------------------------- -->
                             <div class="row kpi-row">

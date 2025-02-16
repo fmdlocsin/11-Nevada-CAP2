@@ -79,7 +79,7 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
                 <!-- Expenses Link -->
                 <?php if ($userRole == 'admin' || $userRole == 'sales' || $userRole == 'area_manager' || $userRole == 'branch_manager') : ?>
                 <li class="nav-link <?php echo ($currentPage === 'expenses.php') ? 'active' : ''; ?>" id="expenses-link">
-                    <a href="../../pages/salesPerformance/expenses">
+                    <a href="../../pages/salesPerformance/totalExpenses">
                         <i class='bx bx-wallet icon'></i>
                         <span class="text nav-text">Expenses</span>
                     </a>
