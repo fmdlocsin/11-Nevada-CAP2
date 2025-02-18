@@ -19,56 +19,7 @@ $(document).ready(function () {
             $(".form-data3").show();
         }
     });
-
-   // Map human-readable franchise names to database-friendly values
-   var franchiseMap = {
-    "Potato Corner": "potato-corner",
-    "Auntie Anne's": "auntie-anne",
-    "Macao Imperial Tea": "macao-imperial"
-};
-
-$("#selectedFranchise").change(function () {
-    var selectedFranchise = $(this).val();
-    var franchiseId = franchiseMap[selectedFranchise] || selectedFranchise; // Convert to database-friendly value
-
-    console.log("Selected Franchise (User Input):", selectedFranchise);
-    console.log("Mapped Franchise ID (Database Value):", franchiseId);
-
-    $("#franchiseLocation").html('<option value="">Loading...</option>');
-
-    if (franchiseId !== "") {
-        $.ajax({
-            url: "../../phpscripts/fetch-locations.php",
-            method: "POST",
-            data: { franchiseId: franchiseId },
-            dataType: "json",
-            success: function (response) {
-                console.log("AJAX Response:", response);
-
-                if (response.error) {
-                    console.error("Error from fetch-locations.php:", response.error);
-                    $("#franchiseLocation").html(`<option value="">${response.error}</option>`);
-                    return;
-                }
-
-                var options = '<option value="">Select Location</option>';
-                $.each(response, function (index, location) {
-                    options += `<option value="${location.id}">${location.name}</option>`;
-                });
-                $("#franchiseLocation").html(options);
-            },
-            error: function (xhr, status, error) {
-                console.error("AJAX Error:", xhr.responseText);
-                $("#franchiseLocation").html('<option value="">Error loading locations</option>');
-            }
-        });
-    } else {
-        $("#franchiseLocation").html('<option value="">Select Franchisee First</option>');
-    }
 });
-    
-});
-
 
 function addExpenses() {
     $(document).on("click", ".btn-submit-expenses", function () {
