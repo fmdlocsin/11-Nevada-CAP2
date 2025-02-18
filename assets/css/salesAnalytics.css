@@ -400,6 +400,59 @@ h2 {
     font-weight: 500;
 }
 
+/* Wrapper for both checkboxes and charts */
+.bar-charts-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack checkboxes on top */
+    align-items: center;
+    width: 50%;
+}
+
+/* Style the checkbox container to match the chart background */
+.filter-container {
+    background: white; /* White background */
+    padding: 5px; /* Add padding for spacing */
+    border-radius: 12px; /* Rounded corners like the charts */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Light shadow */
+    text-align: center;
+    margin-bottom: 10px; /* Space below the checkboxes */
+}
+
+/* Ensure checkboxes are evenly spaced */
+#franchiseCheckboxesBar {
+    display: flex; /* Make it flexbox */
+    flex-wrap: wrap; /* Allow items to wrap */
+    align-items: center; /* Align items vertically */
+    gap: 8px; /* Add spacing between checkboxes and labels */
+
+}
+
+/* Style the checkbox labels */
+#franchiseCheckboxesBar label {
+    display: flex;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 3.2; /* Keeps text aligned properly */
+    gap: 2; /* Add space between checkbox and text */
+    /* font-weight: 600; */
+}
+
+/* Make checkboxes slightly bigger */
+#franchiseCheckboxesBar input[type="checkbox"] {
+    transform: scale(1.2);
+    margin-right: 9px;
+}
+
+
+/* Ensure charts remain centered and stacked */
+.bar-charts-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+
 /* Responsive Layout */
 @media screen and (max-width: 992px) {
     .charts-container {

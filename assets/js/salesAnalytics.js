@@ -231,24 +231,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-// Top 5 Best/Worst-Selling Products
 document.addEventListener("DOMContentLoaded", function () {
-    function createBarChart(chartId, data, title) {
+    var bestSellingChartInstance = null;
+    var worstSellingChartInstance = null;
+
+    function createBarChart(chartId, data, title, chartInstance) {
         var ctx = document.getElementById(chartId).getContext('2d');
+
+        // Destroy existing chart instance if it exists
+        if (chartInstance !== null) {
+            chartInstance.destroy();
+        }
 
         var productNames = data.map(item => item.product);
         var productSales = data.map(item => item.sales);
 
-        // Muted color palette (non-neon)
-        var colors = [
-            '#4E79A7', // Muted Blue
-            '#F28E2B', // Warm Orange
-            '#E15759', // Deep Red
-            '#76B7B2', // Muted Teal
-            '#59A14F'  // Forest Green
-        ];
+        // Franchise color mapping for consistency
+        var franchiseColors = {
+            "Potato Corner": ['#2E7D32', '#388E3C', '#43A047', '#4CAF50', '#66BB6A'], // Shades of Green
+            "Auntie Anne's": ['#1565C0', '#1976D2', '#1E88E5', '#2196F3', '#42A5F5'], // Shades of Blue
+            "Macao Imperial": ['#B71C1C', '#C62828', '#D32F2F', '#E53935', '#F44336'] // Shades of Red
+        };
 
-        new Chart(ctx, {
+        var colors = productNames.map((_, index) => {
+            let franchise = data[index].franchise;
+            return franchiseColors[franchise] ? franchiseColors[franchise][index % franchiseColors[franchise].length] : '#BDBDBD';
+        });
+
+        chartInstance = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: productNames,
@@ -263,9 +273,7 @@ document.addEventListener("DOMContentLoaded", function () {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: {
-                    padding: 5
-                },
+                layout: { padding: 5 },
                 plugins: {
                     legend: { display: false },
                     datalabels: {
@@ -291,26 +299,92 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             plugins: [ChartDataLabels]
         });
+
+        return chartInstance;
     }
 
-    // Load Best-Selling Products Data
-    var bestSellingDataElement = document.querySelector("#bestSellingData");
-    if (bestSellingDataElement) {
-        var bestSellingData = JSON.parse(bestSellingDataElement.textContent.trim());
-        createBarChart("bestSellingChart", bestSellingData, "Best-Selling Products");
+    function updateCharts() {
+        var selectedFranchises = [];
+        var checkboxes = document.querySelectorAll("#franchiseCheckboxesBar input[type='checkbox']:checked");
+    
+        checkboxes.forEach(checkbox => {
+            selectedFranchises.push(checkbox.value);
+        });
+    
+        console.log("✅ Selected Franchises:", selectedFranchises);
+    
+        // Load Best-Selling Products Data
+        var bestSellingDataElement = document.querySelector("#bestSellingData");
+        if (bestSellingDataElement) {
+            var bestSellingData = JSON.parse(bestSellingDataElement.textContent.trim());
+    
+            console.log("📌 Best-Selling Data (Before Filtering):", bestSellingData);
+    
+            var filteredBestSellingData = selectedFranchises.length > 0
+                ? bestSellingData.filter(item => selectedFranchises.includes(item.franchise))
+                : bestSellingData;
+    
+            console.log("🎯 Filtered Best-Selling Data:", filteredBestSellingData);
+    
+            if (filteredBestSellingData.length === 0) {
+                console.warn("⚠️ No data to display for Best-Selling Products!");
+            }
+    
+            bestSellingChartInstance = createBarChart("bestSellingChart", filteredBestSellingData, "Best-Selling Products", bestSellingChartInstance);
+        }
+    
+        // Load Worst-Selling Products Data
+        var worstSellingDataElement = document.querySelector("#worstSellingData");
+        if (worstSellingDataElement) {
+            var worstSellingData = JSON.parse(worstSellingDataElement.textContent.trim());
+    
+            console.log("📌 Worst-Selling Data (Before Filtering):", worstSellingData);
+    
+            var filteredWorstSellingData = selectedFranchises.length > 0
+                ? worstSellingData.filter(item => selectedFranchises.includes(item.franchise))
+                : worstSellingData;
+    
+            console.log("🎯 Filtered Worst-Selling Data:", filteredWorstSellingData);
+    
+            if (filteredWorstSellingData.length === 0) {
+                console.warn("⚠️ No data to display for Worst-Selling Products!");
+            }
+    
+            worstSellingChartInstance = createBarChart("worstSellingChart", filteredWorstSellingData, "Worst-Selling Products", worstSellingChartInstance);
+        }
+    }
+    
+
+    function initializeFranchiseCheckboxes(containerId) {
+        var franchiseCheckboxContainer = document.getElementById(containerId);
+        franchiseCheckboxContainer.innerHTML = ""; // Clear any existing checkboxes
+
+        var franchises = ["Potato Corner", "Auntie Anne's", "Macao Imperial"];
+
+        franchises.forEach(franchise => {
+            var checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = franchise;
+            checkbox.id = containerId + "-" + franchise;
+            checkbox.checked = true; // Default checked
+
+            var label = document.createElement("label");
+            label.htmlFor = containerId + "-" + franchise;
+            label.textContent = franchise;
+
+            franchiseCheckboxContainer.appendChild(checkbox);
+            franchiseCheckboxContainer.appendChild(label);
+            franchiseCheckboxContainer.appendChild(document.createElement("br"));
+        });
+
+        // Add event listener to checkboxes
+        franchiseCheckboxContainer.addEventListener("change", updateCharts);
     }
 
-    // Load Worst-Selling Products Data
-    var worstSellingDataElement = document.querySelector("#worstSellingData");
-    if (worstSellingDataElement) {
-        var worstSellingData = JSON.parse(worstSellingDataElement.textContent.trim());
-        createBarChart("worstSellingChart", worstSellingData, "Worst-Selling Products");
-    }
+    // Initialize separate checkboxes for Bar Charts
+    initializeFranchiseCheckboxes("franchiseCheckboxesBar"); 
+    updateCharts();
 });
-
-
-
-
 
 
 
