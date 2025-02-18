@@ -46,11 +46,15 @@ $dateToday = date("Y-m-d");
                             <option value="auntie-anne">Auntie Anne's</option>
                             <option value="macao-imperial">Macao Imperial Tea</option>
                         </select>
+
                     </div>
                     <div class="input-field">
                         <label>Location <span class="text-danger">*</span></label>
-                        <input type="text" id="franchiseLocation" placeholder="Enter Branch Location">
+                        <select id="franchiseLocation">
+                            <option value="">Select Franchisee First</option>
+                        </select>
                     </div>
+
                     <div class="input-field">
                         <label>Name</label>
                         <input type="text" id="encoderName" placeholder="Enter Encoder's Name"
