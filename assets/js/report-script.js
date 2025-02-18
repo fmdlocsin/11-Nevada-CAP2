@@ -346,6 +346,11 @@ function displayReports() {
         url: "../../phpscripts/get-reports.php",
         dataType: "json",
         success: function (response) {
+            console.log("User ID:", response.user_id);  // ✅ Log User ID
+            console.log("User Type:", response.user_type);  // ✅ Log User Type
+            console.log("User Branch:", response.branch);  // ✅ Log Branch
+            console.log("Full Response:", response);
+            
             if (response.status === "success") {
                 var tableBody = $(".inventory-table tbody");
                 tableBody.empty();
@@ -382,8 +387,7 @@ function displayReports() {
                     tableBody.append(row);
                 });
             } else {
-                console.error(response.message);
-                console.error("Error in response:", response.message);
+                console.error("Error:", response.message);
             }
         },
         error: function (xhr, status, error) {
@@ -393,6 +397,8 @@ function displayReports() {
         },
     });
 }
+
+
 
 function displaySelectedReport() {
     var params = getUrlParameters();
