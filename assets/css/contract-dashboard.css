@@ -257,7 +257,8 @@ body {
 }
 
 /* Ensure canvas does not stretch */
-#activeContractsChart {
+#activeContractsChart,
+#leasingContractsChart {
     max-width: 70% !important;
     max-height: 70% !important;
 }

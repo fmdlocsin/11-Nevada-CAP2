@@ -1,164 +1,196 @@
 <?php
 session_start();
-
 include ("phpscripts/database-connection.php");
 include ("phpscripts/check-login.php");
 
-// Expenses
-$expenses_query = "SELECT SUM(expense_amount) AS total_expenses FROM expenses";
-$expenses_result = mysqli_query($con, $expenses_query);
+// Validate database connection
+if (!isset($con) || !$con) {
+    die("Database connection failed: " . mysqli_connect_error());
+}
 
-$sales_query = "SELECT SUM(grand_total) AS total_sales FROM sales_report";
-$sales_result = mysqli_query($con, $sales_query);
+// Get filters from GET request
+$franchisees = isset($_GET['franchisees']) ? explode(",", $_GET['franchisees']) : [];
+$branches = isset($_GET['branches']) ? explode(",", $_GET['branches']) : [];
 
-$totalExpenses = 0;
-$totalSales = 0;
+// Build dynamic WHERE clause
+$whereClauses = [];
+if (!empty($franchisees)) {
+    $franchiseeList = "'" . implode("','", array_map(fn($f) => mysqli_real_escape_string($con, $f), $franchisees)) . "'";
+    $whereClauses[] = "ac.franchisee IN ($franchiseeList)";
+}
+if (!empty($branches)) {
+    $branchList = "'" . implode("','", array_map(fn($b) => mysqli_real_escape_string($con, $b), $branches)) . "'";
+    $whereClauses[] = "ac.location IN ($branchList)";
+}
 
-if ($expenses_result || $sales_result) {
-    $sales_row = mysqli_fetch_assoc($sales_result);
-    $expenses_row = mysqli_fetch_assoc($expenses_result);
-
-    $totalSales = $sales_row['total_sales'];
-    $totalExpenses = $expenses_row['total_expenses'];
-} else {
-    $error = "Database query failed: " . mysqli_error($con);
+// Only add WHERE clause if filters exist
+$whereSQL = "";
+if (!empty($whereClauses)) {
+    $whereSQL = "WHERE " . implode(" AND ", $whereClauses);
 }
 
 
-// Define mappings for franchise name formatting
+// Fetch Total Sales
+$salesQuery = "SELECT SUM(sr.grand_total) AS total_sales FROM sales_report sr 
+               JOIN agreement_contract ac ON sr.ac_id = ac.ac_id $whereSQL";
+$salesResult = mysqli_query($con, $salesQuery);
+$totalSales = ($salesResult) ? mysqli_fetch_assoc($salesResult)['total_sales'] : 0;
+
+$expensesQuery = "SELECT SUM(e.expense_amount) AS total_expenses 
+                  FROM expenses e 
+                  JOIN agreement_contract ac ON e.location = ac.location"; // Join agreement_contract to filter by franchisee
+
+$whereClauses = [];
+
+if (!empty($franchisees)) {
+    $franchiseeList = "'" . implode("','", array_map(fn($f) => mysqli_real_escape_string($con, $f), $franchisees)) . "'";
+    $whereClauses[] = "ac.franchisee IN ($franchiseeList)"; // Now filters by franchisee
+}
+
+if (!empty($branches)) {
+    $branchList = "'" . implode("','", array_map(fn($b) => mysqli_real_escape_string($con, $b), $branches)) . "'";
+    $whereClauses[] = "e.location IN ($branchList)"; // Still allows filtering by branch
+}
+
+// Apply WHERE condition only if filters exist
+if (!empty($whereClauses)) {
+    $expensesQuery .= " WHERE " . implode(" AND ", $whereClauses);
+}
+
+$expensesResult = mysqli_query($con, $expensesQuery);
+$totalExpenses = ($expensesResult) ? mysqli_fetch_assoc($expensesResult)['total_expenses'] : 0;
+
+
+
+// Franchise Name Mapping
 $franchise_name_map = [
     "auntie-anne" => "Auntie Anne's",
     "macao-imperial" => "Macao Imperial",
     "potato-corner" => "Potato Corner"
 ];
 
+// Function to Format Franchise Name
+function formatFranchiseName($franchise) {
+    global $franchise_name_map;
+    return $franchise_name_map[$franchise] ?? ucwords(str_replace("-", " ", $franchise));
+}
 
 // Sales Performance per Franchise (Pie Chart)
-$sales_per_franchise_query = "SELECT franchisee, SUM(grand_total) AS total_sales FROM sales_report GROUP BY franchisee";
+$sales_per_franchise_query = "SELECT ac.franchisee, SUM(sr.grand_total) AS total_sales 
+                              FROM sales_report sr 
+                              JOIN agreement_contract ac ON sr.ac_id = ac.ac_id 
+                              $whereSQL GROUP BY ac.franchisee";
 $sales_per_franchise_result = mysqli_query($con, $sales_per_franchise_query);
 
 $franchise_sales_data = [];
-
 if ($sales_per_franchise_result) {
     while ($row = mysqli_fetch_assoc($sales_per_franchise_result)) {
-        $raw_franchise_name = $row['franchisee'];
-        
-        // Format the franchise name
-        $formatted_franchise_name = isset($franchise_name_map[$raw_franchise_name])
-            ? $franchise_name_map[$raw_franchise_name]
-            : ucwords(str_replace("-", " ", $raw_franchise_name)); // Fallback for unknown names
-
         $franchise_sales_data[] = [
-            'franchise' => $formatted_franchise_name, // Use formatted name
+            'franchise' => formatFranchiseName($row['franchisee']),
             'sales' => (float)$row['total_sales']
         ];
     }
 }
-
 $franchise_sales_json = json_encode($franchise_sales_data);
 
-
 // Sales Performance per Branch (Pie Chart)
-$sales_per_franchise_branch_query = "
-    SELECT ac.franchisee, ac.location, SUM(sr.grand_total) AS total_sales
-    FROM sales_report sr
-    JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
-    GROUP BY ac.franchisee, ac.location
-    ORDER BY ac.franchisee, total_sales DESC
-";
-
+$sales_per_franchise_branch_query = "SELECT ac.franchisee, ac.location, SUM(sr.grand_total) AS total_sales
+                                     FROM sales_report sr
+                                     JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
+                                     $whereSQL GROUP BY ac.franchisee, ac.location
+                                     ORDER BY ac.franchisee, total_sales DESC";
 $sales_per_franchise_branch_result = mysqli_query($con, $sales_per_franchise_branch_query);
 
 $franchise_branch_sales_data = [];
-
 if ($sales_per_franchise_branch_result) {
     while ($row = mysqli_fetch_assoc($sales_per_franchise_branch_result)) {
-        $raw_franchise_name = $row['franchisee'];
-        $formatted_franchise_name = isset($franchise_name_map[$raw_franchise_name])
-            ? $franchise_name_map[$raw_franchise_name]
-            : ucwords(str_replace("-", " ", $raw_franchise_name)); // Fallback for unknown names
-
-        $location = $row['location'];
-        $sales = (float)$row['total_sales'];
-
-        if (!isset($franchise_branch_sales_data[$formatted_franchise_name])) {
-            $franchise_branch_sales_data[$formatted_franchise_name] = [];
-        }
-
-        $franchise_branch_sales_data[$formatted_franchise_name][] = [
-            'location' => $location,
-            'sales' => $sales
+        $formattedFranchise = formatFranchiseName($row['franchisee']);
+        $franchise_branch_sales_data[$formattedFranchise][] = [
+            'location' => $row['location'],
+            'sales' => (float)$row['total_sales']
         ];
     }
 }
-
 $franchise_branch_sales_json = json_encode($franchise_branch_sales_data);
 
-
-// Normalize franchise names for JavaScript filtering
-function formatFranchiseName($franchise) {
-    $map = [
-        "auntie-anne" => "Auntie Anne's",
-        "macao-imperial" => "Macao Imperial",
-        "potato-corner" => "Potato Corner"
-    ];
-    return isset($map[$franchise]) ? $map[$franchise] : ucwords(str_replace("-", " ", $franchise));
-}
-
-// Fetch Best-Selling Products (Top 5) with Franchisee Info
-$best_selling_query = "
-    SELECT sr.product_name, ac.franchisee, SUM(sr.grand_total) AS total_sales
-    FROM sales_report sr
-    JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
-    GROUP BY sr.product_name, ac.franchisee
-    ORDER BY total_sales DESC
-    LIMIT 5";
+// Fetch Best-Selling Products (Top 5)
+$best_selling_query = "SELECT sr.product_name, ac.franchisee, SUM(sr.grand_total) AS total_sales
+                       FROM sales_report sr
+                       JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
+                       $whereSQL GROUP BY sr.product_name, ac.franchisee
+                       ORDER BY total_sales DESC LIMIT 5";
 $best_selling_result = mysqli_query($con, $best_selling_query);
 
 $best_selling_data = [];
-
 if ($best_selling_result) {
     while ($row = mysqli_fetch_assoc($best_selling_result)) {
-        $formattedFranchise = formatFranchiseName($row['franchisee']);
         $best_selling_data[] = [
             'product' => $row['product_name'],
-            'franchise' => $formattedFranchise,
+            'franchise' => formatFranchiseName($row['franchisee']),
             'sales' => (float)$row['total_sales']
         ];
     }
 }
+$best_selling_json = json_encode($best_selling_data);
 
-// Fetch Worst-Selling Products (Bottom 5) with Franchisee Info
-$worst_selling_query = "
-    SELECT sr.product_name, ac.franchisee, SUM(sr.grand_total) AS total_sales
-    FROM sales_report sr
-    JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
-    GROUP BY sr.product_name, ac.franchisee
-    ORDER BY total_sales ASC
-    LIMIT 5";
+// Fetch Worst-Selling Products (Bottom 5)
+$worst_selling_query = "SELECT sr.product_name, ac.franchisee, SUM(sr.grand_total) AS total_sales
+                        FROM sales_report sr
+                        JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
+                        $whereSQL GROUP BY sr.product_name, ac.franchisee
+                        ORDER BY total_sales ASC LIMIT 5";
 $worst_selling_result = mysqli_query($con, $worst_selling_query);
 
 $worst_selling_data = [];
-
 if ($worst_selling_result) {
     while ($row = mysqli_fetch_assoc($worst_selling_result)) {
-        $formattedFranchise = formatFranchiseName($row['franchisee']);
         $worst_selling_data[] = [
             'product' => $row['product_name'],
-            'franchise' => $formattedFranchise,
+            'franchise' => formatFranchiseName($row['franchisee']),
             'sales' => (float)$row['total_sales']
         ];
     }
 }
-
-// Convert to JSON for JavaScript
-$best_selling_json = json_encode($best_selling_data);
 $worst_selling_json = json_encode($worst_selling_data);
 
+// Fetch all franchisees
+$franchiseeQuery = "SELECT DISTINCT franchisee FROM agreement_contract";
+$franchiseeResult = mysqli_query($con, $franchiseeQuery);
+$franchisees = mysqli_fetch_all($franchiseeResult, MYSQLI_ASSOC);
+
+// Fetch all branches (filtered by franchise if selected)
+$branches = [];
+if (!empty($franchiseeList)) {
+    $branchQuery = "SELECT DISTINCT location FROM agreement_contract WHERE franchisee IN ($franchiseeList)";
+    $branchResult = mysqli_query($con, $branchQuery);
+
+    if ($branchResult) {
+        while ($row = mysqli_fetch_assoc($branchResult)) {
+            $branches[] = ["branch" => $row['location']]; // ✅ Fix: Rename 'location' to 'branch'
+        }
+    }
+}
 
 
-
+// Return JSON if requested
+if (isset($_GET['json']) && $_GET['json'] == "true") {
+    header("Content-Type: application/json");
+    echo json_encode([
+        "totalSales" => floatval($totalSales) ?: 0,  // ✅ Ensures number format
+        "totalExpenses" => floatval($totalExpenses) ?: 0,  // ✅ Ensures number format
+        "profit" => $totalSales - $totalExpenses,
+        "franchisees" => $franchisees,
+        "branches" => $branches,
+        "franchiseSales" => $franchise_sales_data,
+        "branchSales" => $franchise_branch_sales_data,
+        "bestSelling" => $best_selling_data,
+        "worstSelling" => $worst_selling_data
+    ]);
+    exit();
+}
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -255,6 +287,42 @@ $worst_selling_json = json_encode($worst_selling_data);
                         <i class='bx bx-time-five'></i>
                         <span class="text">Analytics</span>
                     </div>
+
+                    <div id="franchiseeButtons" class="filter-buttons">
+                        <h4>Select Franchisee:</h4>
+                    </div>
+
+                    <div id="branchButtons" class="filter-buttons" style="display: none;">
+                        <h4>Select Branch:</h4>
+                    </div>
+
+                    <div class="row kpi-row">
+                        <div class="col-md-4 kpi-col">
+                            <div class="card kpi-card">
+                                <div class="card-body">
+                                    <h4>Total Sales</h4>
+                                    <h2 class="kpi-number" id="totalSales">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 kpi-col">
+                            <div class="card kpi-card">
+                                <div class="card-body">
+                                    <h4>Total Expenses</h4>
+                                    <h2 class="kpi-number" id="totalExpenses">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 kpi-col">
+                            <div class="card kpi-card">
+                                <div class="card-body">
+                                    <h4>Profit</h4>
+                                    <h2 class="kpi-number" id="profit">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                      <!-- Summary Boxes (Still Inside .boxes) -->
                         <div class="boxes">
                             <a href="pages/salesPerformance/totalExpenses" class="box box1">
@@ -271,7 +339,7 @@ $worst_selling_json = json_encode($worst_selling_data);
                             </div>
                         </div>
 
-                        <!-- 🔴 NEW: Charts are now placed BELOW the summary boxes -->
+                        <!-- NEW: Charts are now placed BELOW the summary boxes -->
                         <div class="charts-container">
                             <!-- Franchise Sales Chart -->
                             <div class="chart-box">
@@ -293,11 +361,6 @@ $worst_selling_json = json_encode($worst_selling_data);
 
                                 <!-- Bar Charts & Checkboxes Container -->
                                 <div class="bar-charts-wrapper">
-                                    <!-- Checkbox Filter -->
-                                    <div class="filter-container">
-                                        <label><strong>Select Franchise:</strong></label>
-                                        <div id="franchiseCheckboxesBar"></div> <!-- Checkboxes for filtering -->
-                                    </div>
 
                                     <!-- Bar Charts Container -->
                                     <div class="bar-charts-container">

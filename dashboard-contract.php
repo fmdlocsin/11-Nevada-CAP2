@@ -393,7 +393,7 @@ echo "<script>
                                 <!-- Leasing Pie Chart Column -->
                                 <div class="col-md-6 d-flex justify-content-center">
                                     <div class="chart-container pie-chart-container">
-                                        <h4 class="text-center">Leasing Contracts Distribution</h4>
+                                        <h5 class="text-center">Leasing Contracts Distribution</h5>
                                         <canvas id="leasingContractsChart"></canvas>
                                     </div>
                                 </div>
