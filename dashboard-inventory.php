@@ -52,6 +52,47 @@ if (!empty($franchiseeList)) {
     $branches = mysqli_fetch_all($branchResult, MYSQLI_ASSOC);
 }
 
+// Fetch top 5 items with high stock turnover
+$highTurnoverQuery = "
+    SELECT i.item_name, 
+           CASE 
+               WHEN SUM(ii.beginning + ii.delivery - ii.waste) > 0 
+               THEN SUM(ii.sold) / SUM(ii.beginning + ii.delivery - ii.waste) 
+               ELSE 0 
+           END AS turnover_rate
+    FROM item_inventory ii
+    JOIN items i ON ii.item_id = i.item_id
+    WHERE (ii.beginning + ii.delivery - ii.waste) > 0
+    GROUP BY ii.item_id
+    ORDER BY turnover_rate DESC
+    LIMIT 5";
+$highTurnoverResult = mysqli_query($con, $highTurnoverQuery);
+$highTurnoverData = [];
+while ($row = mysqli_fetch_assoc($highTurnoverResult)) {
+    $highTurnoverData[] = $row;
+}
+
+// Fetch top 5 items with low stock turnover
+$lowTurnoverQuery = "
+    SELECT i.item_name, 
+           CASE 
+               WHEN SUM(ii.beginning + ii.delivery - ii.waste) > 0 
+               THEN SUM(ii.sold) / SUM(ii.beginning + ii.delivery - ii.waste) 
+               ELSE 0 
+           END AS turnover_rate
+    FROM item_inventory ii
+    JOIN items i ON ii.item_id = i.item_id
+    WHERE (ii.beginning + ii.delivery - ii.waste) > 0
+    GROUP BY ii.item_id
+    ORDER BY turnover_rate ASC
+    LIMIT 5";
+$lowTurnoverResult = mysqli_query($con, $lowTurnoverQuery);
+$lowTurnoverData = [];
+while ($row = mysqli_fetch_assoc($lowTurnoverResult)) {
+    $lowTurnoverData[] = $row;
+}
+
+
 // Fix JSON output issue: Ensure JSON is only sent when requested
 if (isset($_GET['json']) && $_GET['json'] == "true") {
     header("Content-Type: application/json");
@@ -60,7 +101,9 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
         "stockoutCount" => $stockoutCount,
         "wasteData" => $wasteData,
         "franchisees" => $franchisees,
-        "branches" => $branches
+        "branches" => $branches,
+        "highTurnoverData" => $highTurnoverData,
+        "lowTurnoverData" => $lowTurnoverData
     ]);
     exit();
 }
@@ -81,6 +124,7 @@ mysqli_close($con);
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/inventory-dashboard.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
 </head>
 
 <body>
@@ -178,6 +222,16 @@ mysqli_close($con);
                                 </div>
                             </div>
                         </div> <!-- End KPI Cards -->
+
+                        <div class="content" id="content-area">
+                            <div class="container">
+                                <h3>Top 5 High Stock Turnover</h3>
+                                <canvas id="highTurnoverChart"></canvas>
+
+                                <h3>Top 5 Low Stock Turnover</h3>
+                                <canvas id="lowTurnoverChart"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -32,10 +32,12 @@ $expenseCategoryMap = [
 if ($id) {
     $id = mysqli_real_escape_string($con, $id);
 
-    $query = "SELECT expenses.*, users_accounts.user_name 
-              FROM expenses 
-              LEFT JOIN users_accounts ON expenses.encoder_id = users_accounts.user_id 
-              WHERE expenses.ex_id = '$id'";
+    $query = "SELECT expenses.*, users_accounts.user_name, agreement_contract.location AS location_name
+    FROM expenses 
+    LEFT JOIN users_accounts ON expenses.encoder_id = users_accounts.user_id
+    LEFT JOIN agreement_contract ON expenses.location = agreement_contract.ac_id  -- Fetching location name
+    WHERE expenses.ex_id = '$id'";
+
     $result = mysqli_query($con, $query);
 
     if ($result) {
@@ -95,7 +97,8 @@ if ($id) {
                 <span class="header-label">Franchisee:</span> <?php echo htmlspecialchars($data['franchisee']); ?>
             </div>
             <div class="header-section2">
-                <span class="header-label">Location:</span> <?php echo htmlspecialchars($data['location']); ?>
+            <span class="header-label">Location:</span> <?php echo htmlspecialchars($data['location_name']); ?>
+
             </div>
             <!-- Table for Expenses -->
             <table>

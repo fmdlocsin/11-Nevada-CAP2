@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     loadFranchiseeButtons(); // Load franchisee buttons on page load
+    fetchKPIData(); // Load KPI Data including turnover charts
+    loadTurnoverCharts();
 });
 
 function loadFranchiseeButtons() {
@@ -74,11 +76,79 @@ function fetchKPIData() {
     let selectedBranches = Array.from(document.querySelectorAll(".branch-btn.btn-selected"))
         .map(btn => btn.dataset.value);
 
-    fetch(`dashboard-inventory.php?json=true&franchisees=${selectedFranchisees.join(",")}&branches=${selectedBranches.join(",")}`)
+        fetch(`dashboard-inventory.php?json=true`)
         .then(response => response.json())
         .then(data => {
-            document.getElementById("stockLevel").innerText =
-                data.stockData.reduce((acc, item) => acc + (item.stock_available || 0), 0);
+            console.log("Fetched Data for Graphs:", data); // ✅ Debugging Log
+    
+            // Ensure Data Exists Before Rendering Charts
+            if (!data.highTurnoverData || data.highTurnoverData.length === 0) {
+                console.warn("⚠ No data for High Stock Turnover chart.");
+                document.getElementById("highTurnoverChart").style.display = "none";
+            } else {
+                document.getElementById("highTurnoverChart").style.display = "block";
+                renderTurnoverChart("highTurnoverChart", "Top 5 High Stock Turnover", data.highTurnoverData);
+            }
+    
+            if (!data.lowTurnoverData || data.lowTurnoverData.length === 0) {
+                console.warn("⚠ No data for Low Stock Turnover chart.");
+                document.getElementById("lowTurnoverChart").style.display = "none";
+            } else {
+                document.getElementById("lowTurnoverChart").style.display = "block";
+                renderTurnoverChart("lowTurnoverChart", "Top 5 Low Stock Turnover", data.lowTurnoverData);
+            }
         })
         .catch(error => console.error("Error fetching KPI data:", error));
+    
 }
+
+
+
+function loadTurnoverCharts() {
+    var highTurnoverElement = document.getElementById("highTurnoverData");
+    var lowTurnoverElement = document.getElementById("lowTurnoverData");
+
+    if (!highTurnoverElement || !lowTurnoverElement) {
+        console.error("Error: Turnover data elements not found.");
+        return;
+    }
+
+    var highTurnoverData = JSON.parse(highTurnoverElement.textContent.trim());
+    var lowTurnoverData = JSON.parse(lowTurnoverElement.textContent.trim());
+
+    if (!highTurnoverData.length || !lowTurnoverData.length) {
+        console.warn("No data available for turnover charts.");
+        return;
+    }
+
+    createBarChart("highTurnoverChart", highTurnoverData, "Top 5 High Stock Turnover");
+    createBarChart("lowTurnoverChart", lowTurnoverData, "Top 5 Low Stock Turnover");
+}
+
+function createBarChart(chartId, data, title) {
+    var ctx = document.getElementById(chartId).getContext("2d");
+
+    if (window[chartId] instanceof Chart) {
+        window[chartId].destroy();
+    }
+
+    window[chartId] = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: data.map(item => item.item_name),
+            datasets: [{
+                label: "Stock Turnover Rate",
+                data: data.map(item => parseFloat(item.turnover_rate).toFixed(2)),
+                backgroundColor: "#42A5F5",
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
