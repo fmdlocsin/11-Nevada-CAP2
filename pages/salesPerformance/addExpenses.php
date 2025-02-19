@@ -55,6 +55,9 @@ $dateToday = date("Y-m-d");
                         <label>Name</label>
                         <input type="text" id="encoderName" placeholder="Enter Encoder's Name"
                             value="<?php echo $user_data['user_name']; ?>" disabled>
+
+                        <input type="hidden" id="encoderId" value="<?php echo $user_data['user_id']; ?>">
+
                     </div>
                     <div class="input-field">
                         <label>Date</label>

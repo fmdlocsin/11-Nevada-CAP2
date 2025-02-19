@@ -25,7 +25,8 @@ function addExpenses() {
     $(document).on("click", ".btn-submit-expenses", function () {
         var selectedFranchise = $("#selectedFranchise").val();
         var franchiseLocation = $("#franchiseLocation").val();
-        var encoderName = $("#encoderName").val();
+        // var encoderName = $("#encoderName").val();
+        var encoderId = $("#encoderId").val(); // Get encoder ID
         var dateToday = $("#dateToday").val();
         var selectedExpense = $("#selectedExpense").val();
 
@@ -49,49 +50,46 @@ function addExpenses() {
         }
 
         var formData = new FormData();
-        formData.append("selectedFranchise", selectedFranchise);
-        formData.append("franchiseLocation", franchiseLocation);
-        formData.append("encoderName", encoderName);
-        formData.append("dateToday", dateToday);
-        formData.append("selectedExpense", selectedExpense);
-        formData.append("expenseType", expenseType);
-        formData.append("amount", amount);
-        formData.append("description", description);
-        formData.append("otherDetails", otherDetails);
+formData.append("selectedFranchise", selectedFranchise);
+formData.append("franchiseLocation", franchiseLocation);
+formData.append("encoderId", $("#encoderId").val()); // Ensure encoderId is passed
+formData.append("dateToday", dateToday);
+formData.append("selectedExpense", selectedExpense);
+formData.append("expenseType", expenseType);
+formData.append("amount", amount);
+formData.append("description", description);
+formData.append("otherDetails", otherDetails);
 
-        $.ajax({
-            method: "POST",
-            url: "../../phpscripts/add-expenses.php",
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: "json",
-            success: function (response) {
-                if (response.status === "success") {
-                    $("input, button, textarea, select, a").prop(
-                        "disabled",
-                        true
-                    );
-                    displayModal("Success", response.message, "#198754");
+// Debug: Check if formData contains all required fields
+for (var pair of formData.entries()) {
+    console.log(pair[0]+ ', ' + pair[1]); 
+}
 
-                    setTimeout(function () {
-                        closeModal();
-                        window.location.href = window.location.href;
-                    }, 3000);
+$.ajax({
+    method: "POST",
+    url: "../../phpscripts/add-expenses.php",
+    data: formData,
+    processData: false,
+    contentType: false,
+    dataType: "json",
+    success: function (response) {
+        console.log(response);
+        if (response.status === "success") {
+            displayModal("Success", response.message, "#198754");
+            setTimeout(function () {
+                closeModal();
+                window.location.href = window.location.href;
+            }, 3000);
+        } else {
+            displayModal("Error", response.message, "#dc3545");
+        }
+    },
+    error: function (xhr, status, error) {
+        console.error("AJAX Error:", error);
+        displayModal("Error", "An error occurred. Please try again later.");
+    },
+});
 
-                    $("#myForm")[0].reset();
-                } else {
-                    displayModal("Error", response.message, "#dc3545");
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("AJAX Error:", error);
-                displayModal(
-                    "Error",
-                    "An error occurred. Please try again later."
-                );
-            },
-        });
     });
 }
 
