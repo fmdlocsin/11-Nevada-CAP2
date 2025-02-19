@@ -3,16 +3,16 @@ session_start();
 include ("database-connection.php");
 
 // Enable debugging
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-ini_set('error_log', 'error_log.txt'); // Log errors to a file
-error_reporting(E_ALL);
+// ini_set('display_errors', 0);
+// ini_set('log_errors', 1);
+// ini_set('error_log', 'error_log.txt'); // Log errors to a file
+// error_reporting(E_ALL);
 
 $data = [];
 
 if ($_SERVER['REQUEST_METHOD'] == "POST") {
     // Debug: Log received data
-    error_log("Received POST Data: " . print_r($_POST, true));
+    // error_log("Received POST Data: " . print_r($_POST, true));
 
     // Validate required fields
     if (
