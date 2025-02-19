@@ -3,7 +3,21 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchKPIData(); // Load initial KPI data
 });
 
-// 🎯 Load Franchisee Filter Buttons
+// 🎯 Franchise Name Mapping
+const franchiseNameMap = {
+    "auntie-anne": "Auntie Anne's",
+    "macao-imperial": "Macao Imperial",
+    "potato-corner": "Potato Corner"
+};
+
+// 🎯 Franchise Logo Mapping
+const franchiseLogoMap = {
+    "auntie-anne": "AuntieAnn.png",
+    "macao-imperial": "MacaoImp.png",
+    "potato-corner": "PotCor.png"
+};
+
+// 🎯 Load Franchisee Filter Buttons with Logos
 function loadFranchiseeButtons() {
     fetch("dashboard-sales.php?json=true")
         .then(response => response.json())
@@ -12,16 +26,33 @@ function loadFranchiseeButtons() {
             franchiseeButtonsDiv.innerHTML = ""; // Clear existing buttons
 
             data.franchisees.forEach(franchisee => {
+                let franchiseKey = franchisee.franchisee.toLowerCase().replace(/\s+/g, "-"); // Match key format
+                let formattedName = franchiseNameMap[franchiseKey] || franchisee.franchisee; // Get formatted name
+                
+                // Get corresponding image filename from the map
+                let logoFilename = franchiseLogoMap[franchiseKey] || "default.png"; // Use default if not found
+                let logoSrc = `assets/images/${logoFilename}`; // Adjust path as needed
+
                 let button = document.createElement("button");
                 button.classList.add("btn", "btn-outline-primary", "m-2", "franchisee-btn");
-                button.innerText = franchisee.franchisee;
                 button.dataset.value = franchisee.franchisee;
                 button.addEventListener("click", toggleFranchiseeSelection);
+
+                // Create image element
+                let img = document.createElement("img");
+                img.src = logoSrc;
+                img.alt = formattedName;
+                img.classList.add("franchise-logo");
+
+                // Add image & text inside button
+                button.appendChild(img);
+                button.appendChild(document.createTextNode(` ${formattedName}`)); // Add space & text
                 franchiseeButtonsDiv.appendChild(button);
             });
         })
         .catch(error => console.error("Error loading franchisees:", error));
 }
+
 
 // 🎯 Handle Franchisee Selection
 function toggleFranchiseeSelection(event) {
@@ -39,8 +70,10 @@ function toggleFranchiseeSelection(event) {
 
 // 🎯 Load Branch Filter Buttons
 function loadBranchButtons(selectedFranchisees) {
+    let branchButtonsDiv = document.getElementById("branchButtons");
+
     if (selectedFranchisees.length === 0) {
-        document.getElementById("branchButtons").style.display = "none";
+        branchButtonsDiv.style.display = "none";
         return;
     }
 
@@ -49,32 +82,48 @@ function loadBranchButtons(selectedFranchisees) {
         .then(data => {
             console.log("🔍 JSON Response for Branches:", data);
 
-            let branchButtonsDiv = document.getElementById("branchButtons");
             branchButtonsDiv.innerHTML = "";
             branchButtonsDiv.style.display = "block";
 
-            // ✅ Check if branches exist and are an array
-            if (!data.branches || !Array.isArray(data.branches)) {
+            if (!data.branchSales || typeof data.branchSales !== "object") {
                 console.warn("⚠️ No valid branches returned!");
                 return;
             }
 
-            data.branches.forEach(branch => {
-                if (!branch.branch) {
-                    console.warn("⚠️ Invalid branch data:", branch);
-                    return;
-                }
+            // Create a grid container
+            let gridContainer = document.createElement("div");
+            gridContainer.classList.add("branch-grid");
 
-                let button = document.createElement("button");
-                button.classList.add("btn", "btn-outline-secondary", "m-2", "branch-btn");
-                button.innerText = branch.branch;  // ✅ Ensure correct property
-                button.dataset.value = branch.branch;
-                button.addEventListener("click", toggleBranchSelection);
-                branchButtonsDiv.appendChild(button);
+            Object.keys(data.branchSales).forEach(franchisee => {
+                let franchiseColumn = document.createElement("div");
+                franchiseColumn.classList.add("franchise-column");
+
+                let title = document.createElement("h5");
+                title.classList.add("franchise-title");
+                title.innerText = franchisee;
+                franchiseColumn.appendChild(title);
+
+                let branchContainer = document.createElement("div");
+                branchContainer.classList.add("branch-container"); // Flexbox layout for branches
+
+                data.branchSales[franchisee].forEach(branch => {
+                    let button = document.createElement("button");
+                    button.classList.add("btn", "btn-outline-secondary", "branch-btn");
+                    button.innerText = branch.location;
+                    button.dataset.value = branch.location;
+                    button.addEventListener("click", toggleBranchSelection);
+                    branchContainer.appendChild(button);
+                });
+
+                franchiseColumn.appendChild(branchContainer);
+                gridContainer.appendChild(franchiseColumn);
             });
+
+            branchButtonsDiv.appendChild(gridContainer);
         })
         .catch(error => console.error("❌ Error loading branches:", error));
 }
+
 
 
 // 🎯 Handle Branch Selection

@@ -288,42 +288,56 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                         <span class="text">Analytics</span>
                     </div>
 
-                    <div id="franchiseeButtons" class="filter-buttons">
-                        <h4>Select Franchisee:</h4>
-                    </div>
+                    <span class="filter-label">Filter:</span>
+                    <div id="filters" class="filter-section">
+                        
 
-                    <div id="branchButtons" class="filter-buttons" style="display: none;">
-                        <h4>Select Branch:</h4>
-                    </div>
+                        <!-- Franchisee Filter Buttons -->
+                        <div id="franchiseeButtons" class="filter-buttons">
+                            <h4>Select Franchisee:</h4>
+                        </div>
 
-                    <div class="row kpi-row">
-                        <div class="col-md-4 kpi-col">
-                            <div class="card kpi-card">
-                                <div class="card-body">
-                                    <h4>Total Sales</h4>
-                                    <h2 class="kpi-number" id="totalSales">0</h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 kpi-col">
-                            <div class="card kpi-card">
-                                <div class="card-body">
-                                    <h4>Total Expenses</h4>
-                                    <h2 class="kpi-number" id="totalExpenses">0</h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4 kpi-col">
-                            <div class="card kpi-card">
-                                <div class="card-body">
-                                    <h4>Profit</h4>
-                                    <h2 class="kpi-number" id="profit">0</h2>
-                                </div>
-                            </div>
+                        <!-- Branch Filter Buttons (Now Directly Below) -->
+                        <div id="branchButtons" class="filter-buttons" style="display: none;">
+                            <h4>Select Branch:</h4>
                         </div>
                     </div>
 
-                     <!-- Summary Boxes (Still Inside .boxes) -->
+
+                        <!-- NEW KPI CARDS -->
+                        <div class="row kpi-row">
+                            <!-- Total Sales -->
+                            <div class="col-md-4 kpi-col">
+                                <a href="pages/salesPerformance/chooseFranchisee" class="card kpi-card kpi-link">
+                                    <div class="card-body">
+                                        <h2 class="kpi-number" id="totalSales">0</h2>
+                                        <h4 class="kpi-label">Total Sales</h4>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Total Expenses -->
+                            <div class="col-md-4 kpi-col">
+                                <a href="pages/salesPerformance/totalExpenses" class="card kpi-card kpi-link">
+                                    <div class="card-body">
+                                        <h2 class="kpi-number" id="totalExpenses">0</h2>
+                                        <h4 class="kpi-label">Total Expenses</h4>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Profit (Non-Clickable) -->
+                            <div class="col-md-4 kpi-col">
+                                <div class="card kpi-card">
+                                    <div class="card-body">
+                                        <h2 class="kpi-number" id="profit">0</h2>
+                                        <h4 class="kpi-label">Profit</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                     <!-- Summary Boxes (Still Inside .boxes)
                         <div class="boxes">
                             <a href="pages/salesPerformance/totalExpenses" class="box box1">
                                 <span class="text1"><?php echo number_format($totalExpenses, 2) ?></span>
@@ -337,7 +351,7 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                                 <span class="text1"><?php echo number_format($totalSales - $totalExpenses, 2) ?></span>
                                 <span class="text">Profit</span>
                             </div>
-                        </div>
+                        </div> -->
 
                         <!-- NEW: Charts are now placed BELOW the summary boxes -->
                         <div class="charts-container">

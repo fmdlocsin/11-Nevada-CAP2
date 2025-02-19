@@ -213,14 +213,6 @@ h2 {
     transform: translate(-50%, -50%);
 }
 
-/* Hover Effect */
-#franchiseCheckboxes label:hover {
-    color: #007bff;
-}
-
-
-
-
 /* Main Charts Container */
 .charts-container {
     display: flex;
@@ -451,6 +443,183 @@ h2 {
     align-items: center;
     gap: 15px;
     width: 100%;
+}
+
+
+.filter-section {
+    display: flex;
+    align-items: center;
+    flex-direction: column; /* Stack elements vertically */
+    gap: 15px;
+    /* background-color: #f8f9fa; */
+    padding: 10px 15px;
+    /* border-radius: 8px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); */
+}
+
+
+.filter-section h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 8px 12px;
+    /* border-radius: 6px;
+    background-color: #ffffff; */
+    /* border: 1px solid #ffffff; */
+    /* box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); */
+}
+
+.filter-buttons h4 {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: #444;
+}
+
+.franchise-branch-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+/* Adjust branch section */
+#branchButtons {
+    padding: 10px;
+    /* background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd; */
+    max-width: 100%;
+    margin-top: 10px;
+}
+
+/* Franchisee grid layout - 3 columns */
+.branch-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+    gap: 15px; /* Space between columns */
+}
+
+
+/* Franchise name styling */
+.franchise-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+/* Branch buttons layout */
+.branch-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+/* Branch buttons */
+.branch-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 5px;
+    min-width: 100px;
+    text-align: center;
+}
+
+/* Base Franchisee Button Styles */
+.franchisee-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ddd; /* Light gray border */
+    background-color: white;
+    color: #333; /* Dark text for readability */
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Button Hover Effect */
+.franchisee-btn:hover {
+    background-color: #f0f0f0; /* Slightly darker white */
+    transform: scale(1.05);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Selected Button Effect */
+.franchisee-btn.btn-selected {
+    background-color: #aaa8a8; /* Light blue selection */
+    color: white;
+    border-color: #333;
+    transform: scale(1.05);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+
+/* Franchisee Logos */
+.franchise-logo {
+    width: 40px;  /* Adjust size */
+    height: 40px;
+    object-fit: contain;
+}
+
+/* Filter Label */
+.filter-label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap;
+}
+
+
+/* KPI CARDS */
+.kpi-card {
+    text-align: center;
+    padding: 15px;
+    background: #4474c0; /* Matches the summary box */
+    color: #ffffff; /* White text for contrast */
+    border-radius: 10px;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+    
+}
+
+.kpi-number {
+    font-size: 30px; /* Bigger emphasis on number */
+    /* font-weight: bold; */
+    margin-bottom: 5px;
+    display: block;
+    color: #ffffff; /* White text */
+}
+
+.kpi-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff; /* White text */
+}
+
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 5px 12px rgba(0, 0, 0, 0.2);
+}
+
+.kpi-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.kpi-link:hover {
+    text-decoration: none;
 }
 
 /* Responsive Layout */
