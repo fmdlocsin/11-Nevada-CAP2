@@ -44,73 +44,13 @@ $franchiseeQuery = "SELECT DISTINCT franchisee FROM item_inventory";
 $franchiseeResult = mysqli_query($con, $franchiseeQuery);
 $franchisees = mysqli_fetch_all($franchiseeResult, MYSQLI_ASSOC);
 
-// Fetch branches based on selected franchisees or return all if no filter is applied
+// Fetch branches only if franchisees are selected
 $branches = [];
-
-$branchQuery = "SELECT DISTINCT branch FROM item_inventory";
-if (!empty($franchisees) && is_array($franchisees)) {
-    $escapedFranchisees = [];
-
-    foreach ($franchisees as $f) {
-        if (is_string($f)) { // Ensure valid string
-            $escapedFranchisees[] = "'" . mysqli_real_escape_string($con, $f) . "'";
-        }
-    }
-
-    if (!empty($escapedFranchisees)) {
-        $franchiseeList = implode(",", $escapedFranchisees);
-        $branchQuery .= " WHERE franchisee IN ($franchiseeList)";
-    }
+if (!empty($franchiseeList)) {
+    $branchQuery = "SELECT DISTINCT branch FROM item_inventory WHERE franchisee IN ($franchiseeList)";
+    $branchResult = mysqli_query($con, $branchQuery);
+    $branches = mysqli_fetch_all($branchResult, MYSQLI_ASSOC);
 }
-
-
-
-$branchResult = mysqli_query($con, $branchQuery);
-
-// ✅ Check if the query failed
-if (!$branchResult) {
-    die(json_encode(["error" => "SQL Error: " . mysqli_error($con)]));
-}
-
-// ✅ Fetch branches safely
-while ($row = mysqli_fetch_assoc($branchResult)) {
-    $branches[] = ["branch" => $row["branch"]];
-}
-
-
-// Fetch Days of Inventory for selected franchise and branch
-$inventoryQuery = "
-    SELECT i.item_name, 
-           SUM(ii.beginning + ii.delivery - ii.waste - ii.sold) AS stock_available, 
-           CASE 
-               WHEN AVG(ii.sold) > 0 
-               THEN SUM(ii.beginning + ii.delivery - ii.waste - ii.sold) / AVG(ii.sold) 
-               ELSE NULL 
-           END AS days_of_inventory
-    FROM item_inventory ii
-    JOIN items i ON ii.item_id = i.item_id
-    $whereSQL
-    GROUP BY ii.item_id";
-
-    $inventoryResult = mysqli_query($con, $inventoryQuery);
-
-    // ✅ Check if the query failed
-    if (!$inventoryResult) {
-        die(json_encode([
-            "error" => "SQL Error: " . mysqli_error($con),
-            "query" => $inventoryQuery
-        ]));
-    }
-    
-    // ✅ Fetch inventory data safely
-    $inventoryData = [];
-    while ($row = mysqli_fetch_assoc($inventoryResult)) {
-        $inventoryData[] = [
-            "item_name" => $row["item_name"],
-            "days_of_inventory" => $row["days_of_inventory"] ?? "N/A"
-        ];
-    }
-    
 
 // Fetch top 5 items with high stock turnover
 $highTurnoverQuery = "
@@ -131,8 +71,6 @@ $highTurnoverData = [];
 while ($row = mysqli_fetch_assoc($highTurnoverResult)) {
     $highTurnoverData[] = $row;
 }
-
-
 
 // Fetch top 5 items with low stock turnover
 $lowTurnoverQuery = "
@@ -158,24 +96,17 @@ while ($row = mysqli_fetch_assoc($lowTurnoverResult)) {
 // Fix JSON output issue: Ensure JSON is only sent when requested
 if (isset($_GET['json']) && $_GET['json'] == "true") {
     header("Content-Type: application/json");
-
-    $response = [
-        "inventoryData" => $inventoryData ?? [],
-        "stockData" => $stockData ?? [],
-        "stockoutCount" => $stockoutCount ?? 0,
-        "wasteData" => $wasteData ?? [],
-        "franchisees" => $franchisees ?? [],
-        "branches" => $branches ?? [],
-        "highTurnoverData" => $highTurnoverData ?? [],
-        "lowTurnoverData" => $lowTurnoverData ?? []
-    ];
-
-    // Ensure JSON is properly formatted and log errors
-    echo json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    echo json_encode([
+        "stockData" => $stockData,
+        "stockoutCount" => $stockoutCount,
+        "wasteData" => $wasteData,
+        "franchisees" => $franchisees,
+        "branches" => $branches,
+        "highTurnoverData" => $highTurnoverData,
+        "lowTurnoverData" => $lowTurnoverData
+    ]);
     exit();
 }
-
-
 
 mysqli_close($con);
 ?>
@@ -301,11 +232,6 @@ mysqli_close($con);
                                 <canvas id="lowTurnoverChart"></canvas>
                             </div>
                         </div>
-
-                        <div id="inventoryTableContainer">
-                            <p>Select a franchise and branch to view inventory days.</p>
-                        </div>
-
                     </div>
                 </div>
             </div>

@@ -37,47 +37,29 @@ function toggleFranchiseeSelection(event) {
 }
 
 function loadBranchButtons(selectedFranchisees) {
-    console.log("🔍 Fetching branches for:", selectedFranchisees); // ✅ Debugging log
+    if (selectedFranchisees.length === 0) {
+        document.getElementById("branchButtons").style.display = "none";
+        return;
+    }
 
-    fetch(`dashboard-inventory.php?json=true&franchisees=${selectedFranchisees.join(",")}`)
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            return response.text(); // Get raw text before parsing JSON
+    fetch(`dashboard-inventory.php?json=true&franchisees=${selectedFranchisees.join(",")}`) // ✅ Ensure JSON response
+        .then(response => response.json())
+        .then(data => {
+            let branchButtonsDiv = document.getElementById("branchButtons");
+            branchButtonsDiv.innerHTML = ""; // Clear previous buttons
+            branchButtonsDiv.style.display = "block";
+
+            data.branches.forEach(branch => {
+                let button = document.createElement("button");
+                button.classList.add("btn", "btn-outline-secondary", "m-2", "branch-btn"); // ✅ Default styling
+                button.innerText = branch.branch;
+                button.dataset.value = branch.branch;
+                button.addEventListener("click", toggleBranchSelection);
+                branchButtonsDiv.appendChild(button);
+            });
         })
-        .then(text => {
-            console.log("🔍 Raw API Response:", text); // ✅ Log raw response
-
-            try {
-                let data = JSON.parse(text); // ✅ Attempt to parse JSON
-                console.log("✅ Parsed Branch Data:", data); // ✅ Log parsed data
-
-                let branchButtonsDiv = document.getElementById("branchButtons");
-                branchButtonsDiv.innerHTML = ""; // Clear previous buttons
-
-                if (data.branches && Array.isArray(data.branches) && data.branches.length > 0) {
-                    branchButtonsDiv.style.display = "block";
-                    data.branches.forEach(branch => {
-                        let button = document.createElement("button");
-                        button.classList.add("btn", "btn-outline-secondary", "m-2", "branch-btn");
-                        button.innerText = branch.branch;
-                        button.dataset.value = branch.branch;
-                        button.addEventListener("click", toggleBranchSelection);
-                        branchButtonsDiv.appendChild(button);
-                    });
-                } else {
-                    console.warn("⚠ No branches found.");
-                    branchButtonsDiv.innerHTML = "<p>No branches available.</p>";
-                    branchButtonsDiv.style.display = "none";
-                }
-            } catch (error) {
-                console.error("❌ JSON Parsing Error:", error);
-                console.error("🔍 Full Response Before Parsing:", text);
-            }
-        })
-        .catch(error => console.error("❌ Error loading branches:", error));
+        .catch(error => console.error("Error loading branches:", error));
 }
-
-
 
 function toggleBranchSelection(event) {
     let button = event.target;
@@ -94,36 +76,28 @@ function fetchKPIData() {
     let selectedBranches = Array.from(document.querySelectorAll(".branch-btn.btn-selected"))
         .map(btn => btn.dataset.value);
 
-        fetch(`dashboard-inventory.php?json=true`)
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-            return response.json();
-        })
+    fetch(`dashboard-inventory.php?json=true`)
+        .then(response => response.json())
         .then(data => {
-            console.log("✅ Fetched KPI Data:", data); // Debugging Log
-    
-            if (!data || typeof data !== "object") {
-                throw new Error("Invalid JSON structure received.");
-            }
-    
-            if (Array.isArray(data.highTurnoverData) && data.highTurnoverData.length > 0) {
-                document.getElementById("highTurnoverChart").style.display = "block";
-                createBarChart("highTurnoverChart", data.highTurnoverData, "Top 5 High Stock Turnover");
-            } else {
+            console.log("Fetched Data for Graphs:", data); // ✅ Debugging Log
+
+            if (!data.highTurnoverData || data.highTurnoverData.length === 0) {
                 console.warn("⚠ No data for High Stock Turnover chart.");
                 document.getElementById("highTurnoverChart").style.display = "none";
-            }
-    
-            if (Array.isArray(data.lowTurnoverData) && data.lowTurnoverData.length > 0) {
-                document.getElementById("lowTurnoverChart").style.display = "block";
-                createBarChart("lowTurnoverChart", data.lowTurnoverData, "Top 5 Low Stock Turnover");
             } else {
+                document.getElementById("highTurnoverChart").style.display = "block";
+                createBarChart("highTurnoverChart", data.highTurnoverData, "Top 5 High Stock Turnover");
+            }
+
+            if (!data.lowTurnoverData || data.lowTurnoverData.length === 0) {
                 console.warn("⚠ No data for Low Stock Turnover chart.");
                 document.getElementById("lowTurnoverChart").style.display = "none";
+            } else {
+                document.getElementById("lowTurnoverChart").style.display = "block";
+                createBarChart("lowTurnoverChart", data.lowTurnoverData, "Top 5 Low Stock Turnover");
             }
         })
-        .catch(error => console.error("❌ Error fetching KPI data:", error));
-    
+        .catch(error => console.error("Error fetching KPI data:", error));
 }
 
 
@@ -189,27 +163,3 @@ function createBarChart(chartId, data, title) {
     });
 }
 
-function displayInventoryTable(inventoryData) {
-    let tableHTML = `
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Item Name</th>
-                    <th>Days of Inventory</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    inventoryData.forEach(item => {
-        tableHTML += `
-            <tr>
-                <td>${item.item_name}</td>
-                <td>${item.days_of_inventory ? parseFloat(item.days_of_inventory).toFixed(1) : "N/A"}</td>
-            </tr>
-        `;
-    });
-
-    tableHTML += `</tbody></table>`;
-    document.getElementById("inventoryTableContainer").innerHTML = tableHTML;
-}
