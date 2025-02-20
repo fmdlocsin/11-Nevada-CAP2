@@ -36,29 +36,51 @@ $salesQuery = "SELECT SUM(sr.grand_total) AS total_sales FROM sales_report sr
 $salesResult = mysqli_query($con, $salesQuery);
 $totalSales = ($salesResult) ? mysqli_fetch_assoc($salesResult)['total_sales'] : 0;
 
+
+// Only show debugging output when NOT in JSON mode
+// if (!isset($_GET['json']) || $_GET['json'] !== "true") {
+//     echo "<pre>Branch List Debug: "; print_r($branches); echo "</pre>";
+// }
+
+// Construct query for total expenses
 $expensesQuery = "SELECT SUM(e.expense_amount) AS total_expenses 
                   FROM expenses e 
-                  JOIN agreement_contract ac ON e.location = ac.location"; // Join agreement_contract to filter by franchisee
+                  JOIN agreement_contract ac ON e.location = ac.ac_id";
 
-$whereClauses = [];
+// Prepare WHERE conditions
+$expenseWhereClauses = [];
 
 if (!empty($franchisees)) {
-    $franchiseeList = "'" . implode("','", array_map(fn($f) => mysqli_real_escape_string($con, $f), $franchisees)) . "'";
-    $whereClauses[] = "ac.franchisee IN ($franchiseeList)"; // Now filters by franchisee
+    $expenseFranchiseeList = "'" . implode("','", array_map(fn($f) => mysqli_real_escape_string($con, $f), $franchisees)) . "'";
+    $expenseWhereClauses[] = "ac.franchisee IN ($expenseFranchiseeList)";
 }
 
 if (!empty($branches)) {
-    $branchList = "'" . implode("','", array_map(fn($b) => mysqli_real_escape_string($con, $b), $branches)) . "'";
-    $whereClauses[] = "e.location IN ($branchList)"; // Still allows filtering by branch
+    // 🔥 Convert branch names to ac_id before filtering
+    $branchIdQuery = "SELECT ac_id FROM agreement_contract WHERE location IN ('" . implode("','", $branches) . "')";
+    $branchIdResult = mysqli_query($con, $branchIdQuery);
+
+    $branchIds = [];
+    while ($row = mysqli_fetch_assoc($branchIdResult)) {
+        $branchIds[] = $row['ac_id'];
+    }
+
+    if (!empty($branchIds)) {
+        $expenseWhereClauses[] = "e.location IN ('" . implode("','", $branchIds) . "')";
+    }
 }
 
-// Apply WHERE condition only if filters exist
-if (!empty($whereClauses)) {
-    $expensesQuery .= " WHERE " . implode(" AND ", $whereClauses);
+if (!empty($expenseWhereClauses)) {
+    $expensesQuery .= " WHERE " . implode(" AND ", $expenseWhereClauses);
 }
 
+// Execute query
 $expensesResult = mysqli_query($con, $expensesQuery);
 $totalExpenses = ($expensesResult) ? mysqli_fetch_assoc($expensesResult)['total_expenses'] : 0;
+
+
+
+
 
 
 
@@ -160,16 +182,47 @@ $franchisees = mysqli_fetch_all($franchiseeResult, MYSQLI_ASSOC);
 
 // Fetch all branches (filtered by franchise if selected)
 $branches = [];
+
 if (!empty($franchiseeList)) {
-    $branchQuery = "SELECT DISTINCT location FROM agreement_contract WHERE franchisee IN ($franchiseeList)";
+    $branchQuery = "
+        SELECT DISTINCT ac.location AS branch_id, ac.location AS branch_name
+        FROM agreement_contract ac
+        WHERE ac.franchisee IN ($franchiseeList)
+
+        UNION
+
+        SELECT DISTINCT ac.location AS branch_id, ac.location AS branch_name
+        FROM sales_report sr
+        JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
+        WHERE ac.franchisee IN ($franchiseeList)
+
+        UNION
+
+        SELECT DISTINCT 
+            COALESCE(ac.location, e.location) AS branch_id, 
+            COALESCE(ac.location, e.location) AS branch_name
+        FROM expenses e
+        LEFT JOIN agreement_contract ac ON e.location = ac.ac_id
+        WHERE e.franchisee IN ($franchiseeList);
+    ";
+
     $branchResult = mysqli_query($con, $branchQuery);
 
-    if ($branchResult) {
-        while ($row = mysqli_fetch_assoc($branchResult)) {
-            $branches[] = ["branch" => $row['location']]; // ✅ Fix: Rename 'location' to 'branch'
-        }
+    if (!$branchResult) {
+        die("Branch Query Failed: " . mysqli_error($con));
+    }
+
+    while ($row = mysqli_fetch_assoc($branchResult)) {
+        $branches[] = [
+            "branch" => $row['branch_name'],
+            "location" => $row['branch_id']
+        ];
     }
 }
+
+
+
+
 
 
 // Return JSON if requested

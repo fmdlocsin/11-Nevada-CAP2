@@ -156,6 +156,9 @@ function fetchKPIData() {
     fetch(url)
     .then(response => response.json())
     .then(data => {
+        console.log("✅ JSON Response for KPI Data:", data); // 🔍 Debugging Output
+        console.log("📌 Selected Branches:", selectedBranches);
+        console.log("📌 Total Expenses from Backend:", data.totalExpenses);
         console.log("JSON Response for KPI Data:", data);
         console.log("Best-Selling Products Data:", data.bestSelling);
         console.log("Worst-Selling Products Data:", data.worstSelling);
@@ -165,14 +168,17 @@ function fetchKPIData() {
         let profit = totalSales - totalExpenses;
 
         document.getElementById("totalSales").innerText = totalSales.toLocaleString();
-        document.getElementById("totalExpenses").innerText = totalExpenses.toLocaleString();
+        document.getElementById("totalExpenses").innerText = totalExpenses.toLocaleString(); // ✅ Check if this updates
         document.getElementById("profit").innerText = profit.toLocaleString();
+
+        
 
         updateSalesCharts(data);
         updateBestSellingChart(data.bestSelling); // ✅ NEW
         updateWorstSellingChart(data.worstSelling); // ✅ NEW
     })
-        .catch(error => console.error("❌ Error fetching KPI data:", error));
+    .catch(error => console.error("❌ Error fetching KPI data:", error));
+
 }
 
 
