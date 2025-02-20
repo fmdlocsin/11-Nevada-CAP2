@@ -17,6 +17,9 @@ const franchiseLogoMap = {
     "potato-corner": "PotCor.png"
 };
 
+// 🎯 Predefined Order for Franchisees
+const franchiseOrder = ["auntie-anne", "macao-imperial", "potato-corner"];
+
 // 🎯 Load Franchisee Filter Buttons with Logos
 function loadFranchiseeButtons() {
     fetch("dashboard-sales.php?json=true")
@@ -25,7 +28,13 @@ function loadFranchiseeButtons() {
             let franchiseeButtonsDiv = document.getElementById("franchiseeButtons");
             franchiseeButtonsDiv.innerHTML = ""; // Clear existing buttons
 
-            data.franchisees.forEach(franchisee => {
+            // 🔥 Sort franchisees based on predefined order
+            let sortedFranchisees = data.franchisees.sort((a, b) => {
+                return franchiseOrder.indexOf(a.franchisee) - franchiseOrder.indexOf(b.franchisee);
+            });
+
+            // 🔥 Create buttons in correct order
+            sortedFranchisees.forEach(franchisee => {
                 let franchiseKey = franchisee.franchisee.toLowerCase().replace(/\s+/g, "-"); // Match key format
                 let formattedName = franchiseNameMap[franchiseKey] || franchisee.franchisee; // Get formatted name
                 
@@ -52,6 +61,7 @@ function loadFranchiseeButtons() {
         })
         .catch(error => console.error("Error loading franchisees:", error));
 }
+
 
 
 // 🎯 Handle Franchisee Selection
