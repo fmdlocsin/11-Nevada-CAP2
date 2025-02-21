@@ -3,119 +3,172 @@ session_start();
 include ("phpscripts/database-connection.php");
 include ("phpscripts/check-login.php");
 
-// Validate connection
-if (!isset($con) || !$con) {
-    die("Database connection failed: " . mysqli_connect_error());
+
+
+// ✅ Prevent PHP errors from displaying in the AJAX response
+ini_set('log_errors', 1);
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
+// ✅ Franchise selection: Fetch branches
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
+    header('Content-Type: application/json; charset=utf-8'); // ✅ Force JSON response
+
+    if (!isset($con) || !$con) {
+        echo json_encode(["error" => "Database connection failed: " . mysqli_connect_error()]);
+        exit;
+    }
+
+    $franchise = $_POST['franchise'];
+
+    $franchiseMap = [
+        "Potato Corner" => "potato-corner",
+        "Auntie Anne's" => "auntie-annes",
+        "Macao Imperial Tea" => "macao-imperial"
+    ];
+
+    if (!isset($franchiseMap[$franchise])) {
+        echo json_encode(["error" => "Invalid franchise name."]);
+        exit;
+    }
+    $franchise = $franchiseMap[$franchise];
+
+    $query = "SELECT DISTINCT branch FROM item_inventory WHERE franchisee = ?";
+    $stmt = $con->prepare($query);
+    if (!$stmt) {
+        echo json_encode(["error" => "SQL Error: " . $con->error]);
+        exit;
+    }
+
+    $stmt->bind_param("s", $franchise);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $branches = [];
+    while ($row = $result->fetch_assoc()) {
+        $branches[] = $row['branch'];
+    }
+
+    echo json_encode(["branches" => $branches], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 
-// Get filters from GET request
-$franchisees = isset($_GET['franchisees']) ? explode(",", $_GET['franchisees']) : [];
-$branches = isset($_GET['branches']) ? explode(",", $_GET['branches']) : [];
+// ✅ Branch selection: Fetch inventory data
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branch'])) {
+    header('Content-Type: application/json; charset=utf-8'); // ✅ Ensure JSON response
 
-// Build dynamic WHERE clause
-$whereClauses = [];
-if (!empty($franchisees)) {
-    $franchiseeList = "'" . implode("','", array_map(fn($f) => mysqli_real_escape_string($con, $f), $franchisees)) . "'";
-    $whereClauses[] = "franchisee IN ($franchiseeList)";
-}
-if (!empty($branches)) {
-    $branchList = "'" . implode("','", array_map(fn($b) => mysqli_real_escape_string($con, $b), $branches)) . "'";
-    $whereClauses[] = "branch IN ($branchList)";
-}
-$whereSQL = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";
+    if (!isset($con) || !$con) {
+        echo json_encode(["error" => "Database connection failed: " . mysqli_connect_error()]);
+        exit;
+    }
 
-// Fetch stock data
-$stockQuery = "SELECT branch, SUM(beginning - sold - waste) AS stock_available FROM item_inventory $whereSQL GROUP BY branch";
-$stockResult = mysqli_query($con, $stockQuery);
-$stockData = mysqli_fetch_all($stockResult, MYSQLI_ASSOC);
+    $branch = $_POST['branch'];
 
-// Fetch stockouts
-$stockoutQuery = "SELECT COUNT(*) AS stockout_count FROM item_inventory WHERE beginning - sold - waste = 0";
-$stockoutResult = mysqli_query($con, $stockoutQuery);
-$stockoutCount = ($stockoutResult) ? mysqli_fetch_assoc($stockoutResult)['stockout_count'] : 0;
+    // ✅ Fetch inventory KPIs
+    $query = "SELECT 
+        SUM(beginning - sold - waste) AS stock_level,
+        COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
+        SUM(waste) AS total_wastage
+    FROM item_inventory WHERE branch = ?";
 
-// Fetch wastage trends
-$wasteQuery = "SELECT franchisee, SUM(waste) AS total_waste FROM item_inventory GROUP BY franchisee";
-$wasteResult = mysqli_query($con, $wasteQuery);
-$wasteData = mysqli_fetch_all($wasteResult, MYSQLI_ASSOC);
+    $stmt = $con->prepare($query);
+    if (!$stmt) {
+        echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+        exit;
+    }
 
-// Fetch all franchisees
-$franchiseeQuery = "SELECT DISTINCT franchisee FROM item_inventory";
-$franchiseeResult = mysqli_query($con, $franchiseeQuery);
-$franchisees = mysqli_fetch_all($franchiseeResult, MYSQLI_ASSOC);
+    $stmt->bind_param("s", $branch);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = $result->fetch_assoc();
 
-// Fetch branches only if franchisees are selected
-$branches = [];
-if (!empty($franchiseeList)) {
-    $branchQuery = "SELECT DISTINCT branch FROM item_inventory WHERE franchisee IN ($franchiseeList)";
-    $branchResult = mysqli_query($con, $branchQuery);
-    $branches = mysqli_fetch_all($branchResult, MYSQLI_ASSOC);
-}
+    
+// ✅ Fetch top 5 high turnover items (Joining `item_inventory` with `item` table)
+    $highTurnoverQuery = "SELECT i.item_name, (ii.sold / NULLIF(ii.beginning + ii.delivery - ii.waste, 0)) AS turnover_rate 
+                          FROM item_inventory ii 
+                          INNER JOIN items i ON ii.item_id = i.item_id 
+                          WHERE ii.branch = ? 
+                          ORDER BY turnover_rate DESC LIMIT 5";
 
-// Fetch top 5 items with high stock turnover
-$highTurnoverQuery = "
-    SELECT i.item_name, 
-           CASE 
-               WHEN SUM(ii.beginning + ii.delivery - ii.waste) > 0 
-               THEN SUM(ii.sold) / SUM(ii.beginning + ii.delivery - ii.waste) 
-               ELSE 0 
-           END AS turnover_rate
-    FROM item_inventory ii
-    JOIN items i ON ii.item_id = i.item_id
-    WHERE (ii.beginning + ii.delivery - ii.waste) > 0
-    GROUP BY ii.item_id
-    ORDER BY turnover_rate DESC
-    LIMIT 5";
-$highTurnoverResult = mysqli_query($con, $highTurnoverQuery);
-$highTurnoverData = [];
-while ($row = mysqli_fetch_assoc($highTurnoverResult)) {
-    $highTurnoverData[] = $row;
-}
+    $lowTurnoverQuery = "SELECT i.item_name, (ii.sold / NULLIF(ii.beginning + ii.delivery - ii.waste, 0)) AS turnover_rate 
+                         FROM item_inventory ii 
+                         INNER JOIN items i ON ii.item_id = i.item_id 
+                         WHERE ii.branch = ? 
+                         ORDER BY turnover_rate ASC LIMIT 5";
 
-// Fetch top 5 items with low stock turnover
-$lowTurnoverQuery = "
-    SELECT i.item_name, 
-           CASE 
-               WHEN SUM(ii.beginning + ii.delivery - ii.waste) > 0 
-               THEN SUM(ii.sold) / SUM(ii.beginning + ii.delivery - ii.waste) 
-               ELSE 0 
-           END AS turnover_rate
-    FROM item_inventory ii
-    JOIN items i ON ii.item_id = i.item_id
-    WHERE (ii.beginning + ii.delivery - ii.waste) > 0
-    GROUP BY ii.item_id
-    ORDER BY turnover_rate ASC
-    LIMIT 5";
-$lowTurnoverResult = mysqli_query($con, $lowTurnoverQuery);
-$lowTurnoverData = [];
-while ($row = mysqli_fetch_assoc($lowTurnoverResult)) {
-    $lowTurnoverData[] = $row;
-}
+    $stmtHigh = $con->prepare($highTurnoverQuery);
+    $stmtHigh->bind_param("s", $branch);
+    $stmtHigh->execute();
+    $highTurnoverResult = $stmtHigh->get_result();
+
+    $highTurnover = ["labels" => [], "values" => []];
+    while ($row = $highTurnoverResult->fetch_assoc()) {
+        $highTurnover["labels"][] = $row["item_name"];
+        $highTurnover["values"][] = floatval($row["turnover_rate"]);
+    }
+
+    $stmtLow = $con->prepare($lowTurnoverQuery);
+    $stmtLow->bind_param("s", $branch);
+    $stmtLow->execute();
+    $lowTurnoverResult = $stmtLow->get_result();
+
+    $lowTurnover = ["labels" => [], "values" => []];
+    while ($row = $lowTurnoverResult->fetch_assoc()) {
+        $lowTurnover["labels"][] = $row["item_name"];
+        $lowTurnover["values"][] = floatval($row["turnover_rate"]);
+    }
+
+    // sell through 
+    // ✅ Fetch Sell-Through Rate Data with Date Filtering
+    $startDate = $_POST["startDate"] ?? null;
+    $endDate = $_POST["endDate"] ?? null;
+
+    // ✅ Default date range (last 30 days) if no date is selected
+    if (!$startDate) {
+        $startDate = date("Y-m-d", strtotime("-30 days"));
+    }
+    if (!$endDate) {
+        $endDate = date("Y-m-d");
+    }
+
+    $sellThroughQuery = "SELECT DATE(datetime_added) AS sale_date, 
+                    (SUM(sold) / NULLIF(SUM(delivery), 0)) * 100 AS sell_through_rate
+                    FROM item_inventory 
+                    WHERE branch = ? 
+                    AND DATE(datetime_added) BETWEEN ? AND ?
+                    GROUP BY DATE(datetime_added)
+                    ORDER BY sale_date ASC";
+
+    $stmtSellThrough = $con->prepare($sellThroughQuery);
+    $stmtSellThrough->bind_param("sss", $branch, $startDate, $endDate);
+    $stmtSellThrough->execute();
+    $sellThroughResult = $stmtSellThrough->get_result();
+
+    $sellThroughRate = ["dates" => [], "values" => []];
+    while ($row = $sellThroughResult->fetch_assoc()) {
+        $sellThroughRate["dates"][] = $row["sale_date"];
+        $sellThroughRate["values"][] = floatval($row["sell_through_rate"]);
+    }
 
 
-// Fix JSON output issue: Ensure JSON is only sent when requested
-if (isset($_GET['json']) && $_GET['json'] == "true") {
-    header("Content-Type: application/json");
+    // ✅ Final JSON Response
     echo json_encode([
-        "stockData" => $stockData,
-        "stockoutCount" => $stockoutCount,
-        "wasteData" => $wasteData,
-        "franchisees" => $franchisees,
-        "branches" => $branches,
-        "highTurnoverData" => $highTurnoverData,
-        "lowTurnoverData" => $lowTurnoverData
-    ]);
-    exit();
-}
+        "stock_level" => $data["stock_level"] ?? 0,
+        "stockout_count" => $data["stockout_count"] ?? 0,
+        "total_wastage" => $data["total_wastage"] ?? 0,
+        "high_turnover" => $highTurnover,
+        "low_turnover" => $lowTurnover,
+        "sell_through_rate" => $sellThroughRate
+    ], JSON_UNESCAPED_UNICODE);
 
-mysqli_close($con);
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
@@ -125,10 +178,14 @@ mysqli_close($con);
     <link rel="stylesheet" href="assets/css/inventory-dashboard.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
-</head>
+    <title>Inventory Analytics</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+</head>
 <body>
-    <nav class="sidebar close">
+
+<nav class="sidebar close">
         <header>
             <div class="image-text">
                 <span class="image">
@@ -185,62 +242,289 @@ mysqli_close($con);
                         </div>
                         <h2 class="dashboard-title">Inventory Monitoring</h2>
 
-                        <!-- Franchisee Selection -->
-                        <div id="franchiseeButtons" class="filter-buttons">
-                            <h4>Select Franchisee:</h4>
-                        </div>
+                        
+                
 
-                        <!-- Branch Selection -->
-                        <div id="branchButtons" class="filter-buttons" style="display: none;">
-                            <h4>Select Branch:</h4>
-                        </div>
-
-                        <!-- KPI Cards -->
-                        <div class="row kpi-row">
-                            <div class="col-md-4 kpi-col">
-                                <div class="card kpi-card">
-                                    <div class="card-body">
-                                        <h4>Current Stock Level</h4>
-                                        <h2 class="kpi-number" id="stockLevel">0</h2>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 kpi-col">
-                                <div class="card kpi-card">
-                                    <div class="card-body">
-                                        <h4>Stockouts</h4>
-                                        <h2 class="kpi-number" id="stockoutCount">0</h2>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 kpi-col">
-                                <div class="card kpi-card">
-                                    <div class="card-body">
-                                        <h4>Wastage Trends</h4>
-                                        <h2 class="kpi-number" id="wasteTrends">0</h2>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> <!-- End KPI Cards -->
-
-                        <div class="content" id="content-area">
-                            <div class="container">
-                                <h3>Top 5 High Stock Turnover</h3>
-                                <canvas id="highTurnoverChart"></canvas>
-
-                                <h3>Top 5 Low Stock Turnover</h3>
-                                <canvas id="lowTurnoverChart"></canvas>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <script src="assets/js/inventory-kpi-dashboard-script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div class="container mt-3">
+    <h2>Inventory Analytics Dashboard</h2>
+
+    <!-- Franchise Selection Buttons -->
+    <div class="btn-group" role="group" aria-label="Select Franchise">
+        <button class="btn btn-primary franchise-btn" data-franchise="Potato Corner">Potato Corner</button>
+        <button class="btn btn-primary franchise-btn" data-franchise="Auntie Anne's">Auntie Anne's</button>
+        <button class="btn btn-primary franchise-btn" data-franchise="Macao Imperial Tea">Macao Imperial Tea</button>
+    </div>
+
+    <!-- Branch Selection Buttons (Updated via AJAX) -->
+    <div id="branch-buttons" class="mt-3"></div>
+
+    <!-- KPIs Section -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Stock Level</h5>
+                    <p class="card-text" id="stock-level">-</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Stockout Count</h5>
+                    <p class="card-text" id="stockout-count">-</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Wastage</h5>
+                    <p class="card-text" id="total-wastage">-</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphs -->
+    <h5>turnover chart</h5>
+    <div class="chart-container">
+    <div class="chart-box">
+        <canvas id="highTurnoverChart"></canvas>
+    </div>
+    <div class="chart-box">
+        <canvas id="lowTurnoverChart"></canvas>
+    </div>
+    </div>
+
+
+    <!-- Sell-Through Rate Line Graph -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <label>Start Date:</label>
+            <input type="date" id="startDate" class="form-control">
+        </div>
+        <div class="col-md-6">
+            <label>End Date:</label>
+            <input type="date" id="endDate" class="form-control">
+        </div>
+    </div>
+    <div class="chart-container">
+        <div class="chart-box">
+            <canvas id="sellThroughChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+$(document).ready(function() {
+    let selectedBranch = "";
+
+    // Fetch and display branches when a franchise is clicked
+    $(".franchise-btn").click(function() {
+        let franchise = $(this).data("franchise");
+        $("#branch-buttons").empty();
+
+        $.ajax({
+    url: "dashboard-inventory.php", 
+    type: "POST",
+    data: { franchise: franchise },
+    dataType: "json", // ✅ Ensures jQuery automatically parses JSON
+    success: function(data) { // ✅ Use 'data' instead of 'response'
+        console.log("Raw Response:", data); // ✅ Debugging
+        try {
+            let branches = data.branches; // ✅ Correctly extracts the branches array
+            console.log("Parsed JSON:", branches);
+            $("#branch-buttons").empty();
+            branches.forEach(branch => {
+                $("#branch-buttons").append(`<button class="btn btn-secondary branch-btn" data-branch="${branch}">${branch}</button>`);
+            });
+        } catch (error) {
+            console.error("JSON Parsing Error:", error, "Received:", data);
+        }
+    },
+    error: function(xhr, status, error) {
+        console.error("AJAX Error:", xhr.responseText);
+    }
+});
+
+    });
+
+    // Fetch and update KPIs & Graphs when a branch is clicked
+    $(document).on("click", ".branch-btn", function() {
+        selectedBranch = $(this).data("branch");
+        updateAnalytics(selectedBranch);
+    });
+
+    function updateAnalytics(branch) {
+    let startDate = $("#startDate").val() || ""; // ✅ Ensure value is always defined
+    let endDate = $("#endDate").val() || ""; // ✅ Ensure value is always defined
+
+    $.ajax({
+        url: "dashboard-inventory.php",
+        type: "POST",
+        data: {
+            branch: branch,
+            startDate: startDate, // ✅ Properly formatted key-value pairs
+            endDate: endDate
+        },
+        dataType: "json",
+        success: function(data) {
+            console.log("Analytics Response:", data); // ✅ Debugging output
+
+            if (data.error) {
+                console.error("Error:", data.error);
+                return;
+            }
+
+            // ✅ Update KPIs
+            $("#stock-level").text(data.stock_level);
+            $("#stockout-count").text(data.stockout_count);
+            $("#total-wastage").text(data.total_wastage);
+
+            // ✅ Update Graphs
+            updateGraphs(data.high_turnover, data.low_turnover);
+            updateSellThroughGraph(data.sell_through_rate);
+        },
+        error: function(xhr, status, error) {
+            console.error("AJAX Error:", xhr.responseText);
+        }
+    });
+}
+
+// ✅ Ensure date inputs trigger updates
+$("#startDate, #endDate").change(function () {
+    if (selectedBranch) {
+        updateAnalytics(selectedBranch);
+    }
+});
+
+
+let sellThroughChart; // ✅ Ensure global chart variable
+
+function updateSellThroughGraph(sellThroughRate) {
+    console.log("Updating Sell-Through Rate Graph...", sellThroughRate); // ✅ Debugging
+
+    if (!sellThroughRate || !sellThroughRate.dates || sellThroughRate.dates.length === 0) {
+        console.warn("No data available for Sell-Through Rate.");
+        return;
+    }
+
+    if (sellThroughChart) sellThroughChart.destroy(); // ✅ Destroy previous chart
+
+    const ctx = document.getElementById("sellThroughChart").getContext("2d");
+
+    sellThroughChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: sellThroughRate.dates, // ✅ X-axis (time)
+            datasets: [{
+                label: "Sell-Through Rate (%)",
+                data: sellThroughRate.values, // ✅ Y-axis (percentage)
+                borderColor: "blue",
+                backgroundColor: "rgba(0, 0, 255, 0.1)",
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // ✅ Ensures full width
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return value + "%"; } // ✅ Show percentages
+                    }
+                }
+            }
+        }
+    });
+
+    console.log("Sell-Through Rate Graph Updated!");
+}
+
+
+
+let highTurnoverChart, lowTurnoverChart; // ✅ Ensure global chart variables
+
+function updateGraphs(highTurnover, lowTurnover) {
+    console.log("Updating Graphs...");
+    console.log("High Turnover Data:", highTurnover);
+    console.log("Low Turnover Data:", lowTurnover);
+
+    if (!highTurnover.labels || !lowTurnover.labels || highTurnover.labels.length === 0 || lowTurnover.labels.length === 0) {
+        console.warn("No data for graphs.");
+        return;
+    }
+
+    if (highTurnoverChart) highTurnoverChart.destroy();
+    if (lowTurnoverChart) lowTurnoverChart.destroy();
+
+    const highTurnoverCanvas = document.getElementById("highTurnoverChart").getContext("2d");
+    const lowTurnoverCanvas = document.getElementById("lowTurnoverChart").getContext("2d");
+
+    highTurnoverChart = new Chart(highTurnoverCanvas, {
+        type: "bar",
+        data: {
+            labels: highTurnover.labels,
+            datasets: [{
+                label: "High Turnover Rate",
+                data: highTurnover.values,
+                backgroundColor: "green"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // ✅ Ensures the graph fills the container
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    lowTurnoverChart = new Chart(lowTurnoverCanvas, {
+        type: "bar",
+        data: {
+            labels: lowTurnover.labels,
+            datasets: [{
+                label: "Low Turnover Rate",
+                data: lowTurnover.values,
+                backgroundColor: "red"
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // ✅ Ensures the graph fills the container
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    console.log("Graphs Updated Successfully!");
+}
+
+
+
+    // Date input change triggers new Sell-Through Rate calculation
+    $("#startDate, #endDate").change(function() {
+        if (selectedBranch) {
+            updateAnalytics(selectedBranch);
+        }
+    });
+});
+</script>
 
 </body>
-
 </html>
