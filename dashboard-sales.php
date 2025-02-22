@@ -11,6 +11,8 @@ if (!isset($con) || !$con) {
 // Get filters from GET request
 $franchisees = isset($_GET['franchisees']) ? explode(",", $_GET['franchisees']) : [];
 $branches = isset($_GET['branches']) ? explode(",", $_GET['branches']) : [];
+$startDate = isset($_GET['start_date']) ? $_GET['start_date'] : null;
+$endDate = isset($_GET['end_date']) ? $_GET['end_date'] : null;
 
 // Build dynamic WHERE clause
 $whereClauses = [];
@@ -23,6 +25,11 @@ if (!empty($branches)) {
     $whereClauses[] = "ac.location IN ($branchList)";
 }
 
+// Apply date range filter
+if (!empty($startDate) && !empty($endDate)) {
+    $whereClauses[] = "sr.date_added BETWEEN '$startDate' AND '$endDate'";
+}
+
 // Only add WHERE clause if filters exist
 $whereSQL = "";
 if (!empty($whereClauses)) {
@@ -30,7 +37,7 @@ if (!empty($whereClauses)) {
 }
 
 
-// Fetch Total Sales
+// Update Sales Query with Date Filter
 $salesQuery = "SELECT SUM(sr.grand_total) AS total_sales FROM sales_report sr 
                JOIN agreement_contract ac ON sr.ac_id = ac.ac_id $whereSQL";
 $salesResult = mysqli_query($con, $salesQuery);
@@ -42,7 +49,7 @@ $totalSales = ($salesResult) ? mysqli_fetch_assoc($salesResult)['total_sales'] :
 //     echo "<pre>Branch List Debug: "; print_r($branches); echo "</pre>";
 // }
 
-// Construct query for total expenses
+// Construct query for total expenses with date filter
 $expensesQuery = "SELECT SUM(e.expense_amount) AS total_expenses 
                   FROM expenses e 
                   JOIN agreement_contract ac ON e.location = ac.ac_id";
@@ -56,7 +63,7 @@ if (!empty($franchisees)) {
 }
 
 if (!empty($branches)) {
-    // 🔥 Convert branch names to ac_id before filtering
+    // Convert branch names to ac_id before filtering
     $branchIdQuery = "SELECT ac_id FROM agreement_contract WHERE location IN ('" . implode("','", $branches) . "')";
     $branchIdResult = mysqli_query($con, $branchIdQuery);
 
@@ -70,6 +77,11 @@ if (!empty($branches)) {
     }
 }
 
+// Apply date range filter to expenses
+if (!empty($startDate) && !empty($endDate)) {
+    $expenseWhereClauses[] = "e.date_added BETWEEN '$startDate' AND '$endDate'";  // ✅ Added date filter here
+}
+
 if (!empty($expenseWhereClauses)) {
     $expensesQuery .= " WHERE " . implode(" AND ", $expenseWhereClauses);
 }
@@ -77,6 +89,7 @@ if (!empty($expenseWhereClauses)) {
 // Execute query
 $expensesResult = mysqli_query($con, $expensesQuery);
 $totalExpenses = ($expensesResult) ? mysqli_fetch_assoc($expensesResult)['total_expenses'] : 0;
+
 
 
 
@@ -135,12 +148,19 @@ if ($sales_per_franchise_branch_result) {
 }
 $franchise_branch_sales_json = json_encode($franchise_branch_sales_data);
 
-// Fetch Best-Selling Products (Top 5)
 $best_selling_query = "SELECT sr.product_name, ac.franchisee, SUM(sr.grand_total) AS total_sales
                        FROM sales_report sr
-                       JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
-                       $whereSQL GROUP BY sr.product_name, ac.franchisee
-                       ORDER BY total_sales DESC LIMIT 5";
+                       JOIN agreement_contract ac ON sr.ac_id = ac.ac_id";
+
+if (!empty($startDate) && !empty($endDate)) {
+    $best_selling_query .= " WHERE sr.date_added BETWEEN '$startDate' AND '$endDate'";
+}
+
+$best_selling_query .= " GROUP BY sr.product_name, ac.franchisee
+                        ORDER BY total_sales DESC LIMIT 5";
+
+
+
 $best_selling_result = mysqli_query($con, $best_selling_query);
 
 $best_selling_data = [];
@@ -158,9 +178,17 @@ $best_selling_json = json_encode($best_selling_data);
 // Fetch Worst-Selling Products (Bottom 5)
 $worst_selling_query = "SELECT sr.product_name, ac.franchisee, SUM(sr.grand_total) AS total_sales
                         FROM sales_report sr
-                        JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
-                        $whereSQL GROUP BY sr.product_name, ac.franchisee
-                        ORDER BY total_sales ASC LIMIT 5";
+                        JOIN agreement_contract ac ON sr.ac_id = ac.ac_id";
+
+if (!empty($startDate) && !empty($endDate)) {
+    $worst_selling_query .= " WHERE sr.date_added BETWEEN '$startDate' AND '$endDate'";
+}
+
+$worst_selling_query .= " GROUP BY sr.product_name, ac.franchisee
+                         ORDER BY total_sales ASC LIMIT 5";
+
+
+
 $worst_selling_result = mysqli_query($con, $worst_selling_query);
 
 $worst_selling_data = [];
@@ -354,6 +382,15 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                         <div id="branchButtons" class="filter-buttons" style="display: none;">
                             <h4>Select Branch:</h4>
                         </div>
+
+                        <div class="filter-section">
+                            <label for="startDate">Start Date:</label>
+                            <input type="date" id="startDate" class="form-control" onchange="fetchKPIData()">
+                            
+                            <label for="endDate">End Date:</label>
+                            <input type="date" id="endDate" class="form-control" onchange="fetchKPIData()">
+                        </div>
+
                     </div>
 
 
@@ -479,6 +516,18 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
 
     <script id="worstSellingData" type="application/json">
         <?php echo $worst_selling_json; ?>
+    </script>
+
+    <script>
+        document.getElementById("endDate").addEventListener("change", function() {
+            let startDate = new Date(document.getElementById("startDate").value);
+            let endDate = new Date(document.getElementById("endDate").value);
+
+            if (startDate > endDate) {
+                alert("End Date cannot be earlier than Start Date!");
+                document.getElementById("endDate").value = "";
+            }
+        });
     </script>
 
 

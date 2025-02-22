@@ -153,14 +153,20 @@ function fetchKPIData() {
     let selectedBranches = Array.from(document.querySelectorAll(".branch-btn.btn-selected"))
         .map(btn => btn.dataset.value);
 
+    let startDate = document.getElementById("startDate").value;
+    let endDate = document.getElementById("endDate").value;
+
     let url = "dashboard-sales.php?json=true";
 
-    // ✅ Only add filters if selections exist
+    // Append selected filters to URL
     if (selectedFranchisees.length > 0) {
         url += `&franchisees=${selectedFranchisees.join(",")}`;
     }
     if (selectedBranches.length > 0) {
         url += `&branches=${selectedBranches.join(",")}`;
+    }
+    if (startDate && endDate) {
+        url += `&start_date=${startDate}&end_date=${endDate}`;
     }
 
     fetch(url)
