@@ -603,6 +603,148 @@ function setActiveReportButton(type) {
 }
 
 
+// EXPORT CSV
+function exportTableToCSV() {
+    let table = document.getElementById("reportTable");
+
+    if (!table) {
+        console.error("❌ Error: Table element not found!");
+        alert("Error: Sales report table not found.");
+        return;
+    }
+
+    let csv = [];
+
+    // ✅ Get the selected report type and filters
+    let reportType = document.querySelector(".report-btn.active")?.innerText || "Unknown Report Type";
+    let franchiseFilter = document.getElementById("selectedFranchisees")?.innerText || "All";
+    let branchFilter = document.getElementById("selectedBranches")?.innerText || "All";
+    let dateRange = document.getElementById("selectedDateRange")?.innerText || "Not Set";
+
+    // ✅ Add Report Type and Filters at the top of the CSV file
+    csv.push(`"Sales Report"`);
+    csv.push(`"Report Type:","${reportType}"`);
+    csv.push(`"Franchise(s):","${franchiseFilter}"`);
+    csv.push(`"Branch(es):","${branchFilter}"`);
+    csv.push(`"Date Range:","${dateRange}"`);
+    csv.push(""); // Empty row for spacing
+
+    let rows = table.querySelectorAll("tr");
+
+    rows.forEach(row => {
+        let cols = row.querySelectorAll("th, td");
+        let rowData = [];
+
+        cols.forEach(col => {
+            rowData.push(`"${col.innerText}"`);
+        });
+
+        csv.push(rowData.join(","));
+    });
+
+    let csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `sales_report_${reportType.replace(/\s+/g, "_").toLowerCase()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+}
+
+
+
+
+
+
+// EXPORT TO PDF
+function exportTableToPDF() {
+    const { jsPDF } = window.jspdf;
+    let doc = new jsPDF({
+        orientation: "portrait", // Keep portrait format
+        unit: "pt",
+        format: "A4"
+    });
+
+    // ✅ Add Title
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    let pageWidth = doc.internal.pageSize.getWidth(); // Get page width
+    doc.text("Sales Report", pageWidth / 2, 50, { align: "center" });
+    
+
+    // ✅ Add "Date" Section
+    let currentDate = new Date().toLocaleDateString();
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Date Generated: ${currentDate}`, 400, 80);
+
+    // ✅ Get selected filters
+    let reportType = document.querySelector(".report-btn.active")?.innerText || "Unknown Report Type";
+    let franchiseFilter = document.getElementById("selectedFranchisees")?.innerText || "All";
+    let branchFilter = document.getElementById("selectedBranches")?.innerText || "All";
+    let dateRange = document.getElementById("selectedDateRange")?.innerText || "Not Set";
+
+    // ✅ Add Report Type & Filters
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Report Type: ${reportType}`, 50, 100);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Franchisee(s): ${franchiseFilter}`, 50, 120);
+    doc.text(`Branch(es): ${branchFilter}`, 50, 135);
+    doc.text(`Date Range: ${dateRange}`, 50, 150);
+
+    // ✅ Space before table
+    let startY = 180;
+
+    // ✅ Extract Table Data
+    let table = document.getElementById("reportTable");
+    if (!table) {
+        console.error("❌ Error: Table element not found!");
+        alert("Error: Sales report table not found.");
+        return;
+    }
+
+    let headers = [];
+    let data = [];
+    let rows = table.querySelectorAll("tr");
+
+    rows.forEach((row, rowIndex) => {
+        let rowData = [];
+        let cols = row.querySelectorAll("th, td");
+
+        cols.forEach(col => {
+            rowData.push(col.innerText);
+        });
+
+        if (rowIndex === 0) {
+            headers = rowData;
+        } else {
+            data.push(rowData);
+        }
+    });
+
+    // ✅ Generate Table with `autoTable`
+    doc.autoTable({
+        head: [headers],
+        body: data,
+        startY: startY,
+        theme: "grid",
+        styles: { fontSize: 10, cellPadding: 3 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        margin: { left: 40, right: 40 },
+        tableWidth: "auto",
+        columnStyles: { 0: { cellWidth: "auto" } }
+    });
+
+    // ✅ Save PDF
+    doc.save(`sales_report_${reportType.replace(/\s+/g, "_").toLowerCase()}.pdf`);
+}
+
+
+
+
+
 
 
 
