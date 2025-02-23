@@ -469,6 +469,11 @@ h2 {
     white-space: nowrap; /* Prevents text from wrapping */
 }
 
+.filter-section2 button{
+    white-space: nowrap; /* Prevents text from wrapping */
+    margin-left: 20px; /* Pushes the button to the right */
+}
+
 
 
 .filter-section h3 {
