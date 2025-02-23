@@ -131,7 +131,7 @@ while ($row = mysqli_fetch_assoc($contractDurationTrendResult)) {
 // Fetch Franchise Agreement Data
 $franchiseQuery = "
     SELECT franchisee, 
-        COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_contracts,
+        COUNT(CASE WHEN LOWER(TRIM(status)) = 'active' AND agreement_date >= CURDATE() THEN 1 END) AS active_contracts,
         COUNT(CASE WHEN agreement_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_contracts,
         COUNT(CASE WHEN agreement_date < CURDATE() THEN 1 END) AS expired_contracts,
         COUNT(CASE WHEN agreement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) THEN 1 END) AS renewed_contracts
@@ -348,7 +348,7 @@ echo "<script>
                                 <!-- Pie Chart Column -->
                                 <div class="col-md-6 d-flex justify-content-center">
                                     <div class="chart-container pie-chart-container">
-                                        <h5 class="text-center">Active Contracts Distribution</h5>
+                                        <h5 class="text-center">Active Agreement Contracts Distribution</h5>
                                         <canvas id="activeContractsChart"></canvas>
                                     </div>
                                 </div>
@@ -359,6 +359,7 @@ echo "<script>
                                         <thead>
                                             <tr>
                                                 <th>Franchise Name</th>
+                                                <th>Active Contracts</th>
                                                 <th>Expiring Next Month</th>
                                                 <th>Expired Contracts</th>
                                                 <th>Renewal Rate (%)</th>
@@ -368,11 +369,12 @@ echo "<script>
                                             <?php
                                             $franchiseResult = mysqli_query($con, $franchiseQuery);
                                             while ($row = mysqli_fetch_assoc($franchiseResult)) {
-                                                $franchiseName = ucfirst(str_replace("-", " ", $row['franchisee'])); // Format name
+                                                $franchiseName = ucfirst(str_replace("-", " ", $row['franchisee']));
                                                 $renewalRate = ($row['renewed_contracts'] / max(1, ($row['renewed_contracts'] + $row['expired_contracts']))) * 100;
                                                 
                                                 echo "<tr>
                                                         <td>{$franchiseName}</td>
+                                                        <td>{$row['active_contracts']}</td> <!-- Now correctly filtered -->
                                                         <td>{$row['expiring_contracts']}</td>
                                                         <td>{$row['expired_contracts']}</td>
                                                         <td>" . round($renewalRate, 2) . "%</td>
@@ -393,7 +395,7 @@ echo "<script>
                                 <!-- Leasing Pie Chart Column -->
                                 <div class="col-md-6 d-flex justify-content-center">
                                     <div class="chart-container pie-chart-container">
-                                        <h5 class="text-center">Leasing Contracts Distribution</h5>
+                                        <h5 class="text-center">Active Leasing Contracts Distribution</h5>
                                         <canvas id="leasingContractsChart"></canvas>
                                     </div>
                                 </div>
