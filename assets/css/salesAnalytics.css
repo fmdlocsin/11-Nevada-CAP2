@@ -635,6 +635,35 @@ h2 {
     text-decoration: none;
 }
 
+
+/* REPORT MODAL */
+/* 📌 Report Table Styling */
+.table th {
+    text-align: center;
+    font-weight: bold;
+}
+
+.table td {
+    vertical-align: middle;
+    padding: 10px;
+}
+
+.table th, .table td {
+    text-align: left;
+}
+
+.table .text-end {
+    text-align: right; /* Align sales, expenses, and profit */
+}
+
+/* 📌 Selected Filters */
+.alert {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+
+
 /* Responsive Layout */
 @media screen and (max-width: 992px) {
     .charts-container {

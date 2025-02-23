@@ -504,3 +504,87 @@ function updateWorstSellingChart(worstSellingData) {
 
 
 
+// GENERATE REPORT
+function generateReport() {
+    let selectedFranchisees = Array.from(document.querySelectorAll(".franchisee-btn.btn-selected"))
+        .map(btn => btn.dataset.value);
+    let selectedBranches = Array.from(document.querySelectorAll(".branch-btn.btn-selected"))
+        .map(btn => btn.dataset.value);
+    let startDate = document.getElementById("startDate").value;
+    let endDate = document.getElementById("endDate").value;
+
+    // ✅ Map Franchisee Names for Display
+    let franchiseeDisplay = selectedFranchisees.length > 0
+        ? selectedFranchisees.map(f => franchiseNameMap[f] || f).join(", ")
+        : "All";
+
+    // ✅ Update Modal with Mapped Franchisee Names
+    document.getElementById("selectedFranchisees").innerText = franchiseeDisplay;
+    document.getElementById("selectedBranches").innerText = selectedBranches.length > 0 
+        ? selectedBranches.join(", ") 
+        : "All";
+
+    document.getElementById("selectedDateRange").innerText = (startDate && endDate) 
+        ? `${startDate} to ${endDate}` 
+        : "Not Set";
+
+    // Show modal and fetch report
+    $("#reportModal").modal("show");
+    fetchReport("daily", selectedFranchisees, selectedBranches, startDate, endDate);
+}
+
+
+
+function fetchReport(type) {
+    let selectedFranchisees = Array.from(document.querySelectorAll(".franchisee-btn.btn-selected"))
+        .map(btn => btn.dataset.value);
+    let selectedBranches = Array.from(document.querySelectorAll(".branch-btn.btn-selected"))
+        .map(btn => btn.dataset.value);
+
+    let startDate = document.getElementById("startDate").value;
+    let endDate = document.getElementById("endDate").value;
+
+    let url = `phpscripts/fetch-report.php?type=${type}`;
+
+    if (selectedFranchisees.length > 0) {
+        url += `&franchisees=${selectedFranchisees.join(",")}`;
+    }
+    if (selectedBranches.length > 0) {
+        url += `&branches=${selectedBranches.join(",")}`;
+    }
+    if (startDate && endDate) {
+        url += `&start_date=${startDate}&end_date=${endDate}`;
+    }
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            let reportTableBody = document.getElementById("reportTableBody");
+            reportTableBody.innerHTML = "";
+
+            data.forEach(row => {
+                // ✅ Convert franchise name to mapped format
+                let formattedFranchise = franchiseNameMap[row.franchise] || row.franchise;
+
+                let tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${row.date}</td>
+                    <td>${formattedFranchise}</td>
+                    <td>${row.branch}</td>
+                    <td>${row.product_name}</td>
+                    <td class="text-end">${row.total_sales}</td>
+                    <td class="text-end">${row.total_expenses}</td>
+                    <td class="text-end">${row.profit}</td>
+                `;
+                reportTableBody.appendChild(tr);
+            });
+        })
+        .catch(error => console.error("❌ Error fetching report data:", error));
+}
+
+
+
+
+
+
+

@@ -419,6 +419,9 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                             <input type="date" id="endDate" class="form-control" onchange="fetchKPIData()">
                         </div>
 
+                        
+                        <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+
 
 
                     </div>
@@ -510,6 +513,59 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Report Modal -->
+<div id="reportModal" class="modal fade" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">📊 Sales Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                
+                <!-- 🔍 Selected Filters -->
+                <div class="alert alert-secondary">
+                    <h6><strong>Applied Filters:</strong></h6>
+                    <p><strong>Franchisee(s):</strong> <span id="selectedFranchisees">All</span></p>
+                    <p><strong>Branch(es):</strong> <span id="selectedBranches">All</span></p>
+                    <p><strong>Date Range:</strong> <span id="selectedDateRange">Not Set</span></p>
+                </div>
+
+                <!-- Report Type Buttons -->
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-dark" onclick="fetchReport('daily')">Daily</button>
+                    <button class="btn btn-outline-dark" onclick="fetchReport('weekly')">Weekly</button>
+                    <button class="btn btn-outline-dark" onclick="fetchReport('monthly')">Monthly</button>
+                </div>
+
+                <!-- Report Table -->
+                <div class="table-responsive mt-3">
+                    <table class="table table-bordered table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Franchise</th>
+                                <th>Branch</th>
+                                <th>Product</th>
+                                <th class="text-end">Total Sales</th>
+                                <th class="text-end">Total Expenses</th>
+                                <th class="text-end">Profit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody">
+                            <!-- Data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="exportToCSV()">📥 Export as CSV</button>
+                <button class="btn btn-danger" onclick="exportToPDF()">📄 Export as PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
 
                             </div>
                         </div>
