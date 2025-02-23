@@ -148,18 +148,30 @@ if ($sales_per_franchise_branch_result) {
 }
 $franchise_branch_sales_json = json_encode($franchise_branch_sales_data);
 
-$best_selling_query = "SELECT sr.product_name, ac.franchisee, SUM(sr.grand_total) AS total_sales
+$best_selling_query = "SELECT sr.product_name, ac.franchisee, ac.location, SUM(sr.grand_total) AS total_sales
                        FROM sales_report sr
                        JOIN agreement_contract ac ON sr.ac_id = ac.ac_id";
 
-if (!empty($startDate) && !empty($endDate)) {
-    $best_selling_query .= " WHERE sr.date_added BETWEEN '$startDate' AND '$endDate'";
+$best_selling_whereClauses = [];
+
+if (!empty($franchisees)) {
+    $best_selling_whereClauses[] = "ac.franchisee IN ($franchiseeList)";
 }
 
-$best_selling_query .= " GROUP BY sr.product_name, ac.franchisee
+if (!empty($branches)) {
+    $best_selling_whereClauses[] = "ac.location IN ($branchList)";
+}
+
+if (!empty($startDate) && !empty($endDate)) {
+    $best_selling_whereClauses[] = "sr.date_added BETWEEN '$startDate' AND '$endDate'";
+}
+
+if (!empty($best_selling_whereClauses)) {
+    $best_selling_query .= " WHERE " . implode(" AND ", $best_selling_whereClauses);
+}
+
+$best_selling_query .= " GROUP BY sr.product_name, ac.franchisee, ac.location
                         ORDER BY total_sales DESC LIMIT 5";
-
-
 
 $best_selling_result = mysqli_query($con, $best_selling_query);
 
@@ -169,25 +181,39 @@ if ($best_selling_result) {
         $best_selling_data[] = [
             'product' => $row['product_name'],
             'franchise' => formatFranchiseName($row['franchisee']),
+            'location' => $row['location'],
             'sales' => (float)$row['total_sales']
         ];
     }
 }
 $best_selling_json = json_encode($best_selling_data);
 
+
 // Fetch Worst-Selling Products (Bottom 5)
-$worst_selling_query = "SELECT sr.product_name, ac.franchisee, SUM(sr.grand_total) AS total_sales
+$worst_selling_query = "SELECT sr.product_name, ac.franchisee, ac.location, SUM(sr.grand_total) AS total_sales
                         FROM sales_report sr
                         JOIN agreement_contract ac ON sr.ac_id = ac.ac_id";
 
-if (!empty($startDate) && !empty($endDate)) {
-    $worst_selling_query .= " WHERE sr.date_added BETWEEN '$startDate' AND '$endDate'";
+$worst_selling_whereClauses = [];
+
+if (!empty($franchisees)) {
+    $worst_selling_whereClauses[] = "ac.franchisee IN ($franchiseeList)";
 }
 
-$worst_selling_query .= " GROUP BY sr.product_name, ac.franchisee
+if (!empty($branches)) {
+    $worst_selling_whereClauses[] = "ac.location IN ($branchList)";
+}
+
+if (!empty($startDate) && !empty($endDate)) {
+    $worst_selling_whereClauses[] = "sr.date_added BETWEEN '$startDate' AND '$endDate'";
+}
+
+if (!empty($worst_selling_whereClauses)) {
+    $worst_selling_query .= " WHERE " . implode(" AND ", $worst_selling_whereClauses);
+}
+
+$worst_selling_query .= " GROUP BY sr.product_name, ac.franchisee, ac.location
                          ORDER BY total_sales ASC LIMIT 5";
-
-
 
 $worst_selling_result = mysqli_query($con, $worst_selling_query);
 
@@ -197,11 +223,13 @@ if ($worst_selling_result) {
         $worst_selling_data[] = [
             'product' => $row['product_name'],
             'franchise' => formatFranchiseName($row['franchisee']),
+            'location' => $row['location'],
             'sales' => (float)$row['total_sales']
         ];
     }
 }
 $worst_selling_json = json_encode($worst_selling_data);
+
 
 // Fetch all franchisees
 $franchiseeQuery = "SELECT DISTINCT franchisee FROM agreement_contract";
@@ -473,10 +501,12 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                                         <div class="chart-box small-chart">
                                             <h2>Top 5 Best-Selling Products</h2>
                                             <canvas id="bestSellingChart"></canvas>
+                                            <div id="bestSellingLegend" class="chart-legend"></div> <!-- ✅ Legend Added -->
                                         </div>
                                         <div class="chart-box small-chart">
                                             <h2>Top 5 Worst-Selling Products</h2>
                                             <canvas id="worstSellingChart"></canvas>
+                                            <div id="worstSellingLegend" class="chart-legend"></div> <!-- ✅ Legend Added -->
                                         </div>
                                     </div>
                                 </div>

@@ -327,6 +327,16 @@ function updateFranchiseBranchSalesChart(franchiseBranchSalesData) {
     });
 }
 
+
+
+const franchiseColors = {
+    "Potato Corner": ["#2E7D32", "#388E3C", "#43A047", "#4CAF50", "#66BB6A"],  // Green Shades
+    "Auntie Anne's": ["#1565C0", "#1976D2", "#1E88E5", "#2196F3", "#42A5F5"],  // Blue Shades
+    "Macao Imperial": ["#B71C1C", "#C62828", "#D32F2F", "#E53935", "#F44336"]  // Red Shades
+};
+
+
+
 // 🎯 Update Best-Selling Products Chart
 function updateBestSellingChart(bestSellingData) {
     console.log("🟢 Best-Selling Chart Data Received:", bestSellingData);
@@ -338,6 +348,12 @@ function updateBestSellingChart(bestSellingData) {
 
     let productNames = bestSellingData.map(item => item.product);
     let productSales = bestSellingData.map(item => item.sales);
+
+    // Assign different shades per franchise
+    let productColors = bestSellingData.map((item, index) => {
+        let shades = franchiseColors[item.franchise] || ["#999999"];  // Default gray if not found
+        return shades[index % shades.length]; // Cycle through available shades
+    });
 
     let ctx = document.getElementById("bestSellingChart").getContext("2d");
 
@@ -352,8 +368,8 @@ function updateBestSellingChart(bestSellingData) {
             datasets: [{
                 label: "Best-Selling Products",
                 data: productSales,
-                backgroundColor: "#4CAF50",
-                borderColor: "#388E3C",
+                backgroundColor: productColors,
+                borderColor: productColors,
                 borderWidth: 1
             }]
         },
@@ -371,6 +387,13 @@ function updateBestSellingChart(bestSellingData) {
                 }
             },
             scales: {
+                x: {
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 0,
+                        minRotation: 0
+                    }
+                },
                 y: {
                     beginAtZero: true,
                     ticks: { callback: value => value.toLocaleString() }
@@ -379,7 +402,24 @@ function updateBestSellingChart(bestSellingData) {
         },
         plugins: [ChartDataLabels]
     });
+
+    // 🏆 Update Legend
+    let legendContainer = document.getElementById("bestSellingLegend");
+    legendContainer.innerHTML = ""; // Clear previous legend
+
+    bestSellingData.forEach((item, index) => {
+        let legendItem = document.createElement("div");
+        legendItem.innerHTML = `
+            <span style="background-color: ${productColors[index]}; width: 15px; height: 15px; display: inline-block; margin-right: 8px; border-radius: 3px;"></span> 
+            <strong>${item.product}</strong> - ${item.franchise} (${item.location})
+        `;
+        legendContainer.appendChild(legendItem);
+    });
 }
+
+
+
+
 
 // 🎯 Update Worst-Selling Products Chart
 function updateWorstSellingChart(worstSellingData) {
@@ -392,6 +432,12 @@ function updateWorstSellingChart(worstSellingData) {
 
     let productNames = worstSellingData.map(item => item.product);
     let productSales = worstSellingData.map(item => item.sales);
+
+    // Assign different shades per franchise
+    let productColors = worstSellingData.map((item, index) => {
+        let shades = franchiseColors[item.franchise] || ["#999999"];  // Default gray if not found
+        return shades[index % shades.length]; // Cycle through available shades
+    });
 
     let ctx = document.getElementById("worstSellingChart").getContext("2d");
 
@@ -406,8 +452,8 @@ function updateWorstSellingChart(worstSellingData) {
             datasets: [{
                 label: "Worst-Selling Products",
                 data: productSales,
-                backgroundColor: "#F44336",
-                borderColor: "#D32F2F",
+                backgroundColor: productColors,
+                borderColor: productColors,
                 borderWidth: 1
             }]
         },
@@ -425,6 +471,13 @@ function updateWorstSellingChart(worstSellingData) {
                 }
             },
             scales: {
+                x: {
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 0,
+                        minRotation: 0
+                    }
+                },
                 y: {
                     beginAtZero: true,
                     ticks: { callback: value => value.toLocaleString() }
@@ -433,5 +486,21 @@ function updateWorstSellingChart(worstSellingData) {
         },
         plugins: [ChartDataLabels]
     });
+
+    // 🏆 Update Legend
+    let legendContainer = document.getElementById("worstSellingLegend");
+    legendContainer.innerHTML = ""; // Clear previous legend
+
+    worstSellingData.forEach((item, index) => {
+        let legendItem = document.createElement("div");
+        legendItem.innerHTML = `
+            <span style="background-color: ${productColors[index]}; width: 15px; height: 15px; display: inline-block; margin-right: 8px; border-radius: 3px;"></span> 
+            <strong>${item.product}</strong> - ${item.franchise} (${item.location})
+        `;
+        legendContainer.appendChild(legendItem);
+    });
 }
+
+
+
 
