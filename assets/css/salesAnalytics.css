@@ -662,6 +662,16 @@ h2 {
     margin-bottom: 10px;
 }
 
+.report-btn {
+    transition: 0.3s;
+}
+
+.report-btn.active {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: bold;
+}
+
 
 
 /* Responsive Layout */

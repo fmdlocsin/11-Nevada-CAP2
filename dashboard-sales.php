@@ -533,11 +533,12 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                 </div>
 
                 <!-- Report Type Buttons -->
-                <div class="btn-group" role="group">
-                    <button class="btn btn-outline-dark" onclick="fetchReport('daily')">Daily</button>
-                    <button class="btn btn-outline-dark" onclick="fetchReport('weekly')">Weekly</button>
-                    <button class="btn btn-outline-dark" onclick="fetchReport('monthly')">Monthly</button>
-                </div>
+                <div class="btn-group">
+    <button class="btn btn-primary report-btn" onclick="fetchReport('daily')">Daily</button>
+    <button class="btn btn-primary report-btn" onclick="fetchReport('weekly')">Weekly</button>
+    <button class="btn btn-primary report-btn" onclick="fetchReport('monthly')">Monthly</button>
+</div>
+
 
                 <!-- Report Table -->
                 <div class="table-responsive mt-3">

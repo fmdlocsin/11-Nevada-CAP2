@@ -559,19 +559,26 @@ function fetchReport(type) {
     fetch(url)
         .then(response => response.json())
         .then(data => {
+            console.log(`📊 ${type.toUpperCase()} Report Data Received:`, data); // Debugging Output
+
             let reportTableBody = document.getElementById("reportTableBody");
             reportTableBody.innerHTML = "";
 
+            if (data.length === 0) {
+                reportTableBody.innerHTML = "<tr><td colspan='7' class='text-center'>No data available</td></tr>";
+                return;
+            }
+
             data.forEach(row => {
-                // ✅ Convert franchise name to mapped format
                 let formattedFranchise = franchiseNameMap[row.franchise] || row.franchise;
+                let productDisplay = row.product_name ? row.product_name.replace(/,/g, ", ") : "N/A";
 
                 let tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${row.date}</td>
                     <td>${formattedFranchise}</td>
                     <td>${row.branch}</td>
-                    <td>${row.product_name}</td>
+                    <td>${productDisplay}</td>
                     <td class="text-end">${row.total_sales}</td>
                     <td class="text-end">${row.total_expenses}</td>
                     <td class="text-end">${row.profit}</td>
@@ -580,7 +587,21 @@ function fetchReport(type) {
             });
         })
         .catch(error => console.error("❌ Error fetching report data:", error));
+
+    setActiveReportButton(type); // ✅ Highlight the active report type
 }
+
+function setActiveReportButton(type) {
+    document.querySelectorAll(".report-btn").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    let activeButton = document.querySelector(`.report-btn[onclick="fetchReport('${type}')"]`);
+    if (activeButton) {
+        activeButton.classList.add("active");
+    }
+}
+
 
 
 

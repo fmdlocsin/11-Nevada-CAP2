@@ -34,12 +34,12 @@ if (!empty($startDate) && !empty($endDate)) {
 // Define Grouping by Type
 switch ($type) {
     case "weekly":
-        $groupBy = "YEARWEEK(sr.date_added)";
-        $dateField = "DATE_FORMAT(sr.date_added, '%Y-%U') AS date_label";
-        break;
+        $groupBy = "YEARWEEK(sr.date_added), ac.franchisee, ac.location";
+        $dateField = "CONCAT('Week ', WEEK(sr.date_added), ' of ', YEAR(sr.date_added)) AS date_label";
+        break;    
     case "monthly":
         $groupBy = "YEAR(sr.date_added), MONTH(sr.date_added)";
-        $dateField = "DATE_FORMAT(sr.date_added, '%Y-%m') AS date_label";
+        $dateField = "DATE_FORMAT(sr.date_added, '%M %Y') AS date_label"; // Shows full month name
         break;
     default:
         $groupBy = "DATE(sr.date_added)";
@@ -47,8 +47,11 @@ switch ($type) {
         break;
 }
 
+
 // Build SQL Query
-$query = "SELECT $dateField, ac.franchisee, ac.location, sr.product_name,
+$query = "SELECT $dateField, ac.franchisee, ac.location, 
+                 " . (($type === "monthly" || $type === "weekly") ? 
+                 "GROUP_CONCAT(DISTINCT sr.product_name ORDER BY sr.product_name ASC SEPARATOR ', ')" : "sr.product_name") . " AS product_name,
                  SUM(sr.grand_total) AS total_sales,
                  SUM(e.expense_amount) AS total_expenses,
                  (SUM(sr.grand_total) - SUM(e.expense_amount)) AS profit
@@ -61,7 +64,11 @@ if (!empty($whereClauses)) {
     $query .= " WHERE " . implode(" AND ", $whereClauses);
 }
 
-$query .= " GROUP BY $groupBy, ac.franchisee, ac.location, sr.product_name ORDER BY date_label DESC";
+if ($type === "monthly") {
+    $query .= " GROUP BY $groupBy, ac.franchisee, ac.location ORDER BY date_label DESC";
+} else {
+    $query .= " GROUP BY $groupBy, ac.franchisee, ac.location, sr.product_name ORDER BY date_label DESC";
+}
 
 $result = mysqli_query($con, $query);
 $data = [];
@@ -71,11 +78,12 @@ while ($row = mysqli_fetch_assoc($result)) {
         "date" => $row['date_label'],
         "franchise" => $row['franchisee'],
         "branch" => $row['location'],
-        "product_name" => isset($row['product_name']) ? $row['product_name'] : "N/A", // Fix undefined issue
+        "product_name" => isset($row['product_name']) && !empty($row['product_name']) ? $row['product_name'] : "N/A",
         "total_sales" => number_format($row['total_sales'], 2),
         "total_expenses" => number_format($row['total_expenses'], 2),
         "profit" => number_format($row['profit'], 2)
     ];
+    
     
 }
 
