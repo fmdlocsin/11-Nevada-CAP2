@@ -383,13 +383,15 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                             <h4>Select Branch:</h4>
                         </div>
 
-                        <div class="filter-section">
+                        <div class="filter-section2">
                             <label for="startDate">Start Date:</label>
                             <input type="date" id="startDate" class="form-control" onchange="fetchKPIData()">
                             
                             <label for="endDate">End Date:</label>
                             <input type="date" id="endDate" class="form-control" onchange="fetchKPIData()">
                         </div>
+
+
 
                     </div>
 
