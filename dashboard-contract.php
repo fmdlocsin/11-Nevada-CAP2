@@ -513,59 +513,61 @@ echo "<script>
                                     <div class="modal-dialog modal-xl">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="franchiseReportLabel">Franchisee Agreement Contracts Report</h5>
+                                                <h5 class="modal-title">
+                                                    <i class="fas fa-file-contract"></i> Franchisee Agreement Contracts Report
+                                                    <span class="badge bg-success ms-2">Agreement</span>
+                                                </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
+                                                <!-- Summary Section -->
+                                                <div id="franchiseSummary" class="franchise-summary"></div>
+
                                                 <!-- Report Tables for Each Franchisee -->
                                                 <div id="franchiseReportContent"></div>
                                             </div>
                                             <div class="modal-footer">
-                                                <button class="btn btn-primary" id="exportFranchiseCSV">Export as CSV</button>
-                                                <button class="btn btn-danger" id="exportFranchisePDF">Export as PDF</button>
+                                                <button class="btn btn-primary" id="exportFranchiseCSV">
+                                                    <i class="fas fa-file-csv"></i> Export Agreement Data (CSV)
+                                                </button>
+                                                <button class="btn btn-danger" id="exportFranchisePDF">
+                                                    <i class="fas fa-file-pdf"></i> Download Agreement Report (PDF)
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
 
+                                <!-- Leasing Contracts Report Modal -->
+                                <div class="modal fade" id="leasingReportModal" tabindex="-1" aria-labelledby="leasingReportLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-xl">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    <i class="fas fa-building"></i> Leasing Contracts Report
+                                                    <span class="badge bg-info ms-2">Leasing</span>
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <!-- Summary Section -->
+                                                <div id="leasingSummary" class="leasing-summary"></div>
 
-<!-- Leasing Contracts Report Modal -->
-<div class="modal fade" id="leasingReportModal" tabindex="-1" aria-labelledby="leasingReportLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="leasingReportLabel">Leasing Contracts Report</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Franchisor</th>
-                            <th>Branch Name</th>
-                            <th>Active Leases</th>
-                            <th>Expiring Next Month</th>
-                            <th>Expired Leases</th>
-                            <th>Start Date</th>
-                            <th>Expiration Date</th>
-                            <th>Location</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leasingReportContent">
-                        <tr><td colspan="8">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="exportLeasingCSV">Export as CSV</button>
-                <button class="btn btn-danger" id="exportLeasingPDF">Export as PDF</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
+                                                <!-- Report Tables for Each Leasing Franchisor -->
+                                                <div id="leasingReportContent"></div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-primary" id="exportLeasingCSV">
+                                                    <i class="fas fa-file-csv"></i> Export Leasing Data (CSV)
+                                                </button>
+                                                <button class="btn btn-danger" id="exportLeasingPDF">
+                                                    <i class="fas fa-file-pdf"></i> Download Leasing Report (PDF)
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
                         </div>
                     </div>

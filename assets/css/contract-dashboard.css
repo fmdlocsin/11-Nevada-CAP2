@@ -482,3 +482,35 @@ body {
     margin: 0; /* Prevent extra spacing */
 }
 
+/* Target only buttons inside the Leasing Report modal */
+#leasingReportModal .modal-footer .btn {
+    font-size: 14px !important; /* Ensure uniform font size */
+    padding: 10px 15px !important; /* Consistent button padding */
+    text-transform: none; /* Prevent automatic uppercase */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ensure button icons and text align properly */
+#leasingReportModal .modal-footer .btn i {
+    font-size: 14px !important; /* Matches button text size */
+    margin-right: 5px; /* Adds spacing between icon and text */
+}
+
+
+/* Ensure uniform font size and padding for agreement export buttons */
+#franchiseReportModal .modal-footer .btn {
+    font-size: 14px !important; /* Ensures consistent font size */
+    padding: 10px 15px !important; /* Uniform button padding */
+    text-transform: none; /* Prevents automatic uppercase */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ensure button icons and text align properly */
+#franchiseReportModal .modal-footer .btn i {
+    font-size: 14px !important; /* Matches the button text size */
+    margin-right: 5px; /* Adds spacing between icon and text */
+}

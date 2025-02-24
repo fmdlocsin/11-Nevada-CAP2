@@ -222,39 +222,287 @@ window.onload = function () {
 
 
 // CONTRACT REPORTS
+// leasing report
 $(document).ready(function () {
-    // Fetch Leasing Contracts Report
     $("#generateLeasingReport").click(function () {
         $.ajax({
             url: "phpscripts/fetch-leasing-report.php",
             method: "GET",
             dataType: "json",
             success: function (data) {
-                var html = "";
-                if (data.length > 0) {
-                    data.forEach(function (row) {
-                        html += `<tr>
-                                    <td>${row.franchisor}</td>
-                                    <td>${row.branch_name}</td>
-                                    <td>${row.active_leases}</td>
-                                    <td>${row.expiring_leases}</td>
-                                    <td>${row.expired_leases}</td>
-                                    <td>${row.start_date}</td>
-                                    <td>${row.expiration_date}</td>
-                                    <td>${row.location}</td>
-                                </tr>`;
-                    });
-                } else {
-                    html = `<tr><td colspan="8">No data available</td></tr>`;
+                console.log("Leasing Data received:", data); // Debugging
+
+                let reportContent = $("#leasingReportContent");
+                let summaryContent = $("#leasingSummary");
+                reportContent.html(""); // Clear existing content
+                summaryContent.html(""); // Clear existing summary
+
+                if (data.length === 0) {
+                    reportContent.html(`<p class="text-center">No leasing data available</p>`);
+                    return;
                 }
-                $("#leasingReportContent").html(html);
+
+                // ✅ Franchise Name Mapping
+                const franchiseNameMap = {
+                    "potato-corner": "Potato Corner",
+                    "auntie-anne": "Auntie Anne's",
+                    "macao-imperial": "Macao Imperial",
+                };
+
+                let tables = {}; // Store separate tables for each franchisee
+                let leaseCounts = {}; // Store total leases per franchisee
+
+                let totalActiveLeases = 0;
+                let totalOccupancyRate = 0;
+                let nextExpiringLease = null;
+                let nextExpiringLeaseDetails = {}; // Store franchisee and location for next expiring lease
+
+                // ✅ First loop: Calculate summary data & lease counts
+                data.forEach(row => {
+                    let franchisee = franchiseNameMap[row.franchisor] || row.franchisor; // Map the franchise name
+
+                    if (!leaseCounts[franchisee]) {
+                        leaseCounts[franchisee] = 0;
+                    }
+                    leaseCounts[franchisee]++;
+
+                    totalActiveLeases += parseInt(row.active_leases) || 0;
+                    let totalLeases = parseInt(row.active_leases) + parseInt(row.expired_leases);
+                    totalOccupancyRate += totalLeases > 0 ? (parseInt(row.active_leases) / totalLeases) * 100 : 0;
+
+                    let leaseExpirationDate = new Date(row.expiration_date);
+                    
+                    // ✅ Track the nearest expiring lease
+                    if (!nextExpiringLease || leaseExpirationDate < nextExpiringLease) {
+                        nextExpiringLease = leaseExpirationDate;
+                        nextExpiringLeaseDetails = {
+                            franchisee: franchisee,
+                            location: row.location,
+                            expiration_date: row.expiration_date
+                        };
+                    }
+                });
+
+                // ✅ Compute overall occupancy rate
+                let overallOccupancyRate = totalActiveLeases > 0 ? (totalOccupancyRate / data.length).toFixed(2) + "%" : "0%";
+                let nextExpiringLeaseFormatted = nextExpiringLease 
+                    ? `${formatDate(nextExpiringLeaseDetails.expiration_date)} (${nextExpiringLeaseDetails.franchisee} - ${nextExpiringLeaseDetails.location})`
+                    : "N/A";
+
+                // ✅ Update summary section
+                let leasingSummaryHTML = `
+                <div class="alert alert-info">
+                    <p><strong>Total Active Leases:</strong> ${totalActiveLeases}</p>
+                    <p><strong>Overall Occupancy Rate:</strong> ${overallOccupancyRate}</p>
+                    <p><strong>Next Expiring Lease:</strong> ${nextExpiringLeaseFormatted}</p>
+                </div>`;
+
+                summaryContent.html(leasingSummaryHTML);
+
+                // ✅ Second loop: Generate tables
+                data.forEach(row => {
+                    let franchisee = franchiseNameMap[row.franchisor] || row.franchisor; // Map the franchise name
+
+                    if (!tables[franchisee]) {
+                        tables[franchisee] = `
+                            <div class="franchise-section">
+                                <h3 class="franchise-title">${franchisee} (Total Active Leases: ${leaseCounts[franchisee]})</h3>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped report-table">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Location</th>
+                                                <th class="text-center">Active Leases</th>
+                                                <th class="text-center">Expiring Next Month</th>
+                                                <th class="text-center">Expired Leases</th>
+                                                <th class="text-center">Occupancy Rate (%)</th>
+                                                <th>Start Date</th>
+                                                <th>Expiration Date</th>
+                                                <th>Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                        `;
+                    }
+
+                    // Check if the lease is expired
+                    let expirationDate = new Date(row.expiration_date);
+                    let today = new Date();
+                    let leaseRemark = expirationDate < today ? "Expired" : "Active Lease";
+
+                    // Calculate Occupancy Rate
+                    let totalLeases = parseInt(row.active_leases) + parseInt(row.expired_leases);
+                    let occupancyRate = totalLeases > 0 ? ((parseInt(row.active_leases) / totalLeases) * 100).toFixed(2) + "%" : "0%";
+
+                    tables[franchisee] += `
+                        <tr>
+                            <td>${row.location}</td>
+                            <td class="text-center">${row.active_leases}</td>
+                            <td class="text-center">${row.expiring_leases}</td>
+                            <td class="text-center">${row.expired_leases}</td>
+                            <td class="text-center">${occupancyRate}</td>
+                            <td>${formatDate(row.start_date)}</td>
+                            <td>${formatDate(row.expiration_date)}</td>
+                            <td class="text-center">${leaseRemark}</td>
+                        </tr>
+                    `;
+                });
+
+                // ✅ Close tables and append them
+                for (let franchisor in tables) {
+                    tables[franchisor] += `</tbody></table></div></div><br>`;
+                    reportContent.append(tables[franchisor]);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", xhr.responseText);
+                $("#leasingReportContent").html(`<p>Error loading data</p>`);
             }
         });
     });
 });
 
 
-// agreement reports
+// Export Leasing Contracts to PDF
+function exportLeasingTableToPDF() {
+    const { jsPDF } = window.jspdf;
+    let doc = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "A4"
+    });
+
+    // ✅ Add Report Title
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    let pageWidth = doc.internal.pageSize.getWidth();
+    doc.text("Leasing Contracts Report", pageWidth / 2, 50, { align: "center" });
+
+    // ✅ Add Date of Report Generation
+    let currentDate = new Date().toLocaleDateString();
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Date Generated: ${currentDate}`, 400, 80);
+
+    let startY = 100;
+
+    let tables = document.querySelectorAll(".franchise-section .report-table");
+
+    if (!tables.length) {
+        console.error("❌ Error: No tables found!");
+        alert("Error: Leasing report table not found.");
+        return;
+    }
+
+    tables.forEach((table, index) => {
+        let franchiseTitle = table.closest(".franchise-section").querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+
+        // ✅ Add Franchise Title
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text(franchiseTitle, 50, startY);
+        startY += 20;
+
+        // ✅ Extract Table Data
+        let headers = [];
+        let data = [];
+        let rows = table.querySelectorAll("tr");
+
+        rows.forEach((row, rowIndex) => {
+            let rowData = [];
+            let cols = row.querySelectorAll("th, td");
+
+            cols.forEach(col => {
+                rowData.push(col.innerText);
+            });
+
+            if (rowIndex === 0) {
+                headers = rowData;
+            } else {
+                data.push(rowData);
+            }
+        });
+
+        // ✅ Generate Table in PDF
+        doc.autoTable({
+            head: [headers],
+            body: data,
+            startY: startY,
+            theme: "grid",
+            styles: { fontSize: 10, cellPadding: 3 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            margin: { left: 40, right: 40 },
+            tableWidth: "auto",
+            columnStyles: { 0: { cellWidth: "auto" } }
+        });
+
+        startY = doc.lastAutoTable.finalY + 30; // Space between franchise tables
+    });
+
+    // ✅ Save PDF
+    doc.save(`leasing_report_${new Date().toISOString().split("T")[0]}.pdf`);
+}
+
+// ✅ Bind to Button
+$(document).ready(function () {
+    $("#exportLeasingPDF").click(exportLeasingTableToPDF);
+});
+
+
+// Export Leasing Contracts to CSV
+function exportLeasingTableToCSV() {
+    let tables = document.querySelectorAll(".franchise-section .report-table");
+
+    if (!tables.length) {
+        console.error("❌ Error: No tables found!");
+        alert("Error: Leasing report table not found.");
+        return;
+    }
+
+    let csv = [];
+
+    // ✅ Add Report Title
+    csv.push(`"Leasing Contracts Report"`);
+    csv.push(""); // Empty row for spacing
+
+    tables.forEach(table => {
+        let franchiseTitle = table.closest(".franchise-section").querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+        csv.push(`"${franchiseTitle}"`);
+        csv.push(""); // Space before table
+
+        let rows = table.querySelectorAll("tr");
+        rows.forEach(row => {
+            let cols = row.querySelectorAll("th, td");
+            let rowData = [];
+
+            cols.forEach(col => {
+                rowData.push(`"${col.innerText}"`);
+            });
+
+            csv.push(rowData.join(",")); // Add formatted row to CSV
+        });
+
+        csv.push(""); // Space between franchise tables
+    });
+
+    let csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `leasing_report_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+}
+
+// ✅ Bind to Button
+$(document).ready(function () {
+    $("#exportLeasingCSV").click(exportLeasingTableToCSV);
+});
+
+
+
+// AGREEMENT CONTRACT
 $(document).ready(function () {
     $("#generateFranchiseReport").click(function () {
         $.ajax({
