@@ -341,7 +341,16 @@ echo "<script>
                             </div>
 
                 <!-- ----------------------------------- TABLE PART ----------------------------------- -->
-                            <h3 class="table-title">Franchise Agreement Contracts Breakdown</h3>
+                        <div class="section-header2">
+                            <div class="d-inline-flex align-items-center gap-3">
+                                <h3 class="table-title mb-0">Franchisee Agreement Contracts Breakdown</h3>
+                                <button id="generateFranchiseReport" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#franchiseReportModal">
+                                    Generate Report
+                                </button>
+                            </div>
+                        </div>
+
+
 
                             <!-- Flexbox Row: Pie Chart on the Left, Table on the Right -->
                             <div class="row align-items-center">
@@ -358,7 +367,7 @@ echo "<script>
                                     <table class="content-table">
                                         <thead>
                                             <tr>
-                                                <th>Franchise Name</th>
+                                                <th>Franchisee Name</th>
                                                 <th>Active Contracts</th>
                                                 <th>Expiring Next Month</th>
                                                 <th>Expired Contracts</th>
@@ -388,7 +397,14 @@ echo "<script>
 
 
 
-                            <h3 class="table-title">Leasing Contracts Breakdown</h3>
+                            <div class="d-inline-flex align-items-center gap-3">
+                                <h3 class="table-title mb-0">Leasing Contracts Breakdown</h3>
+                                <button id="generateLeasingReport" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#leasingReportModal">
+                                    Generate Report
+                                </button>
+                            </div>
+
+
 
                             <!-- Flexbox Row: Pie Chart on the Left, Table on the Right -->
                             <div class="row align-items-center">
@@ -405,7 +421,7 @@ echo "<script>
                                     <table class="content-table">
                                         <thead>
                                             <tr>
-                                                <th>Franchise Name</th>
+                                                <th>Franchisee Name</th>
                                                 <th>Active Leases</th>
                                                 <th>Expiring Next Month</th>
                                                 <th>Expired Leases</th>
@@ -492,6 +508,64 @@ echo "<script>
                                     </div>
                                 </div>
 
+                               <!-- Franchise Agreement Report Modal -->
+                                <div class="modal fade" id="franchiseReportModal" tabindex="-1" aria-labelledby="franchiseReportLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-xl">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="franchiseReportLabel">Franchisee Agreement Contracts Report</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <!-- Report Tables for Each Franchisee -->
+                                                <div id="franchiseReportContent"></div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button class="btn btn-primary" id="exportFranchiseCSV">Export as CSV</button>
+                                                <button class="btn btn-danger" id="exportFranchisePDF">Export as PDF</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+<!-- Leasing Contracts Report Modal -->
+<div class="modal fade" id="leasingReportModal" tabindex="-1" aria-labelledby="leasingReportLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="leasingReportLabel">Leasing Contracts Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Franchisor</th>
+                            <th>Branch Name</th>
+                            <th>Active Leases</th>
+                            <th>Expiring Next Month</th>
+                            <th>Expired Leases</th>
+                            <th>Start Date</th>
+                            <th>Expiration Date</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leasingReportContent">
+                        <tr><td colspan="8">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="exportLeasingCSV">Export as CSV</button>
+                <button class="btn btn-danger" id="exportLeasingPDF">Export as PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
                         </div>
                     </div>
@@ -516,6 +590,13 @@ echo "<script>
 
     <!-- Close the connection at the very end -->
     <?php mysqli_close($con); ?>
+
+    <!-- jsPDF (for PDF export) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- jsPDF AutoTable Plugin (for table formatting in PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
 
 </body>
 

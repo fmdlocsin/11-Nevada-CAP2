@@ -219,3 +219,287 @@ window.onload = function () {
     }
 
 };
+
+
+// CONTRACT REPORTS
+$(document).ready(function () {
+    // Fetch Leasing Contracts Report
+    $("#generateLeasingReport").click(function () {
+        $.ajax({
+            url: "phpscripts/fetch-leasing-report.php",
+            method: "GET",
+            dataType: "json",
+            success: function (data) {
+                var html = "";
+                if (data.length > 0) {
+                    data.forEach(function (row) {
+                        html += `<tr>
+                                    <td>${row.franchisor}</td>
+                                    <td>${row.branch_name}</td>
+                                    <td>${row.active_leases}</td>
+                                    <td>${row.expiring_leases}</td>
+                                    <td>${row.expired_leases}</td>
+                                    <td>${row.start_date}</td>
+                                    <td>${row.expiration_date}</td>
+                                    <td>${row.location}</td>
+                                </tr>`;
+                    });
+                } else {
+                    html = `<tr><td colspan="8">No data available</td></tr>`;
+                }
+                $("#leasingReportContent").html(html);
+            }
+        });
+    });
+});
+
+
+// agreement reports
+$(document).ready(function () {
+    $("#generateFranchiseReport").click(function () {
+        $.ajax({
+            url: "phpscripts/fetch-franchise-report.php",
+            method: "GET",
+            dataType: "json",
+            success: function (data) {
+                console.log("Data received:", data); // Debugging
+
+                let reportContent = $("#franchiseReportContent");
+                reportContent.html(""); // Clear existing content
+
+                if (data.length === 0) {
+                    reportContent.html(`<p class="text-center">No data available</p>`);
+                    return;
+                }
+
+                // ✅ Franchise Name Mapping
+                const franchiseNameMap = {
+                    "potato-corner": "Potato Corner",
+                    "auntie-anne": "Auntie Anne's",
+                    "macao-imperial": "Macao Imperial",
+                };
+
+                let tables = {}; // Store separate tables for each franchisee
+                let contractCounts = {}; // Store total contracts per franchisee
+
+                // ✅ First loop: Count total contracts per franchise
+                data.forEach(row => {
+                    let franchisee = franchiseNameMap[row.franchisor] || row.franchisor; // Map the franchise name
+
+                    if (!contractCounts[franchisee]) {
+                        contractCounts[franchisee] = 0;
+                    }
+                    contractCounts[franchisee]++;
+                });
+
+                // ✅ Second loop: Generate tables
+                data.forEach(row => {
+                    let franchisee = franchiseNameMap[row.franchisor] || row.franchisor; // Map the franchise name
+
+                    if (!tables[franchisee]) {
+                        tables[franchisee] = `
+                            <div class="franchise-section">
+                                <h3 class="franchise-title">${franchisee} (Total Contracts: ${contractCounts[franchisee]})</h3>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped report-table">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Location</th>
+                                                <th class="text-center">Active Contracts</th>
+                                                <th class="text-center">Expiring Next Month</th>
+                                                <th class="text-center">Expired Contracts</th>
+                                                <th class="text-center">Renewal Rate (%)</th>
+                                                <th>Start Date</th>
+                                                <th>Expiration Date</th>
+                                                <th>Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                        `;
+                    }
+
+                    // Check if the contract is expired
+                    let expirationDate = new Date(row.expiration_date);
+                    let today = new Date();
+                    let contractRemark = expirationDate < today ? "Expired" : "Active";
+
+                    
+                    tables[franchisee] += `
+                        <tr>
+                            <td>${row.location}</td>
+                            <td class="text-center">${row.active_contracts}</td>
+                            <td class="text-center">${row.expiring_contracts}</td>
+                            <td class="text-center">${row.expired_contracts}</td>
+                            <td class="text-center">${row.renewal_rate}</td>
+                            <td>${formatDate(row.start_date)}</td>
+                            <td>${row.expiration_date ? formatDate(row.expiration_date) : "N/A"}</td>
+                            <td class="text-center">${contractRemark}</td>
+                        </tr>
+                    `;
+                });
+
+                // ✅ Close tables and append them
+                for (let franchisor in tables) {
+                    tables[franchisor] += `</tbody></table></div></div><br>`;
+                    reportContent.append(tables[franchisor]);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", xhr.responseText);
+                $("#franchiseReportContent").html(`<p>Error loading data</p>`);
+            }
+        });
+    });
+});
+
+function calculateRenewalRate(renewed, expired) {
+    let total = renewed + expired;
+    if (total === 0) return "0%"; // Avoid division by zero
+    let rate = (renewed / total) * 100;
+    return rate.toFixed(2) + "%"; // Return with two decimal places
+}
+
+function formatDate(dateString) {
+    if (!dateString) return "N/A"; // Handle empty dates
+    let date = new Date(dateString);
+    let options = { year: 'numeric', month: 'long', day: 'numeric' }; // Format to "Month Day, Year"
+    return date.toLocaleDateString('en-US', options);
+}
+
+
+// Export to PDF
+function exportFranchiseTableToPDF() {
+    const { jsPDF } = window.jspdf;
+    let doc = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "A4"
+    });
+
+    // ✅ Add Report Title
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    let pageWidth = doc.internal.pageSize.getWidth();
+    doc.text("Franchisee Agreement Contracts Report", pageWidth / 2, 50, { align: "center" });
+
+    // ✅ Add Date of Report Generation
+    let currentDate = new Date().toLocaleDateString();
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Date Generated: ${currentDate}`, 400, 80);
+
+    let startY = 100;
+
+    let tables = document.querySelectorAll(".franchise-section .report-table");
+
+    if (!tables.length) {
+        console.error("❌ Error: No tables found!");
+        alert("Error: Franchise report table not found.");
+        return;
+    }
+
+    tables.forEach((table, index) => {
+        let franchiseTitle = table.closest(".franchise-section").querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+
+        // ✅ Add Franchise Title
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text(franchiseTitle, 50, startY);
+        startY += 20;
+
+        // ✅ Extract Table Data
+        let headers = [];
+        let data = [];
+        let rows = table.querySelectorAll("tr");
+
+        rows.forEach((row, rowIndex) => {
+            let rowData = [];
+            let cols = row.querySelectorAll("th, td");
+
+            cols.forEach(col => {
+                rowData.push(col.innerText);
+            });
+
+            if (rowIndex === 0) {
+                headers = rowData;
+            } else {
+                data.push(rowData);
+            }
+        });
+
+        // ✅ Generate Table in PDF
+        doc.autoTable({
+            head: [headers],
+            body: data,
+            startY: startY,
+            theme: "grid",
+            styles: { fontSize: 10, cellPadding: 3 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            margin: { left: 40, right: 40 },
+            tableWidth: "auto",
+            columnStyles: { 0: { cellWidth: "auto" } }
+        });
+
+        startY = doc.lastAutoTable.finalY + 30; // Space between franchise tables
+    });
+
+    // ✅ Save PDF
+    doc.save(`franchise_report_${new Date().toISOString().split("T")[0]}.pdf`);
+}
+
+// ✅ Bind to Button
+$(document).ready(function () {
+    $("#exportFranchisePDF").click(exportFranchiseTableToPDF);
+});
+
+
+// Export to CSV
+function exportFranchiseTableToCSV() {
+    let tables = document.querySelectorAll(".franchise-section .report-table");
+
+    if (!tables.length) {
+        console.error("❌ Error: No tables found!");
+        alert("Error: Franchise report table not found.");
+        return;
+    }
+
+    let csv = [];
+
+    // ✅ Add Report Title
+    csv.push(`"Franchisee Agreement Contracts Report"`);
+    csv.push(""); // Empty row for spacing
+
+    tables.forEach(table => {
+        let franchiseTitle = table.closest(".franchise-section").querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+        csv.push(`"${franchiseTitle}"`);
+        csv.push(""); // Space before table
+
+        let rows = table.querySelectorAll("tr");
+        rows.forEach(row => {
+            let cols = row.querySelectorAll("th, td");
+            let rowData = [];
+
+            cols.forEach(col => {
+                rowData.push(`"${col.innerText}"`);
+            });
+
+            csv.push(rowData.join(","));
+        });
+
+        csv.push(""); // Space between franchise tables
+    });
+
+    let csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
+    let encodedUri = encodeURI(csvContent);
+    let link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `franchise_report_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+}
+
+// ✅ Bind to Button
+$(document).ready(function () {
+    $("#exportFranchiseCSV").click(exportFranchiseTableToCSV);
+});
