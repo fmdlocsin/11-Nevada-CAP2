@@ -386,7 +386,8 @@ function exportLeasingTableToPDF() {
 
     let startY = 100;
 
-    let tables = document.querySelectorAll(".franchise-section .report-table");
+    // ✅ Restrict table selection to the Leasing modal only
+    let tables = document.querySelectorAll("#leasingReportModal .franchise-section .report-table");
 
     if (!tables.length) {
         console.error("❌ Error: No tables found!");
@@ -452,7 +453,8 @@ $(document).ready(function () {
 
 // Export Leasing Contracts to CSV
 function exportLeasingTableToCSV() {
-    let tables = document.querySelectorAll(".franchise-section .report-table");
+     // ✅ Restrict table selection to the Leasing modal only
+     let tables = document.querySelectorAll("#leasingReportModal .franchise-section .report-table");
 
     if (!tables.length) {
         console.error("❌ Error: No tables found!");
@@ -638,7 +640,8 @@ function exportFranchiseTableToPDF() {
 
     let startY = 100;
 
-    let tables = document.querySelectorAll(".franchise-section .report-table");
+    // ✅ Restrict table selection to the Franchise Agreement modal only
+    let tables = document.querySelectorAll("#franchiseReportModal .franchise-section .report-table");
 
     if (!tables.length) {
         console.error("❌ Error: No tables found!");
@@ -704,7 +707,7 @@ $(document).ready(function () {
 
 // Export to CSV
 function exportFranchiseTableToCSV() {
-    let tables = document.querySelectorAll(".franchise-section .report-table");
+    let tables = document.querySelectorAll("#franchiseReportModal .franchise-section .report-table");
 
     if (!tables.length) {
         console.error("❌ Error: No tables found!");
