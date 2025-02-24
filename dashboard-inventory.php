@@ -786,7 +786,7 @@ function exportTableToCSV() {
     let dateRange = document.getElementById("selectedDateRange").innerText;
 
     // ✅ Add report title and metadata
-    csv.push('"Sales Report"');
+    csv.push('"Inventory Report"');
     csv.push(`"Franchise:","${franchise}"`);
     csv.push(`"Branch:","${branch}"`);
     csv.push(`"Date Range:","${dateRange}"`);
@@ -813,7 +813,7 @@ function exportTableToCSV() {
     // ✅ Create a Download Link
     let downloadLink = document.createElement("a");
     downloadLink.href = csvUrl;
-    downloadLink.download = `Sales_Report_${new Date().toISOString().split("T")[0]}.csv`;
+    downloadLink.download = `Inventory_Report_${new Date().toISOString().split("T")[0]}.csv`;
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
@@ -831,7 +831,7 @@ function exportTableToPDF() {
 
     // ✅ Set Title and Metadata
     doc.setFontSize(14);
-    doc.text("Sales Report", 10, 10);
+    doc.text("Inventory Report", 10, 10);
     doc.setFontSize(10);
     doc.text(`Franchise: ${franchise}`, 10, 20);
     doc.text(`Branch: ${branch}`, 10, 25);
@@ -859,7 +859,7 @@ function exportTableToPDF() {
         theme: "grid"
     });
 
-    doc.save(`Sales_Report_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`Inventory_Report_${new Date().toISOString().split("T")[0]}.pdf`);
 }
 
 
