@@ -178,6 +178,14 @@ body {
     color: white;
 }
 
+.filter-section2 {
+    display: flex;
+    flex-direction: row; 
+    align-items: center;
+    gap: 15px;
+    padding: 10px 15px;
+}
+
 
 
 /* General button styling */

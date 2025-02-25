@@ -275,46 +275,43 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                 <span class="image">
                     <img src="assets/images/BoxLogo.png" alt="logo">
                 </span>
-
                 <div class="text header-text">
                     <span class="name">NEVADA</span>
                     <span class="profession">Management Group</span>
                 </div>
             </div>
-
             <i class='bx bx-chevron-right toggle'></i>
         </header>
-            <div class="menu-bar">
-                <div class="menu">
-                    <li class="search-box">
-                        <i class='bx bx-search icon'></i>
-                        <input type="search" placeholder="Search...">
-                    </li>
-                    <ul class="menu-links">
-                        <li class="nav-link active" id="dashboard-link">
-                            <a href="dashboard-inventory">
-                                <i class='bx bx-home-alt icon'></i>
-                                <span class="text nav-text">Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="nav-link" id="inventory-link">
-                            <a href="pages/inventory/inventory2">
-                                <i class='bx bx-store-alt icon'></i>
-                                <span class="text nav-text">Inventory</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="bottom-content">
-                    <li>
-                        <a href="phpscripts/user-logout.php">
-                            <i class='bx bx-log-out icon'></i>
-                            <span class="text nav-text">Logout</span>
+        <div class="menu-bar">
+            <div class="menu">
+                <li class="search-box">
+                    <i class='bx bx-search icon'></i>
+                    <input type="search" placeholder="Search...">
+                </li>
+                <ul class="menu-links">
+                    <li class="nav-link active" id="dashboard-link">
+                        <a href="dashboard-inventory">
+                            <i class='bx bx-home-alt icon'></i>
+                            <span class="text nav-text">Dashboard</span>
                         </a>
                     </li>
-                </div>
+                    <li class="nav-link" id="inventory-link">
+                        <a href="pages/inventory/inventory2">
+                            <i class='bx bx-store-alt icon'></i>
+                            <span class="text nav-text">Inventory</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
+            <div class="bottom-content">
+                <li>
+                    <a href="phpscripts/user-logout.php">
+                        <i class='bx bx-log-out icon'></i>
+                        <span class="text nav-text">Logout</span>
+                    </a>
+                </li>
+            </div>
+        </div>
     </nav>
 
     <section class="home">
@@ -324,147 +321,126 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
             </div>
         </header>
 
-        <div class="content" id="content-area">
-            <div class="container">
-                <div class="dash-content">
-                    <div class="overview">
-                        <div class="greeting">
-                            <h2>Hi, <strong>Group/Branch Manager</strong>!</h2>
-                        </div>
-                        <h2 class="dashboard-title">Inventory Monitoring</h2>
+
+    <div class="container">
+            <div class="dash-content">
+                <div class="overview">
+                    <div class="greeting">
+                        <h2>Hi, <strong>Group/Branch Manager</strong>!</h2>
+                    </div>
+                    <div class="title">
+                        <i class='bx bx-time-five'></i>
+                        <span class="text">Inventory Analytics</span>
                     </div>
                 </div>
-            </div>
-        </div>
 
 
-        <!-- ----------------------------------- -->
-
-        <div class="container mt-3">
-        <h2>Inventory Analytics Dashboard</h2>
-
-        <!-- Franchise Selection Buttons -->
-        <div class="btn-group" role="group" aria-label="Select Franchise">
-            <button class="btn btn-primary franchise-btn" data-franchise="Potato Corner">Potato Corner</button>
-            <button class="btn btn-primary franchise-btn" data-franchise="Auntie Anne's">Auntie Anne's</button>
-            <button class="btn btn-primary franchise-btn" data-franchise="Macao Imperial Tea">Macao Imperial Tea</button>
-        </div>
-
-        <!-- Branch Selection Buttons (Updated via AJAX) -->
-        <div id="branch-buttons" class="mt-3"></div>
-
-        <!-- filters -->
-        
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <label>Start Date:</label>
-                <input type="date" id="startDate" class="form-control">
-            </div>
-            <div class="col-md-6">
-                <label>End Date:</label>
-                <input type="date" id="endDate" class="form-control">
-            </div>
-        </div>
-        <button class="btn btn-primary" onclick= "generateReport()">Generate Report</button>
-
-        <!-- KPIs Section -->
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="card text-white bg-info mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Stock Level</h5>
-                        <p class="card-text" id="stock-level">-</p>
-                    </div>
+                <!-- Franchise Selection Buttons -->
+                <div class="btn-group" role="group" aria-label="Select Franchise">
+                    <button class="btn btn-primary franchise-btn" data-franchise="Potato Corner">Potato Corner</button>
+                    <button class="btn btn-primary franchise-btn" data-franchise="Auntie Anne's">Auntie Anne's</button>
+                    <button class="btn btn-primary franchise-btn" data-franchise="Macao Imperial Tea">Macao Imperial Tea</button>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-white bg-warning mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Stockout Count</h5>
-                        <p class="card-text" id="stockout-count">-</p>
-                    </div>
+
+                <!-- Branch Selection Buttons (Updated via AJAX) -->
+                <div id="branch-buttons" class="mt-3"></div>
+
+
+                <!-- Filters Section -->
+                <div class="filter-section2">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" class="form-control" onchange="fetchKPIData()">
+                    
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" class="form-control" onchange="fetchKPIData()">
+
+                    <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card text-white bg-danger mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Wastage</h5>
-                        <p class="card-text" id="total-wastage">-</p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Graphs -->
-        <h5>turnover chart</h5>
-        <div class="chart-container">
-        <div class="chart-box">
-            <canvas id="highTurnoverChart"></canvas>
-        </div>
-        <div class="chart-box">
-            <canvas id="lowTurnoverChart"></canvas>
-        </div>
-        </div>
-
-
-        <!-- Sell-Through Rate Line Graph -->
-        
-        <div class="chart-container">
-            <div class="chart-box">
-                <canvas id="sellThroughChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Report Modal -->
-                <div id="reportModal" class="modal fade" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header bg-primary text-white">
-                                    <h5 class="modal-title">Inventory Report</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    
-                                    <!-- 🔍 Selected Filters -->
-                                    <div class="alert alert-secondary">
-                                        <h6><strong>Applied Filters:</strong></h6>
-                                        <p><strong>Franchisee(s):</strong> <span id="selectedFranchisees">All</span></p>
-                                        <p><strong>Branch(es):</strong> <span id="selectedBranches">All</span></p>
-                                        <p><strong>Date Range:</strong> <span id="selectedDateRange">Not Set</span></p>
-                                    </div>
-
-                                    
-
-                                    <!-- Report Table -->
-                                    <div class="table-responsive mt-3">
-                                        <table id="reportTable" class="table table-bordered table-hover table-striped">
-                                            <thead class="table-dark">
-                                                <tr>
-                                                    <th>Item Name</th>
-                                                    <th>Sell through rate</th>
-                                                    <th>Days Until Stockout</th>
-                                                    <th>average sales</th>
-                                                    <th class="text-end">Stock waste</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="reportTableBody">
-                                                <!-- Data will be inserted here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <div class="modal-footer">
-                                    <button class="btn btn-success" onclick="exportTableToCSV()">Export as CSV</button>
-                                    <button class="btn btn-danger" onclick="exportTableToPDF()">Export as PDF</button>
-                                </div>
-
+                <!-- KPI Cards -->
+                <div class="row kpi-row">
+                    <div class="col-md-4 kpi-col">
+                        <div class="card text-white bg-info mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Stock Level</h5>
+                                <p class="card-text" id="stock-level">-</p>
                             </div>
                         </div>
                     </div>
-
+                    <div class="col-md-4 kpi-col">
+                        <div class="card text-white bg-warning mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Stockout Count</h5>
+                                <p class="card-text" id="stockout-count">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 kpi-col">
+                        <div class="card text-white bg-danger mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Total Wastage</h5>
+                                <p class="card-text" id="total-wastage">-</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Charts Section -->
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <h2>High Turnover Chart</h2>
+                        <canvas id="highTurnoverChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h2>Low Turnover Chart</h2>
+                        <canvas id="lowTurnoverChart"></canvas>
+                    </div>
+                    <div class="chart-box">
+                        <h2>Sell Through Chart</h2>
+                        <canvas id="sellThroughChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Report Modal -->
+                <div id="reportModal" class="modal fade" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title">Inventory Report</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-secondary">
+                                    <h6><strong>Applied Filters:</strong></h6>
+                                    <p><strong>Franchisee(s):</strong> <span id="selectedFranchisees">All</span></p>
+                                    <p><strong>Branch(es):</strong> <span id="selectedBranches">All</span></p>
+                                    <p><strong>Date Range:</strong> <span id="selectedDateRange">Not Set</span></p>
+                                </div>
+                                <div class="table-responsive">
+                                    <table id="reportTable" class="table table-bordered">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Item Name</th>
+                                                <th>Stock Level</th>
+                                                <th>Days Until Stockout</th>
+                                                <th>Average Sales</th>
+                                                <th class="text-end">Stock Waste</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="reportTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-success" onclick="exportTableToCSV()">Export as CSV</button>
+                                <button class="btn btn-danger" onclick="exportTableToPDF()">Export as PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </section>
 
     
