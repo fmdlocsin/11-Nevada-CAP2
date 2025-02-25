@@ -5,17 +5,17 @@ header('Content-Type: application/json'); // Ensure JSON response
 
 $query = "SELECT 
             c.franchisee AS franchisor, 
-            c.location AS branch, 
+            c.location,  -- ✅ Ensure location is properly referenced
+            c.classification,  -- ✅ Ensure classification is properly referenced
             COUNT(CASE WHEN c.status = 'active' THEN 1 END) AS active_contracts,
             COUNT(CASE WHEN c.agreement_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_contracts,
             COUNT(CASE WHEN c.agreement_date < CURDATE() THEN 1 END) AS expired_contracts,
             COUNT(CASE WHEN c.agreement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) THEN 1 END) AS renewed_contracts,
             c.franchise_term AS start_date, 
-            c.agreement_date AS expiration_date, -- Directly using agreement_date
-            c.location, 
+            c.agreement_date AS expiration_date, 
             c.status AS remarks
           FROM agreement_contract c
-          GROUP BY c.franchisee, c.location, c.franchise_term, c.agreement_date, c.status
+          GROUP BY c.franchisee, c.location, c.classification, c.franchise_term, c.agreement_date, c.status
           ORDER BY c.franchisee, c.location";
 
 $result = mysqli_query($con, $query);
@@ -28,6 +28,10 @@ if (!$result) {
 
 $data = [];
 while ($row = mysqli_fetch_assoc($result)) {
+    // Ensure values are properly set
+    $row['location'] = !empty($row['location']) ? $row['location'] : "Unknown Location";  // ✅ Ensure location is valid
+    $row['classification'] = !empty($row['classification']) ? $row['classification'] : "Not Specified";  // ✅ Ensure classification is valid
+
     // Ensure values are numbers
     $renewed = (int) $row['renewed_contracts'];
     $expired = (int) $row['expired_contracts'];
@@ -36,9 +40,14 @@ while ($row = mysqli_fetch_assoc($result)) {
     // Calculate renewal rate (avoid division by zero)
     $row['renewal_rate'] = ($total > 0) ? round(($renewed / $total) * 100, 2) . "%" : "0%";
 
-    // Debugging: Check if expiration_date is correctly fetched
-    if (!isset($row['expiration_date'])) {
-        $row['expiration_date'] = "N/A"; // If still undefined, mark as "N/A"
+    // Ensure `expiration_date` is valid
+    if (empty($row['expiration_date']) || $row['expiration_date'] === "0000-00-00") {
+        $row['expiration_date'] = "Invalid Date";
+    }
+
+    // Ensure `start_date` is valid
+    if (empty($row['start_date']) || $row['start_date'] === "0000-00-00") {
+        $row['start_date'] = "Invalid Date";
     }
 
     $data[] = $row;

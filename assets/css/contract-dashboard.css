@@ -514,3 +514,62 @@ body {
     font-size: 14px !important; /* Matches the button text size */
     margin-right: 5px; /* Adds spacing between icon and text */
 }
+
+
+/* Franchise Summary Styling */
+.contract-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa; /* Light gray background for professionalism */
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd; /* Subtle border */
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+}
+
+/* Each summary item */
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Styling the numbers for emphasis */
+.summary-item span {
+    font-size: 14px;
+    font-weight: bold;
+    color: #007bff; /* Professional blue shade */
+}
+
+/* Renewal Rate Styling */
+.renewal-rate {
+    font-weight: bold;
+    font-size: 14px;
+    color: #28a745; /* Professional green for positive metric */
+}
+
+
+
+.franchise-title {
+    display: flex;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+    gap: 12px;
+}
+
+.franchise-logo {
+    width: 45px;
+    height: 45px;
+    object-fit: contain;
+    border-radius: 10px;
+    background-color: white;
+    padding: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}

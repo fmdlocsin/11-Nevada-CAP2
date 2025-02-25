@@ -6,6 +6,9 @@ header('Content-Type: application/json'); // Ensure JSON response
 $query = "SELECT 
             c.franchisee AS franchisor, 
             c.space_number AS branch_name,
+            c.lessor_name1 AS lessor_name,
+            c.classification AS classification,
+            c.area AS area,
             SUM(CASE WHEN c.status = 'active' THEN 1 ELSE 0 END) AS active_leases,
             SUM(CASE WHEN c.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 ELSE 0 END) AS expiring_leases,
             SUM(CASE WHEN c.end_date < CURDATE() THEN 1 ELSE 0 END) AS expired_leases,
@@ -13,8 +16,10 @@ $query = "SELECT
             c.end_date AS expiration_date, 
             c.lessor_address1 AS location
           FROM lease_contract c
-          GROUP BY c.franchisee, c.space_number, c.start_date, c.end_date, c.lessor_address1
+          GROUP BY c.franchisee, c.space_number, c.start_date, c.end_date, c.lessor_address1, c.lessor_name1, c.classification, c.area
           ORDER BY c.franchisee, c.space_number";
+
+
 
 $result = mysqli_query($con, $query);
 

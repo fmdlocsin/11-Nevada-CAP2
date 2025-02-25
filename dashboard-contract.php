@@ -521,7 +521,9 @@ echo "<script>
                                             </div>
                                             <div class="modal-body">
                                                 <!-- Summary Section -->
-                                                <div id="franchiseSummary" class="franchise-summary"></div>
+                                                <div id="franchiseSummary" class="franchise-summary">
+                                </div>
+
 
                                                 <!-- Report Tables for Each Franchisee -->
                                                 <div id="franchiseReportContent"></div>
@@ -537,6 +539,7 @@ echo "<script>
                                         </div>
                                     </div>
                                 </div>
+
 
 
                                 <!-- Leasing Contracts Report Modal -->

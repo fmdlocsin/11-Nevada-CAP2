@@ -262,11 +262,21 @@ $(document).ready(function () {
                     let franchisee = franchiseNameMap[row.franchisor] || row.franchisor; // Map the franchise name
 
                     if (!leaseCounts[franchisee]) {
-                        leaseCounts[franchisee] = 0;
+                        leaseCounts[franchisee] = {
+                            activeLeases: 0,
+                            expiringLeases: 0,
+                            expiredLeases: 0
+                        };
                     }
-                    leaseCounts[franchisee]++;
 
+                    // ✅ Correctly count active, expiring, and expired leases
+                    leaseCounts[franchisee].activeLeases += parseInt(row.active_leases) || 0;
+                    leaseCounts[franchisee].expiringLeases += parseInt(row.expiring_leases) || 0;
+                    leaseCounts[franchisee].expiredLeases += parseInt(row.expired_leases) || 0;
+
+                    // ✅ Track total active leases globally
                     totalActiveLeases += parseInt(row.active_leases) || 0;
+
                     let totalLeases = parseInt(row.active_leases) + parseInt(row.expired_leases);
                     totalOccupancyRate += totalLeases > 0 ? (parseInt(row.active_leases) / totalLeases) * 100 : 0;
 
@@ -289,33 +299,49 @@ $(document).ready(function () {
                     ? `${formatDate(nextExpiringLeaseDetails.expiration_date)} (${nextExpiringLeaseDetails.franchisee} - ${nextExpiringLeaseDetails.location})`
                     : "N/A";
 
-                // ✅ Update summary section
+                // ✅ Restore Overall Leasing Summary
                 let leasingSummaryHTML = `
-                <div class="alert alert-info">
-                    <p><strong>Total Active Leases:</strong> ${totalActiveLeases}</p>
-                    <p><strong>Overall Occupancy Rate:</strong> ${overallOccupancyRate}</p>
-                    <p><strong>Next Expiring Lease:</strong> ${nextExpiringLeaseFormatted}</p>
-                </div>`;
+                    <div class="alert alert-info">
+                        <p>Total Active Leases: <span style="color: green; font-weight: bold;">${totalActiveLeases}</span></p>
+                        <p>Overall Occupancy Rate: <span style="color: blue; font-weight: bold;">${overallOccupancyRate}</span></p>
+                        <p>Next Expiring Lease: <span style="color: orange; font-weight: bold;">${nextExpiringLeaseFormatted}</span></p>
+                    </div>`;
 
+                // ✅ Append the summary to the leasing report
                 summaryContent.html(leasingSummaryHTML);
+
 
                 // ✅ Second loop: Generate tables
                 data.forEach(row => {
                     let franchisee = franchiseNameMap[row.franchisor] || row.franchisor; // Map the franchise name
 
                     if (!tables[franchisee]) {
+                        // ✅ Calculate Occupancy Rate
+                        let totalLeases = leaseCounts[franchisee].activeLeases + leaseCounts[franchisee].expiredLeases;
+                        let occupancyRate = totalLeases > 0 ? ((leaseCounts[franchisee].activeLeases / totalLeases) * 100).toFixed(2) + "%" : "0%";
+
+                        // ✅ Create Summary Section below Franchisee Name
                         tables[franchisee] = `
                             <div class="franchise-section">
-                                <h3 class="franchise-title">${franchisee} (Total Active Leases: ${leaseCounts[franchisee]})</h3>
+                                <h3 class="franchise-title">${franchisee} (Total Leases: ${leaseCounts[franchisee].activeLeases})</h3>
+
+                                <!-- ✅ Leasing Summary Section -->
+                                <div class="contract-summary">
+                                    <div class="summary-item"><strong>Active Leases:</strong> <span style="color: green; font-weight: bold;">${leaseCounts[franchisee].activeLeases}</span></div>
+                                    <div class="summary-item"><strong>Expiring Next Month:</strong> <span style="color: orange; font-weight: bold;">${leaseCounts[franchisee].expiringLeases}</span></div>
+                                    <div class="summary-item"><strong>Expired Leases:</strong> <span style="color: red; font-weight: bold;">${leaseCounts[franchisee].expiredLeases}</span></div>
+                                    <div class="summary-item"><strong>Occupancy Rate:</strong> <span style="color: blue; font-weight: bold;">${occupancyRate}</span></div>
+                                </div>
+
+                                <!-- ✅ Leasing Table -->
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-striped report-table">
                                         <thead class="table-dark">
                                             <tr>
+                                                <th>Lessor Name</th>
+                                                <th>Classification</th>
+                                                <th>Area</th> 
                                                 <th>Location</th>
-                                                <th class="text-center">Active Leases</th>
-                                                <th class="text-center">Expiring Next Month</th>
-                                                <th class="text-center">Expired Leases</th>
-                                                <th class="text-center">Occupancy Rate (%)</th>
                                                 <th>Start Date</th>
                                                 <th>Expiration Date</th>
                                                 <th>Remarks</th>
@@ -325,22 +351,17 @@ $(document).ready(function () {
                         `;
                     }
 
-                    // Check if the lease is expired
+                    // ✅ Check if the lease is expired
                     let expirationDate = new Date(row.expiration_date);
                     let today = new Date();
                     let leaseRemark = expirationDate < today ? "Expired" : "Active Lease";
 
-                    // Calculate Occupancy Rate
-                    let totalLeases = parseInt(row.active_leases) + parseInt(row.expired_leases);
-                    let occupancyRate = totalLeases > 0 ? ((parseInt(row.active_leases) / totalLeases) * 100).toFixed(2) + "%" : "0%";
-
                     tables[franchisee] += `
                         <tr>
+                            <td>${row.lessor_name || "N/A"}</td>
+                            <td>${row.classification || "N/A"}</td>
+                            <td>${row.area ? row.area + " sqm" : "N/A"}</td>
                             <td>${row.location}</td>
-                            <td class="text-center">${row.active_leases}</td>
-                            <td class="text-center">${row.expiring_leases}</td>
-                            <td class="text-center">${row.expired_leases}</td>
-                            <td class="text-center">${occupancyRate}</td>
                             <td>${formatDate(row.start_date)}</td>
                             <td>${formatDate(row.expiration_date)}</td>
                             <td class="text-center">${leaseRemark}</td>
@@ -353,17 +374,18 @@ $(document).ready(function () {
                     tables[franchisor] += `</tbody></table></div></div><br>`;
                     reportContent.append(tables[franchisor]);
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error:", xhr.responseText);
-                $("#leasingReportContent").html(`<p>Error loading data</p>`);
-            }
-        });
-    });
-});
+
+                            },
+                            error: function (xhr, status, error) {
+                                console.error("Error:", xhr.responseText);
+                                $("#leasingReportContent").html(`<p>Error loading data</p>`);
+                            }
+                        });
+                    });
+                });
 
 
-// Export Leasing Contracts to PDF
+// Export Leasing Contracts to PDF (Fixed Summary Box and Spacing)
 function exportLeasingTableToPDF() {
     const { jsPDF } = window.jspdf;
     let doc = new jsPDF({
@@ -382,9 +404,37 @@ function exportLeasingTableToPDF() {
     let currentDate = new Date().toLocaleDateString();
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(`Date Generated: ${currentDate}`, 400, 80);
+    doc.text(`Date Generated: ${currentDate}`, pageWidth - 150, 70); // Right-aligned date
 
-    let startY = 100;
+    let startY = 100; // Starting Y position for content
+
+    // ✅ Extract Overall Summary
+    let overallSummaryDiv = document.querySelector("#leasingSummary");
+    if (overallSummaryDiv) {
+        let summaryText = overallSummaryDiv.innerText.trim().split("\n");
+        let summaryHeight = 20 + summaryText.length * 14; // ✅ Adjust height dynamically
+
+        // ✅ Add Gray Background to Summary with Proper Height
+        doc.setFillColor(230, 230, 230); // Light gray background
+        doc.roundedRect(40, startY, pageWidth - 80, summaryHeight, 5, 5, "F"); // Rounded background
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text("Overall Summary:", 50, startY + 20);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(50, 50, 50); // Dark gray text
+
+        let textY = startY + 40;
+        summaryText.forEach(line => {
+            doc.text(line, 60, textY);
+            textY += 10;
+        });
+
+        startY += summaryHeight + 40; // ✅ Properly spaced below the summary
+    }
 
     // ✅ Restrict table selection to the Leasing modal only
     let tables = document.querySelectorAll("#leasingReportModal .franchise-section .report-table");
@@ -396,13 +446,26 @@ function exportLeasingTableToPDF() {
     }
 
     tables.forEach((table, index) => {
-        let franchiseTitle = table.closest(".franchise-section").querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+        let franchiseSection = table.closest(".franchise-section");
+        let franchiseTitle = franchiseSection.querySelector(".franchise-title")?.innerText || "Unknown Franchise";
 
         // ✅ Add Franchise Title
         doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
         doc.text(franchiseTitle, 50, startY);
         startY += 20;
+
+        // ✅ Extract Franchise Summary
+        let summaryDiv = franchiseSection.querySelector(".contract-summary");
+        if (summaryDiv) {
+            let summaryText = summaryDiv.innerText.trim().split("\n").join("  |  "); // Format summary
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(10);
+            doc.setTextColor(80, 80, 80);
+            doc.text(summaryText, 60, startY);
+            startY += 20; // ✅ Space before table
+        }
 
         // ✅ Extract Table Data
         let headers = [];
@@ -424,13 +487,13 @@ function exportLeasingTableToPDF() {
             }
         });
 
-        // ✅ Generate Table in PDF
+        // ✅ Generate Table in PDF with Improved Spacing
         doc.autoTable({
             head: [headers],
             body: data,
             startY: startY,
             theme: "grid",
-            styles: { fontSize: 10, cellPadding: 3 },
+            styles: { fontSize: 10, cellPadding: 4 },
             headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
             alternateRowStyles: { fillColor: [245, 245, 245] },
             margin: { left: 40, right: 40 },
@@ -438,7 +501,7 @@ function exportLeasingTableToPDF() {
             columnStyles: { 0: { cellWidth: "auto" } }
         });
 
-        startY = doc.lastAutoTable.finalY + 30; // Space between franchise tables
+        startY = doc.lastAutoTable.finalY + 30; // ✅ Extra spacing between tables
     });
 
     // ✅ Save PDF
@@ -451,10 +514,10 @@ $(document).ready(function () {
 });
 
 
-// Export Leasing Contracts to CSV
+// Export Leasing Contracts to CSV (Includes Overall Summary)
 function exportLeasingTableToCSV() {
-     // ✅ Restrict table selection to the Leasing modal only
-     let tables = document.querySelectorAll("#leasingReportModal .franchise-section .report-table");
+    // ✅ Restrict table selection to the Leasing modal only
+    let tables = document.querySelectorAll("#leasingReportModal .franchise-section .report-table");
 
     if (!tables.length) {
         console.error("❌ Error: No tables found!");
@@ -468,13 +531,38 @@ function exportLeasingTableToCSV() {
     csv.push(`"Leasing Contracts Report"`);
     csv.push(""); // Empty row for spacing
 
+    // ✅ Extract Overall Summary
+    let overallSummaryDiv = document.querySelector("#leasingSummary");
+    if (overallSummaryDiv) {
+        csv.push(`"Overall Summary"`);
+        csv.push(""); // Space below title
+
+        let summaryLines = overallSummaryDiv.innerText.trim().split("\n");
+        summaryLines.forEach(line => {
+            csv.push(`"${line.trim()}"`);
+        });
+
+        csv.push(""); // Space after summary
+    }
+
+    // ✅ Extract Franchisee Data
     tables.forEach(table => {
         let franchiseTitle = table.closest(".franchise-section").querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+        
         csv.push(`"${franchiseTitle}"`);
+        
+        // ✅ Extract Franchise Summary
+        let summaryDiv = table.closest(".franchise-section").querySelector(".contract-summary");
+        if (summaryDiv) {
+            let summaryText = summaryDiv.innerText.trim().split("\n").join(" | ");
+            csv.push(`"${summaryText}"`);
+        }
+
         csv.push(""); // Space before table
 
+        // ✅ Extract Table Data
         let rows = table.querySelectorAll("tr");
-        rows.forEach(row => {
+        rows.forEach((row, index) => {
             let cols = row.querySelectorAll("th, td");
             let rowData = [];
 
@@ -488,6 +576,7 @@ function exportLeasingTableToCSV() {
         csv.push(""); // Space between franchise tables
     });
 
+    // ✅ Convert CSV Data to Downloadable File
     let csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
     let encodedUri = encodeURI(csvContent);
     let link = document.createElement("a");
@@ -501,6 +590,7 @@ function exportLeasingTableToCSV() {
 $(document).ready(function () {
     $("#exportLeasingCSV").click(exportLeasingTableToCSV);
 });
+
 
 
 
@@ -522,76 +612,108 @@ $(document).ready(function () {
                     return;
                 }
 
-                // ✅ Franchise Name Mapping
-                const franchiseNameMap = {
-                    "potato-corner": "Potato Corner",
-                    "auntie-anne": "Auntie Anne's",
-                    "macao-imperial": "Macao Imperial",
+                // ✅ Franchise Name and Logo Mapping (Matching Stored Filenames)
+                const franchiseData = {
+                    "auntie-anne": { name: "Auntie Anne's", logo: "AuntieAnn.png" },
+                    "macao-imperial": { name: "Macao Imperial", logo: "MacaoImp.png" },
+                    "potato-corner": { name: "Potato Corner", logo: "PotCor.png" }
                 };
 
                 let tables = {}; // Store separate tables for each franchisee
-                let contractCounts = {}; // Store total contracts per franchisee
+                let contractSummary = {}; // Store summary data per franchisee
 
-                // ✅ First loop: Count total contracts per franchise
+                // ✅ First loop: Calculate contract counts per franchise
                 data.forEach(row => {
-                    let franchisee = franchiseNameMap[row.franchisor] || row.franchisor; // Map the franchise name
+                    let franchiseeKey = row.franchisor.toLowerCase().replace(/\s+/g, '-');
+                    let franchisee = franchiseData[franchiseeKey] ? franchiseData[franchiseeKey].name : row.franchisor;
+                    let logoPath = franchiseData[franchiseeKey] ? `assets/images/${franchiseData[franchiseeKey].logo}` : "assets/images/default.png";
 
-                    if (!contractCounts[franchisee]) {
-                        contractCounts[franchisee] = 0;
+                    if (!contractSummary[franchisee]) {
+                        contractSummary[franchisee] = {
+                            logo: logoPath, // Store the correct logo path
+                            activeContracts: 0,
+                            expiringContracts: 0,
+                            expiredContracts: 0,
+                            totalContracts: 0,
+                            renewalRate: 0,
+                            branches: []
+                        };
                     }
-                    contractCounts[franchisee]++;
+
+                    // ✅ Fix: Only Count Active Contracts That Are Not Expired
+                    let isExpired = new Date(row.expiration_date) < new Date(); // Check if expired
+                    let isActive = row.remarks.toLowerCase() === "active" && !isExpired;
+
+                    if (isActive) {
+                        contractSummary[franchisee].activeContracts += 1; // Only count truly active contracts
+                    }
+
+                    contractSummary[franchisee].expiringContracts += parseInt(row.expiring_contracts) || 0;
+                    contractSummary[franchisee].expiredContracts += isExpired ? 1 : 0;
+                    contractSummary[franchisee].totalContracts++;
+
+                    // ✅ Renewal Rate Calculation (Unchanged)
+                    let total = contractSummary[franchisee].activeContracts + contractSummary[franchisee].expiredContracts;
+                    contractSummary[franchisee].renewalRate = total > 0 ? ((contractSummary[franchisee].activeContracts / total) * 100).toFixed(2) : "0";
+
+                    // ✅ Store Branch Details
+                    contractSummary[franchisee].branches.push({
+                        location: row.location,
+                        classification: row.classification || "N/A",
+                        startDate: formatDate(row.start_date),
+                        expirationDate: formatDate(row.expiration_date),
+                        remarks: isExpired ? "Expired" : "Active"
+                    });
                 });
 
-                // ✅ Second loop: Generate tables
-                data.forEach(row => {
-                    let franchisee = franchiseNameMap[row.franchisor] || row.franchisor; // Map the franchise name
+                // ✅ Generate Tables & Include Contract Summary
+                for (let franchisee in contractSummary) {
+                    let summary = contractSummary[franchisee];
 
-                    if (!tables[franchisee]) {
-                        tables[franchisee] = `
-                            <div class="franchise-section">
-                                <h3 class="franchise-title">${franchisee} (Total Contracts: ${contractCounts[franchisee]})</h3>
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-striped report-table">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>Location</th>
-                                                <th class="text-center">Active Contracts</th>
-                                                <th class="text-center">Expiring Next Month</th>
-                                                <th class="text-center">Expired Contracts</th>
-                                                <th class="text-center">Renewal Rate (%)</th>
-                                                <th>Start Date</th>
-                                                <th>Expiration Date</th>
-                                                <th>Remarks</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                        `;
-                    }
+                    tables[franchisee] = `
+                        <div class="franchise-section">
+                            <h3 class="franchise-title">
+                                <img src="${summary.logo}" alt="${franchisee}" class="franchise-logo">
+                                ${franchisee} (Total Contracts: ${summary.totalContracts})
+                            </h3>
+                            
+                            <!-- ✅ Styled Contract Summary -->
+                            <div class="contract-summary">
+                                <div class="summary-item"><strong>Active Contracts:</strong> <span style="color: green; font-weight: bold;">${summary.activeContracts}</span></div>
+                                <div class="summary-item"><strong>Expiring Next Month:</strong> <span style="color: orange; font-weight: bold;">${summary.expiringContracts}</span></div>
+                                <div class="summary-item"><strong>Expired Contracts:</strong> <span style="color: red; font-weight: bold;">${summary.expiredContracts}</span></div>
+                                <div class="summary-item"><strong>Renewal Rate:</strong> <span style="color: blue; font-weight: bold;">${summary.renewalRate}%</span></div>
+                            </div>
 
-                    // Check if the contract is expired
-                    let expirationDate = new Date(row.expiration_date);
-                    let today = new Date();
-                    let contractRemark = expirationDate < today ? "Expired" : "Active";
-
-                    
-                    tables[franchisee] += `
-                        <tr>
-                            <td>${row.location}</td>
-                            <td class="text-center">${row.active_contracts}</td>
-                            <td class="text-center">${row.expiring_contracts}</td>
-                            <td class="text-center">${row.expired_contracts}</td>
-                            <td class="text-center">${row.renewal_rate}</td>
-                            <td>${formatDate(row.start_date)}</td>
-                            <td>${row.expiration_date ? formatDate(row.expiration_date) : "N/A"}</td>
-                            <td class="text-center">${contractRemark}</td>
-                        </tr>
+                            <!-- Branch Table -->
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped report-table">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Location</th>
+                                            <th>Classification</th>
+                                            <th>Start Date</th>
+                                            <th>Expiration Date</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                     `;
-                });
 
-                // ✅ Close tables and append them
-                for (let franchisor in tables) {
-                    tables[franchisor] += `</tbody></table></div></div><br>`;
-                    reportContent.append(tables[franchisor]);
+                    summary.branches.forEach(branch => {
+                        tables[franchisee] += `
+                            <tr>
+                                <td>${branch.location}</td>
+                                <td>${branch.classification}</td>
+                                <td>${branch.startDate}</td>
+                                <td>${branch.expirationDate}</td>
+                                <td class="text-center">${branch.remarks}</td>
+                            </tr>
+                        `;
+                    });
+
+                    tables[franchisee] += `</tbody></table></div></div><br>`;
+                    reportContent.append(tables[franchisee]);
                 }
             },
             error: function (xhr, status, error) {
@@ -602,19 +724,18 @@ $(document).ready(function () {
     });
 });
 
-function calculateRenewalRate(renewed, expired) {
-    let total = renewed + expired;
-    if (total === 0) return "0%"; // Avoid division by zero
-    let rate = (renewed / total) * 100;
-    return rate.toFixed(2) + "%"; // Return with two decimal places
-}
 
+// ✅ Function to Format Dates
 function formatDate(dateString) {
-    if (!dateString) return "N/A"; // Handle empty dates
+    if (!dateString || dateString === "Invalid Date") return "N/A"; // Handle invalid dates
+
     let date = new Date(dateString);
-    let options = { year: 'numeric', month: 'long', day: 'numeric' }; // Format to "Month Day, Year"
+    if (isNaN(date.getTime())) return "Invalid Date"; // Ensure date is valid
+
+    let options = { year: 'numeric', month: 'long', day: 'numeric' }; // Format: Month Day, Year
     return date.toLocaleDateString('en-US', options);
 }
+
 
 
 // Export to PDF
@@ -650,13 +771,24 @@ function exportFranchiseTableToPDF() {
     }
 
     tables.forEach((table, index) => {
-        let franchiseTitle = table.closest(".franchise-section").querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+        let franchiseSection = table.closest(".franchise-section");
+        let franchiseTitle = franchiseSection.querySelector(".franchise-title")?.innerText || "Unknown Franchise";
 
         // ✅ Add Franchise Title
         doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
         doc.text(franchiseTitle, 50, startY);
         startY += 20;
+
+        // ✅ Extract Franchise Summary
+        let summaryDiv = franchiseSection.querySelector(".contract-summary");
+        if (summaryDiv) {
+            let summaryText = summaryDiv.innerText.trim().split("\n").join("  |  "); // Format summary
+            doc.setFont("helvetica", "italic");
+            doc.setFontSize(10);
+            doc.text(summaryText, 50, startY);
+            startY += 15;
+        }
 
         // ✅ Extract Table Data
         let headers = [];
