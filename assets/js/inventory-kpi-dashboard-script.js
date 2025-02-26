@@ -251,27 +251,30 @@ $("#startDate, #endDate").change(function () {
 
 
 
-let sellThroughChart; // ✅ Ensure global chart variable
+let sellThroughChart, highTurnoverChart, lowTurnoverChart; // ✅ Store chart instances globally
 
 function updateSellThroughGraph(sellThroughRate) {
-    console.log("Updating Sell-Through Rate Graph...", sellThroughRate); // ✅ Debugging
+    console.log("Updating Sell-Through Rate Graph...", sellThroughRate);
 
     if (!sellThroughRate || !sellThroughRate.dates || sellThroughRate.dates.length === 0) {
-        console.warn("No data available for Sell-Through Rate.");
+        console.warn("⚠ No data available for Sell-Through Rate.");
         return;
     }
 
-    if (sellThroughChart) sellThroughChart.destroy(); // ✅ Destroy previous chart
+    // ✅ Destroy previous chart instance if exists
+    if (sellThroughChart instanceof Chart) {
+        sellThroughChart.destroy();
+    }
 
     const ctx = document.getElementById("sellThroughChart").getContext("2d");
 
     sellThroughChart = new Chart(ctx, {
         type: "line",
         data: {
-            labels: sellThroughRate.dates, // ✅ X-axis (time)
+            labels: sellThroughRate.dates, // X-axis (time)
             datasets: [{
                 label: "Sell-Through Rate (%)",
-                data: sellThroughRate.values, // ✅ Y-axis (percentage)
+                data: sellThroughRate.values, // Y-axis (percentage)
                 borderColor: "blue",
                 backgroundColor: "rgba(0, 0, 255, 0.1)",
                 fill: true
@@ -279,7 +282,7 @@ function updateSellThroughGraph(sellThroughRate) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // ✅ Ensures full width
+            maintainAspectRatio: false, // ✅ Ensures chart does not grow infinitely
             scales: {
                 y: {
                     beginAtZero: true,
@@ -294,22 +297,19 @@ function updateSellThroughGraph(sellThroughRate) {
     console.log("Sell-Through Rate Graph Updated!");
 }
 
-
-
-let highTurnoverChart, lowTurnoverChart; // ✅ Ensure global chart variables
-
 function updateGraphs(highTurnover, lowTurnover) {
     console.log("Updating Graphs...");
     console.log("High Turnover Data:", highTurnover);
     console.log("Low Turnover Data:", lowTurnover);
 
     if (!highTurnover.labels || !lowTurnover.labels || highTurnover.labels.length === 0 || lowTurnover.labels.length === 0) {
-        console.warn("No data for graphs.");
+        console.warn("⚠ No data for graphs.");
         return;
     }
 
-    if (highTurnoverChart) highTurnoverChart.destroy();
-    if (lowTurnoverChart) lowTurnoverChart.destroy();
+    // Destroy previous instances before creating new charts
+    if (highTurnoverChart instanceof Chart) highTurnoverChart.destroy();
+    if (lowTurnoverChart instanceof Chart) lowTurnoverChart.destroy();
 
     const highTurnoverCanvas = document.getElementById("highTurnoverChart").getContext("2d");
     const lowTurnoverCanvas = document.getElementById("lowTurnoverChart").getContext("2d");
@@ -326,11 +326,9 @@ function updateGraphs(highTurnover, lowTurnover) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // ✅ Ensures the graph fills the container
+            maintainAspectRatio: false, // ✅ Ensures chart stays contained
             scales: {
-                y: {
-                    beginAtZero: true
-                }
+                y: { beginAtZero: true }
             }
         }
     });
@@ -347,17 +345,16 @@ function updateGraphs(highTurnover, lowTurnover) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // ✅ Ensures the graph fills the container
+            maintainAspectRatio: false, // ✅ Prevents infinite resizing
             scales: {
-                y: {
-                    beginAtZero: true
-                }
+                y: { beginAtZero: true }
             }
         }
     });
 
     console.log("Graphs Updated Successfully!");
 }
+
 
 
 

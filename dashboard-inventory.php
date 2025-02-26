@@ -252,11 +252,15 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
 
 <!-- Bootstrap JS (Ensure it's the bundle version) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/navbar.css">
     <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/inventory-dashboard.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -333,7 +337,7 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                         <span class="text">Inventory Analytics</span>
                     </div>
                 </div>
-
+            
 
                 <!-- Franchise Selection Buttons -->
                 <div class="btn-group" role="group" aria-label="Select Franchise">
@@ -356,34 +360,42 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
 
                     <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
                 </div>
+            </div>
 
                 <!-- KPI Cards -->
                 <div class="row kpi-row">
+                    <!-- Stock Level -->
                     <div class="col-md-4 kpi-col">
-                        <div class="card text-white bg-info mb-3">
+                        <div class="card kpi-card">
                             <div class="card-body">
-                                <h5 class="card-title">Stock Level</h5>
-                                <p class="card-text" id="stock-level">-</p>
+                                <h2 class="kpi-number" id="stock-level">0</h2>
+                                <h4 class="kpi-label">Stock Level</h4>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Stockout Count -->
                     <div class="col-md-4 kpi-col">
-                        <div class="card text-white bg-warning mb-3">
+                        <div class="card kpi-card">
                             <div class="card-body">
-                                <h5 class="card-title">Stockout Count</h5>
-                                <p class="card-text" id="stockout-count">-</p>
+                                <h2 class="kpi-number" id="stockout-count">0</h2>
+                                <h4 class="kpi-label">Stockout Count</h4>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Total Wastage -->
                     <div class="col-md-4 kpi-col">
-                        <div class="card text-white bg-danger mb-3">
+                        <div class="card kpi-card">
                             <div class="card-body">
-                                <h5 class="card-title">Total Wastage</h5>
-                                <p class="card-text" id="total-wastage">-</p>
+                                <h2 class="kpi-number" id="total-wastage">0</h2>
+                                <h4 class="kpi-label">Total Wastage</h4>
                             </div>
                         </div>
                     </div>
                 </div>
+
+
 
                 <!-- Charts Section -->
                 <div class="charts-container">
@@ -439,7 +451,7 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                     </div>
                 </div>
 
-            </div>
+            
         </div>
     </section>
 
