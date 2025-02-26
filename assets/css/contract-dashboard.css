@@ -454,7 +454,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;  /* Adds space above */
+    margin-top: 40px;  /* Adds space above */
     margin-bottom: 15px; /* Adds spacing between title and chart/table */
 }
 

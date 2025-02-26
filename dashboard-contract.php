@@ -52,10 +52,27 @@ $expiredContractsQuery = "
 $expiredContractsResult = mysqli_query($con, $expiredContractsQuery);
 $expiredContracts = ($expiredContractsResult) ? mysqli_fetch_assoc($expiredContractsResult)['total'] : 0;
 
-// Fetch Total Contracts
-$totalContractsQuery = "SELECT COUNT(*) as total FROM agreement_contract";
-$totalContractsResult = mysqli_query($con, $totalContractsQuery);
-$totalContracts = ($totalContractsResult) ? mysqli_fetch_assoc($totalContractsResult)['total'] : 1;
+// // Fetch Total Contracts (Active + Expired)
+// $totalContractsQuery = "
+//     SELECT (SELECT COUNT(*) FROM agreement_contract) + 
+//            (SELECT COUNT(*) FROM lease_contract) AS total";
+// $totalContractsResult = mysqli_query($con, $totalContractsQuery);
+// $totalContracts = ($totalContractsResult) ? mysqli_fetch_assoc($totalContractsResult)['total'] : 0;
+
+// Fetch Total Agreement Contracts
+$totalAgreementContractsQuery = "SELECT COUNT(*) as total FROM agreement_contract";
+$totalAgreementContractsResult = mysqli_query($con, $totalAgreementContractsQuery);
+$totalAgreementContracts = ($totalAgreementContractsResult) ? mysqli_fetch_assoc($totalAgreementContractsResult)['total'] : 0;
+
+// Fetch Total Leasing Contracts
+$totalLeasingContractsQuery = "SELECT COUNT(*) as total FROM lease_contract";
+$totalLeasingContractsResult = mysqli_query($con, $totalLeasingContractsQuery);
+$totalLeasingContracts = ($totalLeasingContractsResult) ? mysqli_fetch_assoc($totalLeasingContractsResult)['total'] : 0;
+
+// Calculate Total Contracts
+$totalContracts = $totalAgreementContracts + $totalLeasingContracts;
+
+
 
 // Fetch Expired Contracts Trend (Grouped by Month)
 $expiredContractsTrendQuery = "
@@ -131,49 +148,55 @@ while ($row = mysqli_fetch_assoc($contractDurationTrendResult)) {
 // Fetch Franchise Agreement Data
 $franchiseQuery = "
     SELECT franchisee, 
+        COUNT(*) AS total_contracts,  -- Total contracts (active + expired)
         COUNT(CASE WHEN LOWER(TRIM(status)) = 'active' AND agreement_date >= CURDATE() THEN 1 END) AS active_contracts,
-        COUNT(CASE WHEN agreement_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_contracts,
-        COUNT(CASE WHEN agreement_date < CURDATE() THEN 1 END) AS expired_contracts,
-        COUNT(CASE WHEN agreement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) THEN 1 END) AS renewed_contracts
+        COUNT(CASE WHEN agreement_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 END) AS expiring_contracts,  -- Fix: Include expiring contracts
+        COUNT(CASE WHEN agreement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) THEN 1 END) AS renewed_contracts,  -- Fix: Include renewed contracts
+        COUNT(CASE WHEN agreement_date < CURDATE() THEN 1 END) AS expired_contracts
     FROM agreement_contract
     GROUP BY franchisee";
 
 $franchiseResult = mysqli_query($con, $franchiseQuery);
 
-// Arrays to store franchise data for JavaScript
+
 $franchiseNames = [];
-$activeContracts = [];
+$totalContractsPerFranchise = []; // New array for total contracts per franchise
 
 while ($row = mysqli_fetch_assoc($franchiseResult)) {
-    $franchiseNames[] = ucfirst(str_replace("-", " ", $row['franchisee'])); // Format name
-    $activeContracts[] = $row['active_contracts'];
+    $franchiseNames[] = ucfirst(str_replace("-", " ", $row['franchisee']));
+    $totalContractsPerFranchise[] = $row['total_contracts']; // Store total contracts
 }
+
 
 // Fetch Leasing Contracts Breakdown Per Franchise
 $leasingContractsQuery = "
     SELECT franchisee, 
+        COUNT(*) AS total_leases,  -- Total leases (active + expired)
         COUNT(CASE WHEN status = 'active' THEN 1 END) AS active_leases,
-        COUNT(CASE WHEN end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_leases,
         COUNT(CASE WHEN end_date < CURDATE() THEN 1 END) AS expired_leases
     FROM lease_contract
     GROUP BY franchisee";
 
 $leasingResult = mysqli_query($con, $leasingContractsQuery);
 
-// Prepare data for JavaScript
 $leasingFranchiseNames = [];
-$activeLeases = [];
+$totalLeasesPerFranchise = []; // New array for total leases per franchise
 
 while ($row = mysqli_fetch_assoc($leasingResult)) {
     $leasingFranchiseNames[] = ucfirst(str_replace("-", " ", $row['franchisee']));
-    $activeLeases[] = $row['active_leases'];
+    $totalLeasesPerFranchise[] = $row['total_leases']; // Store total leases
 }
+
 
 // Convert PHP data to JavaScript variables
 echo "<script> 
         var franchiseNames = " . json_encode($franchiseNames) . ";
-        var activeContracts = " . json_encode($activeContracts) . ";
+        var totalContractsPerFranchise = " . json_encode($totalContractsPerFranchise) . "; 
+
+        var leasingFranchiseNames = " . json_encode($leasingFranchiseNames) . ";
+        var totalLeasesPerFranchise = " . json_encode($totalLeasesPerFranchise) . ";
       </script>";
+
 
 
 // Close the database connection
@@ -297,7 +320,20 @@ echo "<script>
                             <!-- <h2 class="dashboard-title">Franchise Agreement Monitoring</h2> -->
 
                 <!-- ----------------------------------- KPI CARDS PART ----------------------------------- -->
+
                             <div class="row kpi-row">
+
+                                <div class="col-md-4 kpi-col">
+                                    <div class="card kpi-card total-contracts">
+                                        <div class="card-body">
+                                            <i class="kpi-icon ni ni-collection"></i> <!-- Contracts Icon -->
+                                            <h4>Total Contracts</h4>
+                                            <h2 class="kpi-number"><?php echo $totalContracts; ?></h2>
+                                            <p class="kpi-subtext">Agreement: <strong><?php echo $totalAgreementContracts; ?></strong> | Leasing: <strong><?php echo $totalLeasingContracts; ?></strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="col-md-4 kpi-col">
                                     <div class="card kpi-card active-contracts">
                                         <div class="card-body">
@@ -357,7 +393,7 @@ echo "<script>
                                 <!-- Pie Chart Column -->
                                 <div class="col-md-6 d-flex justify-content-center">
                                     <div class="chart-container pie-chart-container">
-                                        <h5 class="text-center">Active Agreement Contracts Distribution</h5>
+                                        <h5 class="text-center">Total Agreement Contracts Distribution</h5>
                                         <canvas id="activeContractsChart"></canvas>
                                     </div>
                                 </div>
@@ -378,16 +414,41 @@ echo "<script>
                                             <?php
                                             $franchiseResult = mysqli_query($con, $franchiseQuery);
                                             while ($row = mysqli_fetch_assoc($franchiseResult)) {
-                                                $franchiseName = ucfirst(str_replace("-", " ", $row['franchisee']));
-                                                $renewalRate = ($row['renewed_contracts'] / max(1, ($row['renewed_contracts'] + $row['expired_contracts']))) * 100;
                                                 
-                                                echo "<tr>
-                                                        <td>{$franchiseName}</td>
-                                                        <td>{$row['active_contracts']}</td> <!-- Now correctly filtered -->
-                                                        <td>{$row['expiring_contracts']}</td>
-                                                        <td>{$row['expired_contracts']}</td>
-                                                        <td>" . round($renewalRate, 2) . "%</td>
-                                                    </tr>";
+                                                // Define the name mapping
+                                                $franchiseNameMap = [
+                                                    "auntie anne" => "Auntie Anne's",
+                                                    "macao imperial" => "Macao Imperial",
+                                                    "potato corner" => "Potato Corner"
+                                                ];
+                                                
+                                                $franchiseResult = mysqli_query($con, $franchiseQuery);
+                                                while ($row = mysqli_fetch_assoc($franchiseResult)) {
+                                                    // Convert DB name: replace hyphens with spaces, lowercase it, and trim spaces
+                                                    $rawFranchiseName = strtolower(str_replace("-", " ", trim($row['franchisee'])));
+                                                
+                                                    // Apply name mapping or use the default formatted name
+                                                    $franchiseName = isset($franchiseNameMap[$rawFranchiseName]) ? 
+                                                        $franchiseNameMap[$rawFranchiseName] : ucfirst($rawFranchiseName);
+                                                
+                                                    // Retrieve contract values
+                                                    $activeContracts = isset($row['active_contracts']) ? $row['active_contracts'] : 0;
+                                                    $expiredContracts = isset($row['expired_contracts']) ? $row['expired_contracts'] : 0;
+                                                
+                                                    // Renewal rate calculation
+                                                    $renewalRate = ($activeContracts + $expiredContracts) > 0 
+                                                        ? ($activeContracts / ($activeContracts + $expiredContracts)) * 100 
+                                                        : 0;
+                                                
+                                                    // Output the row in the table
+                                                    echo "<tr>
+                                                            <td>{$franchiseName}</td>
+                                                            <td>{$row['active_contracts']}</td>
+                                                            <td>{$row['expiring_contracts']}</td>
+                                                            <td>{$row['expired_contracts']}</td>
+                                                            <td>" . round($renewalRate, 2) . "%</td>
+                                                          </tr>";
+                                                }
                                             }
                                             ?>
                                         </tbody>
@@ -398,7 +459,7 @@ echo "<script>
 
 
                             <div class="d-inline-flex align-items-center gap-3">
-                                <h3 class="table-title mb-0">Leasing Contracts Breakdown</h3>
+                                <h3 class="table-title mb-0">Total Contracts Breakdown</h3>
                                 <button id="generateLeasingReport" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#leasingReportModal">
                                     Generate Report
                                 </button>
@@ -411,7 +472,7 @@ echo "<script>
                                 <!-- Leasing Pie Chart Column -->
                                 <div class="col-md-6 d-flex justify-content-center">
                                     <div class="chart-container pie-chart-container">
-                                        <h5 class="text-center">Active Leasing Contracts Distribution</h5>
+                                        <h5 class="text-center">Total Leasing Contracts Distribution</h5>
                                         <canvas id="leasingContractsChart"></canvas>
                                     </div>
                                 </div>
@@ -447,22 +508,31 @@ echo "<script>
                                             }
 
                                             while ($row = mysqli_fetch_assoc($leasingResult)) {
-                                                // Format Franchise Name
-                                                $formattedFranchiseName = isset($franchiseNameMap[$row['franchisee']]) ? 
-                                                    $franchiseNameMap[$row['franchisee']] : 
-                                                    ucfirst(str_replace("-", " ", $row['franchisee']));
-
-                                                // Calculate Occupancy Rate (similar to renewal rate)
-                                                $occupancyRate = ($row['active_leases'] / max(1, ($row['active_leases'] + $row['expired_leases']))) * 100;
-
+                                                // Convert DB name: replace hyphens with spaces, lowercase it, and trim spaces
+                                                $rawFranchiseName = strtolower(str_replace("-", " ", trim($row['franchisee'])));
+                                            
+                                                // Apply name mapping or use default formatted name
+                                                $formattedFranchiseName = isset($franchiseNameMap[$rawFranchiseName]) ? 
+                                                    $franchiseNameMap[$rawFranchiseName] : ucfirst($rawFranchiseName);
+                                            
+                                                // Ensure no missing values in leasing data
+                                                $activeLeases = isset($row['active_leases']) ? $row['active_leases'] : 0;
+                                                $expiringLeases = isset($row['expiring_leases']) ? $row['expiring_leases'] : 0;
+                                                $expiredLeases = isset($row['expired_leases']) ? $row['expired_leases'] : 0;
+                                            
+                                                // Calculate occupancy rate (avoid division by zero)
+                                                $occupancyRate = ($activeLeases / max(1, ($activeLeases + $expiredLeases))) * 100;
+                                            
+                                                // Output formatted table row
                                                 echo "<tr>
                                                         <td>{$formattedFranchiseName}</td>
-                                                        <td>{$row['active_leases']}</td>
-                                                        <td>{$row['expiring_leases']}</td>
-                                                        <td>{$row['expired_leases']}</td>
+                                                        <td>{$activeLeases}</td>
+                                                        <td>{$expiringLeases}</td>
+                                                        <td>{$expiredLeases}</td>
                                                         <td>" . round($occupancyRate, 2) . "%</td>
-                                                    </tr>";
+                                                      </tr>";
                                             }
+                                            
                                             ?>
                                         </tbody>
                                     </table>

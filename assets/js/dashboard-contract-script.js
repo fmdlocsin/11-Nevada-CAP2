@@ -68,6 +68,20 @@ window.onload = function () {
         }
     }
 
+    // Franchise Name Mapping (Same as PHP)
+    const franchiseNameMap = {
+        "auntie anne": "Auntie Anne's",
+        "macao imperial": "Macao Imperial",
+        "potato corner": "Potato Corner"
+    };
+
+    // Function to apply name formatting
+    function formatFranchiseName(name) {
+        let formattedName = name.toLowerCase().replace(/-/g, " ").trim();
+        return franchiseNameMap[formattedName] || name;
+    }
+
+
     // ==================== Contract Duration Over Time (Line Chart) ====================
     if (typeof contractDurationTrendData !== "undefined" && contractDurationTrendData.length > 0) {
         let ctxDurationTrend = document.getElementById("contractDurationTrendChart").getContext("2d");
@@ -107,10 +121,13 @@ window.onload = function () {
         let labelsFranchise = durationPerFranchiseData.map(item => item.franchise);
         let dataFranchise = durationPerFranchiseData.map(item => item.duration);
 
+         // Apply name formatting
+        let formattedDurationLabels = durationPerFranchiseData.map(item => formatFranchiseName(item.franchise));
+
         new Chart(ctxDurationFranchise, {
             type: "bar",
             data: {
-                labels: labelsFranchise,
+                labels: formattedDurationLabels, // Use formatted labels
                 datasets: [{
                     label: "Avg. Contract Duration (Months)",
                     data: dataFranchise,
@@ -134,15 +151,18 @@ window.onload = function () {
 
     // ==================== Active Contracts Pie Chart ====================
     if (typeof franchiseNames !== "undefined" && franchiseNames.length > 0) {
-        let ctxActiveContracts = document.getElementById("activeContractsChart").getContext("2d");
-
-        new Chart(ctxActiveContracts, {
+        let ctxFranchiseContracts = document.getElementById("activeContractsChart").getContext("2d");
+    
+        // Apply name formatting
+        let formattedLabels = franchiseNames.map(formatFranchiseName);
+    
+        new Chart(ctxFranchiseContracts, {
             type: "pie",
             data: {
-                labels: franchiseNames,
+                labels: formattedLabels, // Use formatted labels
                 datasets: [{
-                    data: activeContracts,
-                    backgroundColor: ["#36A2EB", "#FF6384", "#FFCE56"],
+                    data: totalContractsPerFranchise,
+                    backgroundColor: ["#36A2EB", "#FF6384", "#FFCE56", "#4BC0C0"],
                     borderWidth: 1
                 }]
             },
@@ -150,22 +170,15 @@ window.onload = function () {
                 responsive: true,
                 maintainAspectRatio: false, 
                 layout: {
-                    padding: {
-                        top: 5, // Reduce padding above chart
-                        bottom: 5, // Reduce space below chart
-                        left: 5,
-                        right: 5
-                    }
+                    padding: { top: 5, bottom: 5, left: 5, right: 5 }
                 },
                 plugins: {
                     legend: {
-                        position: "right", // Move legend below chart
-                        align: "center", // Align legend vertically centered
+                        position: "right",
+                        align: "center",
                         labels: {
-                            font: {
-                                size: 14 // Reduce font size to prevent overlap
-                            },
-                            padding: 15 // Adjust padding to avoid overlap
+                            font: { size: 14 },
+                            padding: 15
                         }
                     }
                 }
@@ -174,18 +187,22 @@ window.onload = function () {
     } else {
         console.error("No active contracts data available.");
     }
+    
 
     // ==================== Leasing Contracts Pie Chart ====================
     if (typeof leasingFranchiseNames !== "undefined" && leasingFranchiseNames.length > 0) {
         let ctxLeasingContracts = document.getElementById("leasingContractsChart").getContext("2d");
 
+        // Apply name formatting
+        let formattedLeasingLabels = leasingFranchiseNames.map(formatFranchiseName);
+    
         new Chart(ctxLeasingContracts, {
             type: "pie",
             data: {
-                labels: leasingFranchiseNames,
+                labels: formattedLeasingLabels,
                 datasets: [{
-                    data: activeLeases,
-                    backgroundColor: ["#4BC0C0", "#9966FF", "#FF9F40"],
+                    data: totalLeasesPerFranchise, // Use total leases instead of active only
+                    backgroundColor: ["#FF9F40", "#9966FF", "#4BC0C0", "#FF6384"],
                     borderWidth: 1
                 }]
             },
