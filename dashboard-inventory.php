@@ -320,9 +320,7 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
 
     <section class="home">
         <header class="contractheader">
-            <div class="container-header">
-                <h1 class="title">Inventory Dashboard</h1>
-            </div>
+            <h1 class="title">Dashboard</h1>
         </header>
 
 
@@ -334,17 +332,31 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                     </div>
                     <div class="title">
                         <i class='bx bx-time-five'></i>
-                        <span class="text">Inventory Analytics</span>
+                        <span class="text">Analytics</span>
                     </div>
+                    <span class="filter-label">Filter:</span>
                 </div>
             
 
                 <!-- Franchise Selection Buttons -->
-                <div class="btn-group" role="group" aria-label="Select Franchise">
-                    <button class="btn btn-primary franchise-btn" data-franchise="Potato Corner">Potato Corner</button>
-                    <button class="btn btn-primary franchise-btn" data-franchise="Auntie Anne's">Auntie Anne's</button>
-                    <button class="btn btn-primary franchise-btn" data-franchise="Macao Imperial Tea">Macao Imperial Tea</button>
+                <div class="franchise-filter">
+                    <div class="btn-group">
+                        <button class="franchise-btn" data-franchise="Auntie Anne's">
+                            <img src="assets/images/AuntieAnn.png" alt="Auntie Anne's Logo">
+                            Auntie Anne's
+                        </button>
+                        <button class="franchise-btn" data-franchise="Macao Imperial Tea">
+                            <img src="assets/images/MacaoImp.png" alt="Macao Imperial Tea Logo">
+                            Macao Imperial
+                        </button>
+                        <button class="franchise-btn" data-franchise="Potato Corner">
+                            <img src="assets/images/PotCor.png" alt="Potato Corner Logo">
+                            Potato Corner
+                        </button>
+                    </div>
                 </div>
+
+
 
                 <!-- Branch Selection Buttons (Updated via AJAX) -->
                 <div id="branch-buttons" class="mt-3"></div>

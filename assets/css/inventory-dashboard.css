@@ -38,6 +38,87 @@ h1.title {
     font-weight: bold;
 }
 
+h2 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-top: 20px;
+}
+
+/* Filter Section */
+.franchise-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Filter Label */
+.filter-label {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Button Group */
+.btn-group {
+    display: flex;
+    gap: 10px;
+}
+
+/* Button Styling */
+.franchise-btn {
+    display: flex;
+    align-items: center;
+    /* background-color: #fff; */
+    /* border: 2px solid #ddd; */
+    color: #333;
+    /* font-weight: 500; */
+    padding: 18px 18px;
+    /* border-radius: 10px; */
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    font-size: 14px;
+    min-width: 180px;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+    border-radius: 6px;
+    border: 1px solid #ddd; /* Light gray border */
+    background-color: white;
+    color: #333; /* Dark text for readability */
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Button Hover */
+.franchise-btn:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+    transform: scale(1.05);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Button Active */
+.franchise-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Selected Button Effect */
+.franchisee-btn.selected {
+    background-color: #aaa8a8; /* Light blue selection */
+    color: white;
+    border-color: #333;
+    transform: scale(1.05);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Button Image */
+.franchise-btn img {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+}
+
 .greeting h2 {
     font-size: 25px;
     color: #333;
