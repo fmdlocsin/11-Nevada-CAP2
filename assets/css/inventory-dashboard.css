@@ -118,6 +118,32 @@ h2 {
     object-fit: contain;
 }
 
+/* ✅ Branch Button Styling */
+.branch-btn {
+    font-size: 14px;
+    padding: 10px 15px;
+    border-radius: 6px;
+    min-width: 120px;
+    text-align: center;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+/* ✅ Default Unselected State */
+.branch-btn.btn-outline-secondary {
+    background-color: white;
+    border: 1px solid #ccc;
+    color: #333;
+}
+
+/* ✅ Selected State */
+.branch-btn.btn-selected {
+    background-color: #4b4b4b !important; /* Darker selection */
+    color: white !important;
+    border-color: #333 !important;
+    transform: scale(1.05);
+}
+
+
 .greeting h2 {
     font-size: 25px;
     color: #333;

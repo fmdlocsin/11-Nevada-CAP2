@@ -23,9 +23,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
     $franchises = json_decode($_POST['franchise'], true);
 
     if (!is_array($franchises) || empty($franchises)) {
-        echo json_encode(["branches" => []]);
+        echo json_encode(["branches" => [], "clear" => true]); // ✅ Include clear flag
         exit;
     }
+    
 
     // ✅ Franchise Name Mapping
     $franchiseMap = [
@@ -69,7 +70,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
 
 
 // ✅ Branch selection: Fetch inventory data
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branch'])) {
+// ✅ Branch selection: Fetch inventory data
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
     header('Content-Type: application/json; charset=utf-8'); // ✅ Ensure JSON response
 
     if (!isset($con) || !$con) {
@@ -77,42 +79,55 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branch'])) {
         exit;
     }
 
-    $branch = $_POST['branch'];
+    // ✅ Decode JSON array from AJAX request
+    $branches = json_decode(trim($_POST['branches']), true);
+
+    // ✅ Ensure it's a valid array and not empty
+    if (!is_array($branches) || empty($branches)) {
+        echo json_encode([
+            "stock_level" => 0,
+            "stockout_count" => 0,
+            "total_wastage" => 0,
+            "high_turnover" => ["labels" => [], "values" => []],
+            "low_turnover" => ["labels" => [], "values" => []],
+            "sell_through_rate" => ["dates" => [], "values" => []]
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    // ✅ Dynamic query for multiple branches
+    $placeholders = implode(",", array_fill(0, count($branches), "?"));
 
     // ✅ Fetch inventory KPIs
     $query = "SELECT 
-        SUM(beginning - sold - waste) AS stock_level,
-        COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
-        SUM(waste) AS total_wastage
-    FROM item_inventory WHERE branch = ?";
+                SUM(beginning - sold - waste) AS stock_level,
+                COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
+                SUM(waste) AS total_wastage
+              FROM item_inventory 
+              WHERE branch IN ($placeholders)";
 
     $stmt = $con->prepare($query);
     if (!$stmt) {
         echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
         exit;
     }
-
-    $stmt->bind_param("s", $branch);
+    $stmt->bind_param(str_repeat("s", count($branches)), ...$branches);
     $stmt->execute();
     $result = $stmt->get_result();
     $data = $result->fetch_assoc();
 
-    
-// ✅ Fetch top 5 high turnover items (Joining `item_inventory` with `item` table)
-    $highTurnoverQuery = "SELECT i.item_name, (ii.sold / NULLIF(ii.beginning + ii.delivery - ii.waste, 0)) AS turnover_rate 
-                          FROM item_inventory ii 
-                          INNER JOIN items i ON ii.item_id = i.item_id 
-                          WHERE ii.branch = ? 
-                          ORDER BY turnover_rate DESC LIMIT 5";
-
-    $lowTurnoverQuery = "SELECT i.item_name, (ii.sold / NULLIF(ii.beginning + ii.delivery - ii.waste, 0)) AS turnover_rate 
-                         FROM item_inventory ii 
-                         INNER JOIN items i ON ii.item_id = i.item_id 
-                         WHERE ii.branch = ? 
-                         ORDER BY turnover_rate ASC LIMIT 5";
+    // ✅ Fetch top 5 high turnover items for selected branches
+    $highTurnoverQuery = "SELECT i.item_name, 
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) AS turnover_rate 
+                FROM item_inventory ii 
+                INNER JOIN items i ON ii.item_id = i.item_id 
+                WHERE ii.branch IN ($placeholders)
+                GROUP BY i.item_name 
+                ORDER BY turnover_rate DESC 
+                LIMIT 5";
 
     $stmtHigh = $con->prepare($highTurnoverQuery);
-    $stmtHigh->bind_param("s", $branch);
+    $stmtHigh->bind_param(str_repeat("s", count($branches)), ...$branches);
     $stmtHigh->execute();
     $highTurnoverResult = $stmtHigh->get_result();
 
@@ -122,8 +137,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branch'])) {
         $highTurnover["values"][] = floatval($row["turnover_rate"]);
     }
 
+    // ✅ Fetch top 5 low turnover items for selected branches
+    $lowTurnoverQuery = "SELECT i.item_name, 
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) AS turnover_rate 
+                FROM item_inventory ii 
+                INNER JOIN items i ON ii.item_id = i.item_id 
+                WHERE ii.branch IN ($placeholders)
+                GROUP BY i.item_name 
+                ORDER BY turnover_rate ASC 
+                LIMIT 5";
+
     $stmtLow = $con->prepare($lowTurnoverQuery);
-    $stmtLow->bind_param("s", $branch);
+    $stmtLow->bind_param(str_repeat("s", count($branches)), ...$branches);
     $stmtLow->execute();
     $lowTurnoverResult = $stmtLow->get_result();
 
@@ -133,29 +158,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branch'])) {
         $lowTurnover["values"][] = floatval($row["turnover_rate"]);
     }
 
-    // sell through 
-    // ✅ Fetch Sell-Through Rate Data with Date Filtering
-    $startDate = $_POST["startDate"] ?? null;
-    $endDate = $_POST["endDate"] ?? null;
-
-    // ✅ Default date range (last 30 days) if no date is selected
-    if (!$startDate) {
-        $startDate = date("Y-m-d", strtotime("-30 days"));
-    }
-    if (!$endDate) {
-        $endDate = date("Y-m-d");
-    }
+    // ✅ Fetch Sell-Through Rate Data for multiple branches
+    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("-30 days"));
+    $endDate = $_POST["endDate"] ?? date("Y-m-d");
 
     $sellThroughQuery = "SELECT DATE(datetime_added) AS sale_date, 
                     (SUM(sold) / NULLIF(SUM(delivery), 0)) * 100 AS sell_through_rate
                     FROM item_inventory 
-                    WHERE branch = ? 
+                    WHERE branch IN ($placeholders) 
                     AND DATE(datetime_added) BETWEEN ? AND ?
                     GROUP BY DATE(datetime_added)
                     ORDER BY sale_date ASC";
 
     $stmtSellThrough = $con->prepare($sellThroughQuery);
-    $stmtSellThrough->bind_param("sss", $branch, $startDate, $endDate);
+    if (!$stmtSellThrough) {
+        echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+        exit;
+    }
+
+    // ✅ Fix bind_param: Merge all parameters into a single array
+    $params = array_merge(array_fill(0, count($branches), "s"), ["s", "s"]); // Format string
+    $values = array_merge($branches, [$startDate, $endDate]); // Merge branch values with dates
+
+    // ✅ Dynamically bind all parameters
+    $stmtSellThrough->bind_param(implode("", $params), ...$values);
     $stmtSellThrough->execute();
     $sellThroughResult = $stmtSellThrough->get_result();
 
@@ -166,7 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branch'])) {
     }
 
 
-    // ✅ Final JSON Response
+    // ✅ Send JSON Response
     echo json_encode([
         "stock_level" => $data["stock_level"] ?? 0,
         "stockout_count" => $data["stockout_count"] ?? 0,
@@ -178,6 +204,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branch'])) {
 
     exit;
 }
+
 // the thingy for report generation
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // ✅ Map franchise names to match the database format

@@ -195,12 +195,14 @@ $(document).ready(function() {
     
         // ✅ Function to Fetch & Update Branches
         function updateBranches(franchises) {
-            $("#branch-buttons").empty().hide(); // Clear and hide initially
+            $("#branch-buttons").empty().hide();
+            selectedBranches = []; // Reset selected branches when a new franchise filter is applied
+
     
             $.ajax({
                 url: "dashboard-inventory.php",
                 type: "POST",
-                data: { franchise: JSON.stringify(franchises) }, // ✅ Send as JSON array
+                data: { franchise: JSON.stringify(franchises) }, // Send as JSON array
                 dataType: "json",
                 success: function (data) {
                     console.log("✅ Branches received:", data);
@@ -209,8 +211,8 @@ $(document).ready(function() {
                         $("#branch-buttons").show(); // Show container
                         data.branches.forEach(branch => {
                             $("#branch-buttons").append(
-                                `<button class="btn btn-secondary branch-btn" data-branch="${branch}">${branch}</button>`
-                            );
+                                `<button class="btn btn-outline-secondary branch-btn" data-branch="${branch}">${branch}</button>`
+                            );                            
                         });
                     } else {
                         console.warn("⚠ No branches found.");
@@ -225,13 +227,34 @@ $(document).ready(function() {
     
 
     // Fetch and update KPIs & Graphs when a branch is clicked
-    $(document).on("click", ".branch-btn", function() {
-        $(this).toggleClass("btn-selected btn-secondary btn-outline-secondary"); // Toggle selected class
-        selectedBranch = $(this).data("branch");
-        updateAnalytics(selectedBranch);
+    $(document).on("click", ".branch-btn", function () {
+        let branch = $(this).data("branch");
+    
+        // Toggle selection style
+        if ($(this).hasClass("btn-selected")) {
+            $(this).removeClass("btn-selected btn-secondary").addClass("btn-outline-secondary");
+        } else {
+            $(this).addClass("btn-selected btn-secondary").removeClass("btn-outline-secondary");
+        }
+    
+        // ✅ Get all selected branches
+        let selectedBranches = $(".branch-btn.btn-selected").map(function () {
+            return $(this).data("branch");
+        }).get();
+    
+        console.log("📌 Selected branches:", selectedBranches); // Debugging
+    
+        // ✅ Update KPIs & Graphs based on selected branches
+        if (selectedBranches.length > 0) {
+            updateAnalytics(selectedBranches); // ✅ Pass the array of selected branches
+        } else {
+            console.warn("⚠ No branches selected.");
+            resetKPIs(); // ✅ Clear KPI data when no branches are selected
+        }        
     });
+    
 
-    function updateAnalytics(branch) {
+    function updateAnalytics(branches) {
     let startDate = $("#startDate").val() || ""; // ✅ Ensure value is always defined
     let endDate = $("#endDate").val() || ""; // ✅ Ensure value is always defined
 
@@ -239,10 +262,10 @@ $(document).ready(function() {
         url: "dashboard-inventory.php",
         type: "POST",
         data: {
-            branch: branch,
-            startDate: startDate, // ✅ Properly formatted key-value pairs
+            branches: JSON.stringify(branches), // ✅ Send selected branches as an array
+            startDate: startDate,
             endDate: endDate
-        },
+        },    
         dataType: "json",
         success: function(data) {
             console.log("Analytics Response:", data); // ✅ Debugging output
@@ -274,7 +297,11 @@ $("#startDate, #endDate").change(function () {
     }
 });
 
-
+function resetKPIs() {
+    $("#stock-level").text("0");
+    $("#stockout-count").text("0");
+    $("#total-wastage").text("0");
+}
 
 
 let sellThroughChart, highTurnoverChart, lowTurnoverChart; // ✅ Store chart instances globally
@@ -325,21 +352,28 @@ function updateSellThroughGraph(sellThroughRate) {
 
 function updateGraphs(highTurnover, lowTurnover) {
     console.log("Updating Graphs...");
-    console.log("High Turnover Data:", highTurnover);
-    console.log("Low Turnover Data:", lowTurnover);
+    console.log("📊 High Turnover Data:", highTurnover);
+    console.log("📊 Low Turnover Data:", lowTurnover);
 
-    if (!highTurnover.labels || !lowTurnover.labels || highTurnover.labels.length === 0 || lowTurnover.labels.length === 0) {
+    // ✅ If data is empty, hide the charts
+    if (!highTurnover.labels.length || !lowTurnover.labels.length) {
         console.warn("⚠ No data for graphs.");
+        document.getElementById("highTurnoverChart").style.display = "none";
+        document.getElementById("lowTurnoverChart").style.display = "none";
         return;
+    } else {
+        document.getElementById("highTurnoverChart").style.display = "block";
+        document.getElementById("lowTurnoverChart").style.display = "block";
     }
 
-    // Destroy previous instances before creating new charts
+    // ✅ Destroy previous instances before creating new charts
     if (highTurnoverChart instanceof Chart) highTurnoverChart.destroy();
     if (lowTurnoverChart instanceof Chart) lowTurnoverChart.destroy();
 
     const highTurnoverCanvas = document.getElementById("highTurnoverChart").getContext("2d");
     const lowTurnoverCanvas = document.getElementById("lowTurnoverChart").getContext("2d");
 
+    // ✅ Update High Turnover Chart
     highTurnoverChart = new Chart(highTurnoverCanvas, {
         type: "bar",
         data: {
@@ -352,13 +386,14 @@ function updateGraphs(highTurnover, lowTurnover) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // ✅ Ensures chart stays contained
+            maintainAspectRatio: false,
             scales: {
                 y: { beginAtZero: true }
             }
         }
     });
 
+    // ✅ Update Low Turnover Chart
     lowTurnoverChart = new Chart(lowTurnoverCanvas, {
         type: "bar",
         data: {
@@ -371,15 +406,16 @@ function updateGraphs(highTurnover, lowTurnover) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // ✅ Prevents infinite resizing
+            maintainAspectRatio: false,
             scales: {
                 y: { beginAtZero: true }
             }
         }
     });
 
-    console.log("Graphs Updated Successfully!");
+    console.log("✅ Graphs Updated Successfully!");
 }
+
 
 
 
