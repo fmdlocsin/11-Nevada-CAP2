@@ -12,35 +12,49 @@ error_reporting(E_ALL);
 
 // ✅ Franchise selection: Fetch branches
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
-    header('Content-Type: application/json; charset=utf-8'); // ✅ Force JSON response
+    header('Content-Type: application/json; charset=utf-8'); // ✅ Ensure JSON response
 
     if (!isset($con) || !$con) {
         echo json_encode(["error" => "Database connection failed: " . mysqli_connect_error()]);
         exit;
     }
 
-    $franchise = $_POST['franchise'];
+    // ✅ Decode JSON Array of Franchises
+    $franchises = json_decode($_POST['franchise'], true);
 
+    if (!is_array($franchises) || empty($franchises)) {
+        echo json_encode(["branches" => []]);
+        exit;
+    }
+
+    // ✅ Franchise Name Mapping
     $franchiseMap = [
         "Potato Corner" => "potato-corner",
         "Auntie Anne's" => "auntie-anne",
         "Macao Imperial Tea" => "macao-imperial"
     ];
 
-    if (!isset($franchiseMap[$franchise])) {
-        echo json_encode(["error" => "Invalid franchise name."]);
+    // ✅ Convert to Database Format
+    $dbFranchises = array_map(fn($f) => $franchiseMap[$f] ?? null, $franchises);
+    $dbFranchises = array_filter($dbFranchises); // Remove any nulls
+
+    if (empty($dbFranchises)) {
+        echo json_encode(["branches" => []]);
         exit;
     }
-    $franchise = $franchiseMap[$franchise];
 
-    $query = "SELECT DISTINCT branch FROM item_inventory WHERE franchisee = ?";
+    // ✅ Dynamic Query for Multiple Franchises
+    $placeholders = implode(",", array_fill(0, count($dbFranchises), "?"));
+    $query = "SELECT DISTINCT branch FROM item_inventory WHERE franchisee IN ($placeholders)";
+
     $stmt = $con->prepare($query);
     if (!$stmt) {
         echo json_encode(["error" => "SQL Error: " . $con->error]);
         exit;
     }
 
-    $stmt->bind_param("s", $franchise);
+    // ✅ Bind Parameters Dynamically
+    $stmt->bind_param(str_repeat("s", count($dbFranchises)), ...$dbFranchises);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -52,6 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
     echo json_encode(["branches" => $branches], JSON_UNESCAPED_UNICODE);
     exit;
 }
+
 
 // ✅ Branch selection: Fetch inventory data
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branch'])) {

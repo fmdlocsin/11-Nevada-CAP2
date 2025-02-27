@@ -168,35 +168,61 @@ $(document).ready(function() {
     let selectedBranch = "";
 
     // Fetch and display branches when a franchise is clicked
-    $(".franchise-btn").click(function() {
-        $(this).toggleClass("btn-selected btn-primary btn-outline-primary"); // Toggle selected class
-        let franchise = $(this).data("franchise");
-        $("#branch-buttons").empty();
-
-        $.ajax({
-    url: "dashboard-inventory.php", 
-    type: "POST",
-    data: { franchise: franchise },
-    dataType: "json", // ✅ Ensures jQuery automatically parses JSON
-    success: function(data) { // ✅ Use 'data' instead of 'response'
-        console.log("Raw Response:", data); // ✅ Debugging
-        try {
-            let branches = data.branches; // ✅ Correctly extracts the branches array
-            console.log("Parsed JSON:", branches);
-            $("#branch-buttons").empty();
-            branches.forEach(branch => {
-                $("#branch-buttons").append(`<button class="btn btn-secondary branch-btn" data-branch="${branch}">${branch}</button>`);
+    $(document).ready(function () {
+        let selectedFranchises = [];
+    
+        // ✅ Handle Franchise Selection
+        $(".franchise-btn").click(function () {
+            let franchise = $(this).data("franchise");
+    
+            // Toggle selection
+            if ($(this).hasClass("btn-selected")) {
+                $(this).removeClass("btn-selected btn-primary").addClass("btn-outline-primary");
+                selectedFranchises = selectedFranchises.filter(f => f !== franchise); // Remove from selected
+            } else {
+                $(this).addClass("btn-selected btn-primary").removeClass("btn-outline-primary");
+                selectedFranchises.push(franchise); // Add to selected
+            }
+    
+            console.log("📌 Selected franchises:", selectedFranchises); // Debugging
+    
+            if (selectedFranchises.length === 0) {
+                $("#branch-buttons").empty().hide(); // ✅ Hide if none selected
+            } else {
+                updateBranches(selectedFranchises);
+            }
+        });
+    
+        // ✅ Function to Fetch & Update Branches
+        function updateBranches(franchises) {
+            $("#branch-buttons").empty().hide(); // Clear and hide initially
+    
+            $.ajax({
+                url: "dashboard-inventory.php",
+                type: "POST",
+                data: { franchise: JSON.stringify(franchises) }, // ✅ Send as JSON array
+                dataType: "json",
+                success: function (data) {
+                    console.log("✅ Branches received:", data);
+    
+                    if (data.branches && data.branches.length > 0) {
+                        $("#branch-buttons").show(); // Show container
+                        data.branches.forEach(branch => {
+                            $("#branch-buttons").append(
+                                `<button class="btn btn-secondary branch-btn" data-branch="${branch}">${branch}</button>`
+                            );
+                        });
+                    } else {
+                        console.warn("⚠ No branches found.");
+                    }
+                },
+                error: function (xhr) {
+                    console.error("❌ AJAX Error:", xhr.responseText);
+                }
             });
-        } catch (error) {
-            console.error("JSON Parsing Error:", error, "Received:", data);
         }
-    },
-    error: function(xhr, status, error) {
-        console.error("AJAX Error:", xhr.responseText);
-    }
-});
-
     });
+    
 
     // Fetch and update KPIs & Graphs when a branch is clicked
     $(document).on("click", ".branch-btn", function() {
