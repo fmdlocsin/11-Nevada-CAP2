@@ -147,18 +147,33 @@ function toggleBranchSelection(event) {
 }
 
 // 🎯 Fetch KPI Data and Update Cards
-function fetchKPIData() {
+function fetchKPIData(forceReload = false) {
     let selectedFranchisees = Array.from(document.querySelectorAll(".franchisee-btn.btn-selected"))
         .map(btn => btn.dataset.value);
     let selectedBranches = Array.from(document.querySelectorAll(".branch-btn.btn-selected"))
         .map(btn => btn.dataset.value);
 
-    let startDate = document.getElementById("startDate").value;
-    let endDate = document.getElementById("endDate").value;
+    let startDateInput = document.getElementById("startDate");
+    let endDateInput = document.getElementById("endDate");
+
+    // ✅ Force reset dates if page is loaded (fixes cache issue)
+    if (forceReload || !startDateInput.value || !endDateInput.value) {
+        let today = new Date();
+        let firstDayOfYear = new Date(today.getFullYear(), 0, 2);
+
+        startDateInput.value = firstDayOfYear.toISOString().split("T")[0];
+        endDateInput.value = today.toISOString().split("T")[0];
+
+        console.log("🔄 Start Date Reset to:", startDateInput.value);
+        console.log("🔄 End Date Reset to:", endDateInput.value);
+    }
+
+    let startDate = startDateInput.value;
+    let endDate = endDateInput.value;
 
     let url = "dashboard-sales.php?json=true";
 
-    // Append selected filters to URL
+    // ✅ Append selected filters to URL
     if (selectedFranchisees.length > 0) {
         url += `&franchisees=${selectedFranchisees.join(",")}`;
     }
@@ -169,35 +184,29 @@ function fetchKPIData() {
         url += `&start_date=${startDate}&end_date=${endDate}`;
     }
 
+    console.log("📡 Fetching KPI Data with URL:", url);
+
     fetch(url)
     .then(response => response.json())
     .then(data => {
-        console.log("✅ JSON Response for KPI Data:", data); // 🔍 Debugging Output
+        console.log("✅ JSON Response for KPI Data:", data);
         console.log("📌 Selected Branches:", selectedBranches);
         console.log("📌 Total Expenses from Backend:", data.totalExpenses);
-        console.log("JSON Response for KPI Data:", data);
-        console.log("Best-Selling Products Data:", data.bestSelling);
-        console.log("Worst-Selling Products Data:", data.worstSelling);
 
         let totalSales = parseFloat(data.totalSales) || 0;
         let totalExpenses = parseFloat(data.totalExpenses) || 0;
         let profit = totalSales - totalExpenses;
 
         document.getElementById("totalSales").innerText = totalSales.toLocaleString();
-        document.getElementById("totalExpenses").innerText = totalExpenses.toLocaleString(); // ✅ Check if this updates
+        document.getElementById("totalExpenses").innerText = totalExpenses.toLocaleString();
         document.getElementById("profit").innerText = profit.toLocaleString();
 
-        
-
         updateSalesCharts(data);
-        updateBestSellingChart(data.bestSelling); // ✅ NEW
-        updateWorstSellingChart(data.worstSelling); // ✅ NEW
+        updateBestSellingChart(data.bestSelling);
+        updateWorstSellingChart(data.worstSelling);
     })
     .catch(error => console.error("❌ Error fetching KPI data:", error));
-
 }
-
-
 
 
 // 🎯 Update Sales Performance Charts
@@ -418,9 +427,6 @@ function updateBestSellingChart(bestSellingData) {
 }
 
 
-
-
-
 // 🎯 Update Worst-Selling Products Chart
 function updateWorstSellingChart(worstSellingData) {
     console.log("🔴 Worst-Selling Chart Data Received:", worstSellingData);
@@ -504,7 +510,18 @@ function updateWorstSellingChart(worstSellingData) {
 
 
 
-// GENERATE REPORT
+// GENERATE 
+// 🎯 Format Date Range for User-Friendly Display
+function formatDateRange(startDate, endDate) {
+    let options = { year: "numeric", month: "long", day: "numeric" };
+
+    let formattedStart = new Date(startDate).toLocaleDateString("en-US", options);
+    let formattedEnd = new Date(endDate).toLocaleDateString("en-US", options);
+
+    return `${formattedStart} - ${formattedEnd}`;
+}
+
+
 function generateReport() {
     let selectedFranchisees = Array.from(document.querySelectorAll(".franchisee-btn.btn-selected"))
         .map(btn => btn.dataset.value);
@@ -525,8 +542,9 @@ function generateReport() {
         : "All";
 
     document.getElementById("selectedDateRange").innerText = (startDate && endDate) 
-        ? `${startDate} to ${endDate}` 
+        ? formatDateRange(startDate, endDate) 
         : "Not Set";
+    
 
     // Show modal and fetch report
     $("#reportModal").modal("show");
@@ -559,7 +577,7 @@ function fetchReport(type) {
     fetch(url)
         .then(response => response.json())
         .then(data => {
-            console.log(`📊 ${type.toUpperCase()} Report Data Received:`, data); // Debugging Output
+            console.log(`📊 ${type.toUpperCase()} Report Data Received:`, data);
 
             let reportTableBody = document.getElementById("reportTableBody");
             reportTableBody.innerHTML = "";
@@ -569,27 +587,218 @@ function fetchReport(type) {
                 return;
             }
 
-            data.forEach(row => {
-                let formattedFranchise = franchiseNameMap[row.franchise] || row.franchise;
-                let productDisplay = row.product_name ? row.product_name.replace(/,/g, ", ") : "N/A";
+            // ✅ Only Modify Weekly Reports
+            if (type === "weekly") {
+                let weeklyGroupedData = {}; // Store grouped data for weekly report
 
-                let tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td>${row.date}</td>
-                    <td>${formattedFranchise}</td>
-                    <td>${row.branch}</td>
-                    <td>${productDisplay}</td>
-                    <td class="text-end">${row.total_sales}</td>
-                    <td class="text-end">${row.total_expenses}</td>
-                    <td class="text-end">${row.profit}</td>
-                `;
-                reportTableBody.appendChild(tr);
-            });
+                data.forEach(row => {
+                    let formattedFranchise = franchiseNameMap[row.franchise] || row.franchise;
+                    let productDisplay = row.product_name ? row.product_name.replace(/,/g, ", ") : "N/A";
+
+                    // ✅ Format Weekly Date Range
+                    let formattedDate = row.date;
+                    let match = row.date.match(/Week (\d+) of (\d+)/);
+                    if (match) {
+                        let weekNumber = parseInt(match[1], 10);
+                        let year = parseInt(match[2], 10);
+
+                        let firstDayOfWeek = new Date(year, 0, (weekNumber - 1) * 7 + 1);
+                        let lastDayOfWeek = new Date(year, 0, (weekNumber - 1) * 7 + 7);
+
+                        formattedDate = `${firstDayOfWeek.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} - ${lastDayOfWeek.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
+                    }
+
+                    // ✅ Group by date, franchisee, and branch
+                    let key = `${formattedDate}-${formattedFranchise}-${row.branch}`;
+                    if (!weeklyGroupedData[key]) {
+                        weeklyGroupedData[key] = {
+                            franchise: formattedFranchise,
+                            branch: row.branch,
+                            date: formattedDate,
+                            products: [],
+                            totalSales: 0,
+                            totalExpenses: 0,
+                            profit: 0
+                        };
+                    }
+
+                    // ✅ Add product-specific data
+                    weeklyGroupedData[key].products.push({
+                        product: productDisplay,
+                        sales: parseFloat(row.total_sales.replace(/,/g, "")),
+                        expenses: parseFloat(row.total_expenses.replace(/,/g, "")),
+                        profit: parseFloat(row.profit.replace(/,/g, ""))
+                    });
+
+                    // ✅ Accumulate totals for the weekly summary row
+                    weeklyGroupedData[key].totalSales += parseFloat(row.total_sales.replace(/,/g, ""));
+                    weeklyGroupedData[key].totalExpenses += parseFloat(row.total_expenses.replace(/,/g, ""));
+                    weeklyGroupedData[key].profit += parseFloat(row.profit.replace(/,/g, ""));
+                });
+
+                // ✅ Append weekly grouped data to the table
+                Object.values(weeklyGroupedData).sort((a, b) => {
+                    let dateA = new Date(a.date.split(" - ")[1]); // Get the end date of the range
+                    let dateB = new Date(b.date.split(" - ")[1]); // Get the end date of the range
+                    return dateB - dateA; // Sort latest first
+                })
+                .forEach(entry => {
+                    let firstRow = true;
+                    entry.products.forEach(productData => {
+                        let tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${firstRow ? entry.date : ""}</td>
+                            <td>${firstRow ? entry.franchise : ""}</td>
+                            <td>${firstRow ? entry.branch : ""}</td>
+                            <td>${productData.product}</td>
+                            <td class="text-end">${productData.sales.toLocaleString()}</td>
+                            <td class="text-end">${productData.expenses.toLocaleString()}</td>
+                            <td class="text-end">${productData.profit.toLocaleString()}</td>
+                        `;
+                        reportTableBody.appendChild(tr);
+                        firstRow = false; // Prevents duplicate franchise/branch names
+                    });
+
+                    // ✅ Add total sales row at the end of the weekly section
+                    let totalRow = document.createElement("tr");
+                    totalRow.classList.add("table-warning", "fw-bold");
+                    totalRow.innerHTML = `
+                        <td colspan="4" class="text-end fw-bold">TOTAL WEEKLY SALES</td>
+                        <td class="text-end fw-bold">${entry.totalSales.toLocaleString()}</td>
+                        <td class="text-end fw-bold">${entry.totalExpenses.toLocaleString()}</td>
+                        <td class="text-end fw-bold">${entry.profit.toLocaleString()}</td>
+                    `;
+                    reportTableBody.appendChild(totalRow);
+                });
+
+            } else if (type === "monthly") {
+                let monthlyGroupedData = {}; // Store grouped data for monthly report
+            
+                data.forEach(row => {
+                    let formattedFranchise = franchiseNameMap[row.franchise] || row.franchise;
+                    let formattedDate = row.date;
+            
+                    // ✅ Extract "Month Year" format
+                    let match = row.date.match(/(\w+ \d{4})/);
+                    if (match) {
+                        formattedDate = match[1];
+                    }
+            
+                    // ✅ Group by month, franchisee, and branch (but separate products)
+                    let key = `${formattedDate}-${formattedFranchise}-${row.branch}`;
+                    if (!monthlyGroupedData[key]) {
+                        monthlyGroupedData[key] = {
+                            franchise: formattedFranchise,
+                            branch: row.branch,
+                            date: formattedDate,
+                            products: [],
+                            totalSales: 0,
+                            totalExpenses: 0,
+                            profit: 0
+                        };
+                    }
+            
+                    // ✅ Ensure products are stored separately
+                    if (row.product_name.includes(",")) {
+                        let products = row.product_name.split(",").map(p => p.trim()); // Split and trim product names
+                        let sales = row.total_sales.split(",").map(s => parseFloat(s.replace(/,/g, ""))); // Ensure sales data are in an array
+                        let expenses = row.total_expenses.split(",").map(e => parseFloat(e.replace(/,/g, ""))); // Ensure expenses data are in an array
+                        let profits = row.profit.split(",").map(p => parseFloat(p.replace(/,/g, ""))); // Ensure profits data are in an array
+            
+                        products.forEach((product, index) => {
+                            let productEntry = {
+                                product: product,
+                                sales: sales[index] || 0,
+                                expenses: expenses[index] || 0,
+                                profit: profits[index] || 0
+                            };
+                            monthlyGroupedData[key].products.push(productEntry);
+            
+                            // ✅ Accumulate totals for the monthly summary row
+                            monthlyGroupedData[key].totalSales += productEntry.sales;
+                            monthlyGroupedData[key].totalExpenses += productEntry.expenses;
+                            monthlyGroupedData[key].profit += productEntry.profit;
+                        });
+                    } else {
+                        let productEntry = {
+                            product: row.product_name,
+                            sales: parseFloat(row.total_sales.replace(/,/g, "")),
+                            expenses: parseFloat(row.total_expenses.replace(/,/g, "")),
+                            profit: parseFloat(row.profit.replace(/,/g, ""))
+                        };
+                        monthlyGroupedData[key].products.push(productEntry);
+            
+                        // ✅ Accumulate totals for the monthly summary row
+                        monthlyGroupedData[key].totalSales += productEntry.sales;
+                        monthlyGroupedData[key].totalExpenses += productEntry.expenses;
+                        monthlyGroupedData[key].profit += productEntry.profit;
+                    }
+                });
+            
+                // ✅ Append monthly grouped data to the table
+                Object.values(monthlyGroupedData).reverse().forEach(entry => {
+                    let firstRow = true;
+                    entry.products.forEach(productData => {
+                        let tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${firstRow ? entry.date : ""}</td>
+                            <td>${firstRow ? entry.franchise : ""}</td>
+                            <td>${firstRow ? entry.branch : ""}</td>
+                            <td>${productData.product}</td>
+                            <td class="text-end">${productData.sales.toLocaleString()}</td>
+                            <td class="text-end">${productData.expenses.toLocaleString()}</td>
+                            <td class="text-end">${productData.profit.toLocaleString()}</td>
+                        `;
+                        reportTableBody.appendChild(tr);
+                        firstRow = false; // Prevents duplicate franchise/branch names
+                    });
+            
+                    // ✅ Add total monthly sales row
+                    let totalRow = document.createElement("tr");
+                    totalRow.classList.add("table-warning", "fw-bold");
+                    totalRow.innerHTML = `
+                        <td colspan="4" class="text-end fw-bold">TOTAL MONTHLY SALES</td>
+                        <td class="text-end fw-bold">${entry.totalSales.toLocaleString()}</td>
+                        <td class="text-end fw-bold">${entry.totalExpenses.toLocaleString()}</td>
+                        <td class="text-end fw-bold">${entry.profit.toLocaleString()}</td>
+                    `;
+                    reportTableBody.appendChild(totalRow);
+                });     
+        
+            } else {
+                // ✅ Daily & Monthly Reports (No Change)
+                data.forEach(row => {
+                    let formattedFranchise = franchiseNameMap[row.franchise] || row.franchise;
+                    let productDisplay = row.product_name ? row.product_name.replace(/,/g, ", ") : "N/A";
+                    let formattedDate = row.date;
+
+                    if (type === "daily") {
+                        formattedDate = new Date(row.date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric"
+                        });
+                    }
+
+                    let tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${formattedDate}</td>
+                        <td>${formattedFranchise}</td>
+                        <td>${row.branch}</td>
+                        <td>${productDisplay}</td>
+                        <td class="text-end">${row.total_sales}</td>
+                        <td class="text-end">${row.total_expenses}</td>
+                        <td class="text-end">${row.profit}</td>
+                    `;
+                    reportTableBody.appendChild(tr);
+                });
+            }
         })
         .catch(error => console.error("❌ Error fetching report data:", error));
 
     setActiveReportButton(type); // ✅ Highlight the active report type
 }
+
 
 function setActiveReportButton(type) {
     document.querySelectorAll(".report-btn").forEach(btn => {
@@ -742,12 +951,32 @@ function exportTableToPDF() {
 }
 
 
+document.addEventListener("DOMContentLoaded", function () {
+    // ✅ Get current date
+    let today = new Date();
+    
+    // ✅ Get the first day of the current year (January 1st)
+    let firstDayOfYear = new Date(today.getFullYear(), 0, 2); // adjusted to 2 bc sets as december 31st
 
+    // ✅ Format dates as "YYYY-MM-DD"
+    let formattedStartDate = firstDayOfYear.toISOString().split("T")[0];
+    let formattedEndDate = today.toISOString().split("T")[0];
 
+    // ✅ Get date input fields
+    let startDateInput = document.getElementById("startDate");
+    let endDateInput = document.getElementById("endDate");
 
+    // ✅ Remove cached values & override
+    startDateInput.removeAttribute("value");
+    endDateInput.removeAttribute("value");
+    startDateInput.value = formattedStartDate;
+    endDateInput.value = formattedEndDate;
 
+    console.log("📆 Setting Default Date Filters:");
+    console.log("👉 Start Date:", formattedStartDate);
+    console.log("👉 End Date:", formattedEndDate);
 
-
-
-
+    // ✅ Trigger data load with forced reload to ensure filtering applies
+    fetchKPIData(true);
+});
 
