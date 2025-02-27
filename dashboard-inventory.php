@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
 
     $franchiseMap = [
         "Potato Corner" => "potato-corner",
-        "Auntie Anne's" => "auntie-annes",
+        "Auntie Anne's" => "auntie-anne",
         "Macao Imperial Tea" => "macao-imperial"
     ];
 
