@@ -91,7 +91,7 @@ h2 {
 
 /* Button Hover */
 .franchise-btn:hover {
-    border-color: #007bff;
+    border-color: #353535;
     background-color: #f8f9fa;
     transform: scale(1.05);
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
@@ -103,13 +103,12 @@ h2 {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Selected Button Effect */
-.franchisee-btn.selected {
-    background-color: #aaa8a8; /* Light blue selection */
-    color: white;
-    border-color: #333;
+.franchise-btn.btn-selected {
+    background-color: #4b4b4b !important; /* Dark Blue */
+    color: white !important;
+    border-color: #333 !important;
     transform: scale(1.05);
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* Button Image */
