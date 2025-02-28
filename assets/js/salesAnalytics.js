@@ -617,8 +617,8 @@ function fetchReport(type) {
                             date: formattedDate,
                             products: [],
                             totalSales: 0,
-                            totalExpenses: 0,
-                            profit: 0
+                            // totalExpenses: 0,
+                            // profit: 0
                         };
                     }
 
@@ -626,14 +626,14 @@ function fetchReport(type) {
                     weeklyGroupedData[key].products.push({
                         product: productDisplay,
                         sales: parseFloat(row.total_sales.replace(/,/g, "")),
-                        expenses: parseFloat(row.total_expenses.replace(/,/g, "")),
-                        profit: parseFloat(row.profit.replace(/,/g, ""))
+                        // expenses: parseFloat(row.total_expenses.replace(/,/g, "")),
+                        // profit: parseFloat(row.profit.replace(/,/g, ""))
                     });
 
                     // ✅ Accumulate totals for the weekly summary row
                     weeklyGroupedData[key].totalSales += parseFloat(row.total_sales.replace(/,/g, ""));
-                    weeklyGroupedData[key].totalExpenses += parseFloat(row.total_expenses.replace(/,/g, ""));
-                    weeklyGroupedData[key].profit += parseFloat(row.profit.replace(/,/g, ""));
+                    // weeklyGroupedData[key].totalExpenses += parseFloat(row.total_expenses.replace(/,/g, ""));
+                    // weeklyGroupedData[key].profit += parseFloat(row.profit.replace(/,/g, ""));
                 });
 
                 // ✅ Append weekly grouped data to the table
@@ -652,8 +652,7 @@ function fetchReport(type) {
                             <td>${firstRow ? entry.branch : ""}</td>
                             <td>${productData.product}</td>
                             <td class="text-end">${productData.sales.toLocaleString()}</td>
-                            <td class="text-end">${productData.expenses.toLocaleString()}</td>
-                            <td class="text-end">${productData.profit.toLocaleString()}</td>
+                            
                         `;
                         reportTableBody.appendChild(tr);
                         firstRow = false; // Prevents duplicate franchise/branch names
@@ -665,8 +664,7 @@ function fetchReport(type) {
                     totalRow.innerHTML = `
                         <td colspan="4" class="text-end fw-bold">TOTAL WEEKLY SALES</td>
                         <td class="text-end fw-bold">${entry.totalSales.toLocaleString()}</td>
-                        <td class="text-end fw-bold">${entry.totalExpenses.toLocaleString()}</td>
-                        <td class="text-end fw-bold">${entry.profit.toLocaleString()}</td>
+                        
                     `;
                     reportTableBody.appendChild(totalRow);
                 });
@@ -766,19 +764,15 @@ function fetchReport(type) {
                 });     
         
             } else {
-                // ✅ Daily & Monthly Reports (No Change)
+                // ✅ DAILY REPORT (No "Total Expenses" & "Profit")
                 data.forEach(row => {
                     let formattedFranchise = franchiseNameMap[row.franchise] || row.franchise;
                     let productDisplay = row.product_name ? row.product_name.replace(/,/g, ", ") : "N/A";
-                    let formattedDate = row.date;
-
-                    if (type === "daily") {
-                        formattedDate = new Date(row.date).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric"
-                        });
-                    }
+                    let formattedDate = new Date(row.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric"
+                    });
 
                     let tr = document.createElement("tr");
                     tr.innerHTML = `
@@ -787,8 +781,6 @@ function fetchReport(type) {
                         <td>${row.branch}</td>
                         <td>${productDisplay}</td>
                         <td class="text-end">${row.total_sales}</td>
-                        <td class="text-end">${row.total_expenses}</td>
-                        <td class="text-end">${row.profit}</td>
                     `;
                     reportTableBody.appendChild(tr);
                 });
@@ -797,7 +789,43 @@ function fetchReport(type) {
         .catch(error => console.error("❌ Error fetching report data:", error));
 
     setActiveReportButton(type); // ✅ Highlight the active report type
+    toggleColumns(type);
+
 }
+
+function toggleColumns(type) {
+    let expenseHeader = document.querySelector("th:nth-child(6)");
+    let profitHeader = document.querySelector("th:nth-child(7)");
+
+    let tableRows = document.querySelectorAll("#reportTableBody tr");
+
+    if (type === "daily" || type === "weekly") {
+        // Hide the headers
+        if (expenseHeader) expenseHeader.style.display = "none";
+        if (profitHeader) profitHeader.style.display = "none";
+
+        // Hide the column cells
+        tableRows.forEach(row => {
+            let expenseCell = row.querySelector("td:nth-child(6)");
+            let profitCell = row.querySelector("td:nth-child(7)");
+            if (expenseCell) expenseCell.style.display = "none";
+            if (profitCell) profitCell.style.display = "none";
+        });
+    } else {
+        // Show the headers
+        if (expenseHeader) expenseHeader.style.display = "";
+        if (profitHeader) profitHeader.style.display = "";
+
+        // Show the column cells
+        tableRows.forEach(row => {
+            let expenseCell = row.querySelector("td:nth-child(6)");
+            let profitCell = row.querySelector("td:nth-child(7)");
+            if (expenseCell) expenseCell.style.display = "";
+            if (profitCell) profitCell.style.display = "";
+        });
+    }
+}
+
 
 
 function setActiveReportButton(type) {
