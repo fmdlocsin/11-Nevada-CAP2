@@ -578,7 +578,8 @@ echo "<script>
                                     </div>
                                 </div>
 
-                               <!-- Franchise Agreement Report Modal -->
+                <!-- ----------------------------------- REPORT MODAL PART ----------------------------------- -->
+
                                <!-- Franchise Agreement Report Modal -->
                                 <div class="modal fade" id="franchiseReportModal" tabindex="-1" aria-labelledby="franchiseReportLabel" aria-hidden="true">
                                     <div class="modal-dialog modal-xl">
@@ -595,17 +596,31 @@ echo "<script>
                                                 <!-- Franchisee Filter -->
                                                 <div class="mb-3">
                                                     <label for="franchiseeFilter" class="form-label"><strong>Filter by Franchisee:</strong></label>
+                                                    
+                                                    <!-- Franchise Agreement Filter -->
                                                     <select id="franchiseeFilter" class="form-select">
                                                         <option value="">All Franchisees</option>
                                                         <?php
+                                                        // Franchise name mapping
+                                                        $franchiseNameMap = [
+                                                            "auntie-anne" => "Auntie Anne's",
+                                                            "macao-imperial" => "Macao Imperial",
+                                                            "potato-corner" => "Potato Corner"
+                                                        ];
+
                                                         // Fetch distinct franchisee names
                                                         $franchiseeQuery = "SELECT DISTINCT franchisee FROM agreement_contract";
                                                         $franchiseeResult = mysqli_query($con, $franchiseeQuery);
+                                                        
                                                         while ($row = mysqli_fetch_assoc($franchiseeResult)) {
-                                                            echo "<option value='{$row['franchisee']}'>{$row['franchisee']}</option>";
+                                                            $rawFranchisee = strtolower(trim($row['franchisee']));
+                                                            $formattedFranchisee = isset($franchiseNameMap[$rawFranchisee]) ? $franchiseNameMap[$rawFranchisee] : ucfirst(str_replace("-", " ", $rawFranchisee));
+                                                            
+                                                            echo "<option value='{$row['franchisee']}'>{$formattedFranchisee}</option>";
                                                         }
                                                         ?>
                                                     </select>
+
                                                 </div>
 
                                                 <!-- Summary Section -->
@@ -629,8 +644,6 @@ echo "<script>
 
 
 
-
-                                <!-- Leasing Contracts Report Modal -->
                                 <!-- Leasing Contracts Report Modal -->
                                 <div class="modal fade" id="leasingReportModal" tabindex="-1" aria-labelledby="leasingReportLabel" aria-hidden="true">
                                     <div class="modal-dialog modal-xl">
@@ -647,17 +660,25 @@ echo "<script>
                                                 <!-- Franchisee Filter -->
                                                 <div class="mb-3">
                                                     <label for="leasingFranchiseeFilter" class="form-label"><strong>Filter by Franchisee:</strong></label>
+                                                    
+                                                    
+                                                    <!-- Leasing Agreement Filter -->
                                                     <select id="leasingFranchiseeFilter" class="form-select">
                                                         <option value="">All Franchisees</option>
                                                         <?php
                                                         // Fetch distinct franchisee names from lease_contract table
                                                         $leasingFranchiseeQuery = "SELECT DISTINCT franchisee FROM lease_contract";
                                                         $leasingFranchiseeResult = mysqli_query($con, $leasingFranchiseeQuery);
+
                                                         while ($row = mysqli_fetch_assoc($leasingFranchiseeResult)) {
-                                                            echo "<option value='{$row['franchisee']}'>{$row['franchisee']}</option>";
+                                                            $rawFranchisee = strtolower(trim($row['franchisee']));
+                                                            $formattedFranchisee = isset($franchiseNameMap[$rawFranchisee]) ? $franchiseNameMap[$rawFranchisee] : ucfirst(str_replace("-", " ", $rawFranchisee));
+
+                                                            echo "<option value='{$row['franchisee']}'>{$formattedFranchisee}</option>";
                                                         }
                                                         ?>
                                                     </select>
+
                                                 </div>
 
                                                 <!-- Summary Section -->
