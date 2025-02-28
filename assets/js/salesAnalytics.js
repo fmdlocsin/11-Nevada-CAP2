@@ -632,6 +632,8 @@ function fetchReport(type) {
 
                     // ✅ Accumulate totals for the weekly summary row
                     weeklyGroupedData[key].totalSales += parseFloat(row.total_sales.replace(/,/g, ""));
+
+                    
                     // weeklyGroupedData[key].totalExpenses += parseFloat(row.total_expenses.replace(/,/g, ""));
                     // weeklyGroupedData[key].profit += parseFloat(row.profit.replace(/,/g, ""));
                 });
@@ -664,9 +666,9 @@ function fetchReport(type) {
                     totalRow.innerHTML = `
                         <td colspan="4" class="text-end fw-bold">TOTAL WEEKLY SALES</td>
                         <td class="text-end fw-bold">${entry.totalSales.toLocaleString()}</td>
-                        
                     `;
                     reportTableBody.appendChild(totalRow);
+
                 });
 
             } else if (type === "monthly") {
@@ -691,46 +693,26 @@ function fetchReport(type) {
                             date: formattedDate,
                             products: [],
                             totalSales: 0,
-                            totalExpenses: 0,
+                            totalExpenses: parseFloat(row.total_expenses.replace(/,/g, "")), // Store only once
                             profit: 0
                         };
                     }
             
                     // ✅ Ensure products are stored separately
-                    if (row.product_name.includes(",")) {
-                        let products = row.product_name.split(",").map(p => p.trim()); // Split and trim product names
-                        let sales = row.total_sales.split(",").map(s => parseFloat(s.replace(/,/g, ""))); // Ensure sales data are in an array
-                        let expenses = row.total_expenses.split(",").map(e => parseFloat(e.replace(/,/g, ""))); // Ensure expenses data are in an array
-                        let profits = row.profit.split(",").map(p => parseFloat(p.replace(/,/g, ""))); // Ensure profits data are in an array
-            
-                        products.forEach((product, index) => {
-                            let productEntry = {
-                                product: product,
-                                sales: sales[index] || 0,
-                                expenses: expenses[index] || 0,
-                                profit: profits[index] || 0
-                            };
-                            monthlyGroupedData[key].products.push(productEntry);
-            
-                            // ✅ Accumulate totals for the monthly summary row
-                            monthlyGroupedData[key].totalSales += productEntry.sales;
-                            monthlyGroupedData[key].totalExpenses += productEntry.expenses;
-                            monthlyGroupedData[key].profit += productEntry.profit;
-                        });
-                    } else {
-                        let productEntry = {
-                            product: row.product_name,
-                            sales: parseFloat(row.total_sales.replace(/,/g, "")),
-                            expenses: parseFloat(row.total_expenses.replace(/,/g, "")),
-                            profit: parseFloat(row.profit.replace(/,/g, ""))
-                        };
-                        monthlyGroupedData[key].products.push(productEntry);
-            
-                        // ✅ Accumulate totals for the monthly summary row
-                        monthlyGroupedData[key].totalSales += productEntry.sales;
-                        monthlyGroupedData[key].totalExpenses += productEntry.expenses;
-                        monthlyGroupedData[key].profit += productEntry.profit;
-                    }
+                    let productEntry = {
+                        product: row.product_name,
+                        sales: parseFloat(row.total_sales.replace(/,/g, "")),
+                        expenses: parseFloat(row.total_expenses.replace(/,/g, "")), // Keep per product for internal use
+                        profit: parseFloat(row.profit.replace(/,/g, ""))
+                    };
+                    monthlyGroupedData[key].products.push(productEntry);
+
+                    // ✅ Accumulate totals for the monthly summary row
+                    monthlyGroupedData[key].totalSales += productEntry.sales;
+                     // ✅ Compute total profit correctly using the same formula as fetchKPIData()
+                    Object.values(monthlyGroupedData).forEach(entry => {
+                        entry.profit = entry.totalSales - entry.totalExpenses; // ✅ Match fetchKPIData() logic
+                    });
                 });
             
                 // ✅ Append monthly grouped data to the table
@@ -744,8 +726,8 @@ function fetchReport(type) {
                             <td>${firstRow ? entry.branch : ""}</td>
                             <td>${productData.product}</td>
                             <td class="text-end">${productData.sales.toLocaleString()}</td>
-                            <td class="text-end">${productData.expenses.toLocaleString()}</td>
-                            <td class="text-end">${productData.profit.toLocaleString()}</td>
+                            <td class="text-end">-</td>  <!-- ✅ Hide per-product expenses -->
+                            <td class="text-end">-</td> <!-- ✅ Replace per-product profit with "-" -->
                         `;
                         reportTableBody.appendChild(tr);
                         firstRow = false; // Prevents duplicate franchise/branch names
@@ -758,7 +740,7 @@ function fetchReport(type) {
                         <td colspan="4" class="text-end fw-bold">TOTAL MONTHLY SALES</td>
                         <td class="text-end fw-bold">${entry.totalSales.toLocaleString()}</td>
                         <td class="text-end fw-bold">${entry.totalExpenses.toLocaleString()}</td>
-                        <td class="text-end fw-bold">${entry.profit.toLocaleString()}</td>
+                        <td class="text-end fw-bold">${entry.profit.toLocaleString()}</td> <!-- ✅ Fixed profit calculation -->
                     `;
                     reportTableBody.appendChild(totalRow);
                 });     
@@ -889,15 +871,11 @@ function exportTableToCSV() {
 }
 
 
-
-
-
-
 // EXPORT TO PDF
 function exportTableToPDF() {
     const { jsPDF } = window.jspdf;
     let doc = new jsPDF({
-        orientation: "portrait", // Keep portrait format
+        orientation: "portrait",
         unit: "pt",
         format: "A4"
     });
@@ -905,9 +883,8 @@ function exportTableToPDF() {
     // ✅ Add Title
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    let pageWidth = doc.internal.pageSize.getWidth(); // Get page width
+    let pageWidth = doc.internal.pageSize.getWidth();
     doc.text("Sales Report", pageWidth / 2, 50, { align: "center" });
-    
 
     // ✅ Add "Date" Section
     let currentDate = new Date().toLocaleDateString();
@@ -945,19 +922,57 @@ function exportTableToPDF() {
     let data = [];
     let rows = table.querySelectorAll("tr");
 
+    // ✅ Detect column indices for "Total Expenses" & "Profit"
+    let expenseIndex = -1;
+    let profitIndex = -1;
+
     rows.forEach((row, rowIndex) => {
         let rowData = [];
         let cols = row.querySelectorAll("th, td");
 
-        cols.forEach(col => {
-            rowData.push(col.innerText);
+        cols.forEach((col, colIndex) => {
+            let text = col.innerText.trim();
+
+            // ✅ Detect column positions
+            if (rowIndex === 0) {
+                if (text === "Total Expenses") expenseIndex = colIndex;
+                if (text === "Profit") profitIndex = colIndex;
+
+                // ✅ Remove "Total Expenses" & "Profit" columns for Daily & Weekly
+                if ((reportType === "Daily" || reportType === "Weekly") && (colIndex === expenseIndex || colIndex === profitIndex)) {
+                    return;
+                }
+                rowData.push(text);
+            } else {
+                // ✅ Remove "Total Expenses" & "Profit" data for Daily & Weekly
+                if ((reportType === "Daily" || reportType === "Weekly") && (colIndex === expenseIndex || colIndex === profitIndex)) {
+                    return;
+                }
+
+                rowData.push(text);
+            }
         });
 
         if (rowIndex === 0) {
-            headers = rowData;
+            headers = rowData; // Store updated headers
         } else {
-            data.push(rowData);
+            data.push(rowData); // Store filtered data rows
         }
+    });
+
+    // ✅ Fix: Ensure correct colspan for "TOTAL WEEKLY SALES" & "TOTAL MONTHLY SALES"
+    data = data.map(row => {
+        if (row.includes("TOTAL WEEKLY SALES")) {
+            // ✅ Adjust colspan to 4 and **ensure total sales are included**
+            // return ["", "", "",{ content: "TOTAL WEEKLY SALES", styles: { fillColor: [255, 240, 178], fontStyle: "bold" } }, row[row.length - 1]];
+            return ["", "", "", "TOTAL WEEKLY SALES" , row[row.length - 1]];
+        }
+        if (row.includes("TOTAL MONTHLY SALES")) {
+            // ✅ Adjust colspan to 4 and **ensure all values are displayed properly**
+            // return ["", "", "",{ content: "TOTAL MONTHLY SALES", styles: { fillColor: [255, 240, 178], fontStyle: "bold" } }, row[row.length - 3], row[row.length - 2], row[row.length - 1]];
+            return ["", "", "", "TOTAL MONTHLY SALES", row[row.length - 3], row[row.length - 2], row[row.length - 1]];
+        }
+        return row;
     });
 
     // ✅ Generate Table with `autoTable`
@@ -971,8 +986,33 @@ function exportTableToPDF() {
         alternateRowStyles: { fillColor: [245, 245, 245] },
         margin: { left: 40, right: 40 },
         tableWidth: "auto",
-        columnStyles: { 0: { cellWidth: "auto" } }
+        columnStyles: { 0: { cellWidth: "auto" } },
+
+        // ✅ Ensure only the actual total rows are styled and remove unnecessary yellow rows
+    didParseCell: function (data) {
+        if (data.row.section === 'body') {
+            let rowText = data.row.raw.join(" "); // Combine row text to check
+            
+            // ✅ Only highlight TOTAL SALES rows & make them bold
+            if (rowText.includes("TOTAL WEEKLY SALES") || rowText.includes("TOTAL MONTHLY SALES")) {
+                Object.values(data.row.cells).forEach(cell => {
+                    cell.styles.fillColor = [255, 240, 178]; // Apply soft yellow
+                    cell.styles.fontStyle = "bold"; // Bold text
+                });
+            }
+
+            // ✅ REMOVE yellow rows that have no values (only apply to product rows)
+            if (
+                !rowText.includes("TOTAL WEEKLY SALES") &&
+                !rowText.includes("TOTAL MONTHLY SALES") &&
+                rowText.includes("-") // If the row contains only "-" (empty values)
+            ) {
+                data.row.hidden = true; // Hide empty yellow rows
+            }
+        }
+    }
     });
+
 
     // ✅ Save PDF
     doc.save(`sales_report_${reportType.replace(/\s+/g, "_").toLowerCase()}.pdf`);

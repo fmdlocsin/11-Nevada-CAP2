@@ -1,4 +1,8 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+header('Content-Type: application/json'); // Ensure JSON response
+
 session_start();
 include("database-connection.php");
 
@@ -50,21 +54,41 @@ switch ($type) {
 }
 
 // Build SQL Query
-$query = "SELECT $dateField, ac.franchisee, ac.location, 
-                 sr.product_name,
-                 SUM(sr.grand_total) AS total_sales,
-                 SUM(e.expense_amount) AS total_expenses,
-                 (SUM(sr.grand_total) - SUM(e.expense_amount)) AS profit
+$query = "SELECT 
+            $dateField, 
+            ac.franchisee, 
+            ac.location, 
+            sr.product_name,
+            SUM(sr.grand_total) AS total_sales,
+            COALESCE(expenses_table.total_expenses, 0) AS total_expenses, -- ✅ Fetch expenses the same way as KPI
+            (SUM(sr.grand_total) - COALESCE(expenses_table.total_expenses, 0)) AS profit
           FROM sales_report sr
           JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
-          LEFT JOIN expenses e ON sr.ac_id = e.location";
+          LEFT JOIN (
+            SELECT e.location, SUM(e.expense_amount) AS total_expenses
+            FROM expenses e
+            JOIN agreement_contract ac ON e.location = ac.ac_id  -- ✅ Match KPI's way of fetching expenses
+            WHERE e.date_added BETWEEN '$startDate' AND '$endDate'
+            GROUP BY e.location
+        ) expenses_table ON ac.ac_id = expenses_table.location";
 
+// **Add WHERE Clause if Conditions Exist**
 if (!empty($whereClauses)) {
     $query .= " WHERE " . implode(" AND ", $whereClauses);
 }
 
-// Apply GROUP BY and ORDER BY
-$query .= " GROUP BY $groupBy ORDER BY date_label DESC, ac.franchisee, ac.location, sr.product_name";
+// **Ensure GROUP BY is Properly Appended**
+if (!empty($groupBy)) {
+    $query .= " GROUP BY $groupBy";
+} else {
+    die(json_encode(["error" => "Invalid GROUP BY clause"]));
+}
+
+// **Add ORDER BY**
+$query .= " ORDER BY date_label DESC, ac.franchisee, ac.location, sr.product_name";
+
+
+
 
 $result = mysqli_query($con, $query);
 $data = [];
@@ -82,4 +106,13 @@ while ($row = mysqli_fetch_assoc($result)) {
 }
 
 echo json_encode($data);
+
+error_log("Generated SQL Query: " . $query);
+$result = mysqli_query($con, $query);
+
+if (!$result) {
+    die(json_encode(["error" => "SQL Error: " . mysqli_error($con)]));  // ✅ Captures the actual SQL error
+}
+
+
 
