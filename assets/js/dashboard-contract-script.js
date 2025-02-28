@@ -310,6 +310,7 @@ $(document).ready(function () {
                         classification: row.classification || "N/A",
                         startDate: formatDate(row.start_date),
                         expirationDate: formatDate(row.expiration_date),
+                        contractDuration: row.contract_duration ? `${row.contract_duration} months` : "N/A", // ✅ Added contract duration
                         remarks: isExpired ? "Expired" : "Active"
                     });
                 });
@@ -339,6 +340,7 @@ $(document).ready(function () {
                                             <th>Classification</th>
                                             <th>Start Date</th>
                                             <th>Expiration Date</th>
+                                            <th>Duration (Months)</th> <!-- ✅ Added Column -->
                                             <th>Remarks</th>
                                         </tr>
                                     </thead>
@@ -352,6 +354,7 @@ $(document).ready(function () {
                                 <td>${branch.classification}</td>
                                 <td>${branch.startDate}</td>
                                 <td>${branch.expirationDate}</td>
+                                <td class="contract-duration-column">${branch.contractDuration}</td>  <!-- ✅ Added Class -->
                                 <td class="text-center">${branch.remarks}</td>
                             </tr>
                         `;
@@ -499,6 +502,7 @@ $(document).ready(function () {
                                             <th>Location</th>
                                             <th>Start Date</th>
                                             <th>Expiration Date</th>
+                                            <th class="contract-duration-header">Duration (Months)</th> <!-- ✅ Added this column -->
                                             <th>Remarks</th>
                                         </tr>
                                     </thead>
@@ -523,6 +527,7 @@ $(document).ready(function () {
                             <td>${row.location}</td>
                             <td>${formatDate(row.start_date)}</td>
                             <td>${formatDate(row.expiration_date)}</td>
+                            <td class="contract-duration-column">${row.contract_duration ? row.contract_duration + " months" : "N/A"}</td> <!-- ✅ Added contract duration -->
                             <td class="text-center">${leaseRemark}</td>
                         </tr>
                     `;
@@ -649,8 +654,10 @@ function exportLeasingTableToPDF() {
             if (rowIndex === 0) {
                 headers = rowData;
             } else {
+                let contractDuration = rowData.length >= 7 ? rowData[6] : "N/A"; // ✅ Extract contract duration
+                rowData.splice(6, 0, contractDuration); // ✅ Insert duration in correct position
                 data.push(rowData);
-            }
+            }            
         });
 
         // ✅ Generate Table in PDF with Improved Spacing
@@ -667,7 +674,7 @@ function exportLeasingTableToPDF() {
             columnStyles: { 0: { cellWidth: "auto" } }
         });
 
-        startY = doc.lastAutoTable.finalY + 30; // ✅ Extra spacing between tables
+        startY = doc.lastAutoTable.finalY + 50; // ✅ Extra spacing between tables
     });
 
     // ✅ Save PDF
@@ -731,12 +738,12 @@ function exportLeasingTableToCSV() {
         rows.forEach((row, index) => {
             let cols = row.querySelectorAll("th, td");
             let rowData = [];
-
+        
             cols.forEach(col => {
                 rowData.push(`"${col.innerText}"`);
             });
-
-            csv.push(rowData.join(",")); // Add formatted row to CSV
+        
+            csv.push(rowData.join(","));
         });
 
         csv.push(""); // Space between franchise tables
@@ -833,18 +840,22 @@ function exportFranchiseTableToPDF() {
             let rowData = [];
             let cols = row.querySelectorAll("th, td");
 
-            cols.forEach(col => {
+            cols.forEach((col, colIndex) => {
                 rowData.push(col.innerText);
             });
 
             if (rowIndex === 0) {
+                // ✅ Add "Contract Duration (Months)" to headers
                 headers = rowData;
             } else {
+                // ✅ Add Contract Duration Data (Fetch from modal table)
+                let contractDuration = rowData.length >= 5 ? rowData[4] : "N/A"; // Extract from table row
+                rowData.splice(4, 0, contractDuration); // Insert duration in correct position
                 data.push(rowData);
             }
         });
 
-        // ✅ Generate Table in PDF
+        // ✅ Generate Table in PDF (Updated with Contract Duration)
         doc.autoTable({
             head: [headers],
             body: data,
@@ -864,6 +875,7 @@ function exportFranchiseTableToPDF() {
     // ✅ Save PDF
     doc.save(`franchise_report_${new Date().toISOString().split("T")[0]}.pdf`);
 }
+
 
 // ✅ Bind to Button
 $(document).ready(function () {

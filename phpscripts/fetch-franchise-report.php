@@ -17,10 +17,10 @@ $query = "SELECT
             COUNT(CASE WHEN c.agreement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) THEN 1 END) AS renewed_contracts,
             c.franchise_term AS start_date, 
             c.agreement_date AS expiration_date, 
-            c.status AS remarks
+            c.status AS remarks,
+            TIMESTAMPDIFF(MONTH, c.franchise_term, c.agreement_date) AS contract_duration
           FROM agreement_contract c";
 
-// Apply filter if franchisee is selected
 if (!empty($franchiseeFilter)) {
     $query .= " WHERE c.franchisee = '$franchiseeFilter'";
 }
@@ -29,6 +29,7 @@ $query .= " GROUP BY c.franchisee, c.location, c.classification, c.franchise_ter
             ORDER BY c.franchisee, c.location";
 
 $result = mysqli_query($con, $query);
+
 
 // Debugging: Check if query fails
 if (!$result) {

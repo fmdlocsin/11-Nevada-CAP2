@@ -459,7 +459,7 @@ echo "<script>
 
 
                             <div class="d-inline-flex align-items-center gap-3">
-                                <h3 class="table-title mb-0">Total Contracts Breakdown</h3>
+                                <h3 class="table-title mb-0">Leasing Agreement Contracts Breakdown</h3>
                                 <button id="generateLeasingReport" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#leasingReportModal">
                                     Generate Report
                                 </button>

@@ -18,8 +18,10 @@ $query = "SELECT
             SUM(CASE WHEN c.end_date < CURDATE() THEN 1 ELSE 0 END) AS expired_leases,
             c.start_date, 
             c.end_date AS expiration_date, 
+            TIMESTAMPDIFF(MONTH, c.start_date, c.end_date) AS contract_duration,  -- Calculate duration in months
             c.lessor_address1 AS location
           FROM lease_contract c";
+
 
 // Apply filter if franchisee is selected
 if (!empty($franchiseeFilter)) {

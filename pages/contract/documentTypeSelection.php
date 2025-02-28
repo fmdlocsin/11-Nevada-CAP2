@@ -24,7 +24,7 @@
             <div class="card-container">
                 <a href="newDocumentFranchise" class="card document-type-btn">
                     <i class='bx bxs-file'></i>
-                    <span>Agreement Contract</span>
+                    <span>Franchise Contract</span>
                 </a>
                 <a href="newDocumentLeasing" class="card document-type-btn">
                     <i class='bx bxs-buildings'></i>

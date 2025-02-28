@@ -358,10 +358,18 @@ body {
 
 /* Report Table Styles */
 .report-table {
+    table-layout: fixed; /* Ensures all columns respect width limits */
     width: 100%;
     border-collapse: collapse;
     border-radius: 5px;
     overflow: hidden;
+}
+
+/* Prevent Bootstrap from compressing the table columns */
+.table-responsive {
+    display: block;
+    width: 100%;
+    overflow-x: auto; /* Ensures table remains scrollable if needed */
 }
 
 /* Table Header */
@@ -422,6 +430,17 @@ body {
     white-space: normal;    /* Allows wrapping */
 }
 
+/* Ensure the "Classification" column has enough space */
+.report-table th:nth-child(2),
+.report-table td:nth-child(2) {
+    min-width: 160px;  /* Ensure the column is wide enough */
+    max-width: 200px;  /* Prevent it from expanding too much */
+    text-align: center;
+    word-wrap: break-word; /* Allow wrapping if needed */
+    white-space: normal !important; /* Allow multi-line text */
+}
+
+
 /* Reduce column width for Active, Expiring, and Expired */
 .report-table th:nth-child(2),
 .report-table th:nth-child(3),
@@ -440,9 +459,33 @@ body {
 .report-table th:nth-child(7),
 .report-table td:nth-child(6),
 .report-table td:nth-child(7) {
-    min-width: 160px;
-    white-space: nowrap; /* Prevent date text from wrapping */
+    min-width: 160px;  /* Ensures enough space */
+    max-width: 180px;  /* Prevents excessive stretching */
+    white-space: normal !important;  /* Allow wrapping */
+    overflow-wrap: break-word;  /* Ensures proper word wrapping */
+    text-align: center;  /* Keeps text centered */
+    padding: 5px 8px;  /* Adjust padding for better fit */
 }
+
+/* Agreement Contract Report */
+.report-table th.contract-duration-column, 
+.report-table td.contract-duration-column {
+    width: 8%; /* Adjust as needed */
+    min-width: 80px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* ✅ Leasing Report - Apply Same Styling */
+#leasingReportContent .report-table th.contract-duration-column, 
+#leasingReportContent .report-table td.contract-duration-column {
+    width: 8%; /* Adjust as needed */
+    min-width: 80px; /* Prevent shrinking too much */
+    text-align: center; 
+    white-space: nowrap; /* Prevents text wrapping */
+}
+
+
 
 .modal-header {
     background-color: #007bff !important; /* Bootstrap Primary Blue */
