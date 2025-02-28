@@ -119,50 +119,84 @@ include ("phpscripts/check-login.php");
                             
                             <div class="box-group">
                                 <h3 class="box-group-title">Franchising Agreement</h3>
-                                <a href="#" class="box box1">
+                                <a href="dashboard2/dashboard-contract2.php" class="box box1">
+                                    <i class='bx bx-chart'></i>
+                                    <span class="text">Analytics</span>
+                                </a>
+                                <a href="pages/contract/franchiseeAgreement" class="box box1">
                                     <i class='bx bx-folder-open'></i>
-                                    <span class="text">Agreement Contract</span>
+                                    <span class="text">View Contracts</span>
                                 </a>
-                                <a href="#" id="dineInSales-link" class="box box2">
-                                    <i class='bx bx-food-menu'></i>
-                                    <span class="text">Leasing Contract</span>
-                                </a>
+
+                                <h4 class="sub-title">Add Contract</h4>
+                                
+                                <div class="box-row">
+                                    <a href="pages/contract/newDocumentFranchise" class="box box2">
+                                        <i class='bx bx-store-alt'></i>
+                                        <span class="text">Agreement Contract</span>
+                                    </a>
+                                    <a href="pages/contract/newDocumentLeasing" class="box box3">
+                                        <i class='bx bx-building-house'></i>
+                                        <span class="text">Leasing Contract</span>
+                                    </a>
+                                </div>
                             </div>
                             <div class="box-group">
                                 <h3 class="box-group-title">Sales Performance</h3>
-                                <a href="#" id="takeOutSales-link" class="box box3">
-                                    <i class='bx bxs-bar-chart-alt-2'></i>
-                                    <span class="text">Sales</span>
+                                
+                                <!-- View Sales -->
+                                <a href="pages/salesPerformance/sales" class="box box4">
+                                    <i class='bx bx-bar-chart'></i>
+                                    <span class="text">View Sales</span>
                                 </a>
-                                <a href="#" id="deliverySales-link" class="box box4">
-                                    <i class='bx bx-money-withdraw'></i>
-                                    <span class="text">Expenses</span>
+
+                                <!-- Add Sales Title -->
+                                <h4 class="sub-title">Add Sales</h4>
+
+                                <!-- Add Sales: Dine-in, Takeout, Delivery -->
+                                <div class="box-row">
+                                    <a href="pages/salesPerformance/chooseFranchisee.php?tp=DineIn" class="box box5">
+                                        <i class='bx bx-restaurant'></i>
+                                        <span class="text">Dine-in</span>
+                                    </a>
+                                    <a href="pages/salesPerformance/chooseFranchisee.php?tp=TakeOut" class="box box6">
+                                        <i class='bx bx-shopping-bag'></i>
+                                        <span class="text">Takeout</span>
+                                    </a>
+                                    <a href="pages/salesPerformance/chooseFranchisee.php?tp=Delivery" class="box box7">
+                                        <i class='bx bx-car'></i>
+                                        <span class="text">Delivery</span>
+                                    </a>
+                                </div>
+
+                                <!-- View Expenses -->
+                                <a href="pages/salesPerformance/totalExpenses" class="box box5">
+                                    <i class='bx bx-money'></i>
+                                    <span class="text">View Expenses</span>
                                 </a>
                             </div>
-                            <div class="box-group">
-                                <h3 class="box-group-title">Manpower Deployment</h3>
-                                <a href="#" class="box box5">
-                                    <i class='bx bxs-time-five'></i>
-                                    <span class="text">Scheduling</span>
-                                </a>
-                                <a href="#" class="box box6">
-                                    <i class='bx bx-body'></i>
-                                    <span class="text">Attendance</span>
-                                </a>
-                                <a href="#" class="box box6">
-                                    <i class='bx bx-user-check'></i>
-                                    <span class="text">Certifications</span>
-                                </a>
-                            </div>
+
                             <div class="box-group">
                                 <h3 class="box-group-title">Inventory</h3>
-                                <a href="#" class="box box7">
+                                <a href="pages/inventory/inventory2" class="box box7">
                                     <i class='bx bx-spreadsheet'></i>
-                                    <span class="text">Reports</span>
+                                    <span class="text">View Inventory</span>
                                 </a>
-                                <a href="#" class="box box8">
-                                    <i class='bx bx-edit-alt'></i>
-                                    <span class="text">New Report</span>
+                            </div>
+
+                            <div class="box-group">
+                                <h3 class="box-group-title">Manpower Deployment</h3>
+                                <a href="pages/manpower/manpower_dashboard" class="box box5">
+                                    <i class='bx bx-street-view'></i>
+                                    <span class="text">Dashboard</span>
+                                </a>
+                                <a href="pages/manpower/totalEmployees" class="box box6">
+                                    <i class='bx bx-body'></i>
+                                    <span class="text">Employees</span>
+                                </a>
+                                <a href="pages/manpower/unassignedEmployees2" class="box box6">
+                                    <i class='bx bx-user-minus'></i>
+                                    <span class="text">Unassigned Employees</span>
                                 </a>
                             </div>
                         </div>

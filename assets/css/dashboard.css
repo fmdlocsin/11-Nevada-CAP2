@@ -42,7 +42,10 @@
 /* Main container */
 .container {
     width: 98%;
-    margin: 20px;
+    margin: 50px auto;
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
 }
 
 .dash-content {
@@ -72,19 +75,23 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    margin-top: 20px;
+    align-items: flex-start; /* Align at the top but let groups expand */
 }
+
 
 .box-group {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: calc(25% - 20px); /* Adjusted width for four boxes per row */
+    width: calc(25% - 20px); /* Keep the four-per-row layout */
     background-color: var(--box-group-background);
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
+    height: auto; /* Let height be determined by content */
+    min-height: fit-content; /* Ensures no unnecessary extra space */
 }
+
 
 .box-group-title {
     font-size: 20px;
@@ -125,6 +132,48 @@
     font-weight: 600;
     text-align: center; /* Center the text */
 }
+
+
+/* Adjusts spacing for the "Add Sales" title */
+.sub-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+
+/* Ensure the three sales boxes align properly */
+.box-row {
+    display: flex;
+    justify-content: center; /* Centers items */
+    gap: 10px; /* Adjust spacing between boxes */
+    width: 100%;
+}
+
+/* Reduce box size inside box-row */
+.box-row .box {
+    width: 50%; /* Make them smaller */
+    padding: 12px; /* Reduce padding */
+    font-size: 14px; /* Reduce text size */
+}
+
+/* Reduce text size inside the smaller boxes */
+.box-row .box .text {
+    font-size: 14px; /* Adjust this size as needed */
+    font-weight: 500; /* Optional: Make it less bold */
+}
+
+
+/* Adjust icon size inside the smaller boxes */
+.box-row .box i {
+    font-size: 24px; /* Reduce icon size */
+}
+
+
+
 
 .greeting h2 {
     /* text-align: center; */
