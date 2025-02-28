@@ -3,6 +3,10 @@ include("database-connection.php");
 
 header('Content-Type: application/json'); // Ensure JSON response
 
+// Get franchisee filter from GET request
+$franchiseeFilter = isset($_GET['franchisee']) ? mysqli_real_escape_string($con, $_GET['franchisee']) : '';
+
+// Base query
 $query = "SELECT 
             c.franchisee AS franchisor, 
             c.space_number AS branch_name,
@@ -15,11 +19,15 @@ $query = "SELECT
             c.start_date, 
             c.end_date AS expiration_date, 
             c.lessor_address1 AS location
-          FROM lease_contract c
-          GROUP BY c.franchisee, c.space_number, c.start_date, c.end_date, c.lessor_address1, c.lessor_name1, c.classification, c.area
-          ORDER BY c.franchisee, c.space_number";
+          FROM lease_contract c";
 
+// Apply filter if franchisee is selected
+if (!empty($franchiseeFilter)) {
+    $query .= " WHERE c.franchisee = '$franchiseeFilter'";
+}
 
+$query .= " GROUP BY c.franchisee, c.space_number, c.start_date, c.end_date, c.lessor_address1, c.lessor_name1, c.classification, c.area
+            ORDER BY c.franchisee, c.space_number";
 
 $result = mysqli_query($con, $query);
 

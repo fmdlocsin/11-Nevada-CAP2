@@ -238,16 +238,161 @@ window.onload = function () {
 };
 
 
-// CONTRACT REPORTS
-// leasing report
+// -------------------------------- CONTRACT REPORTS -------------------------------- 
+
+
+// AGREEMENT CONTRACT
 $(document).ready(function () {
-    $("#generateLeasingReport").click(function () {
+    // Function to fetch and update the franchise report
+    function fetchFranchiseReport() {
+        let selectedFranchisee = $("#franchiseeFilter").val(); // Get selected franchisee
+        
+        $.ajax({
+            url: "phpscripts/fetch-franchise-report.php",
+            method: "GET",
+            data: { franchisee: selectedFranchisee }, // Send filter data
+            dataType: "json",
+            success: function (data) {
+                console.log("Filtered Data received:", data); // Debugging
+
+                let reportContent = $("#franchiseReportContent");
+                let summaryContent = $("#franchiseSummary");
+                reportContent.html(""); // Clear existing content
+                summaryContent.html(""); // Clear existing summary
+
+                if (data.length === 0) {
+                    reportContent.html(`<p class="text-center">No data available for the selected franchisee.</p>`);
+                    return;
+                }
+
+                let franchiseData = {
+                    "auntie-anne": { name: "Auntie Anne's", logo: "AuntieAnn.png" },
+                    "macao-imperial": { name: "Macao Imperial", logo: "MacaoImp.png" },
+                    "potato-corner": { name: "Potato Corner", logo: "PotCor.png" }
+                };
+
+                let tables = {};
+                let contractSummary = {};
+
+                data.forEach(row => {
+                    let franchiseeKey = row.franchisor.toLowerCase().replace(/\s+/g, '-');
+                    let franchisee = franchiseData[franchiseeKey] ? franchiseData[franchiseeKey].name : row.franchisor;
+                    let logoPath = franchiseData[franchiseeKey] ? `assets/images/${franchiseData[franchiseeKey].logo}` : "assets/images/default.png";
+
+                    if (!contractSummary[franchisee]) {
+                        contractSummary[franchisee] = {
+                            logo: logoPath,
+                            activeContracts: 0,
+                            expiringContracts: 0,
+                            expiredContracts: 0,
+                            totalContracts: 0,
+                            renewalRate: 0,
+                            branches: []
+                        };
+                    }
+
+                    let isExpired = new Date(row.expiration_date) < new Date();
+                    let isActive = row.remarks.toLowerCase() === "active" && !isExpired;
+
+                    if (isActive) {
+                        contractSummary[franchisee].activeContracts += 1;
+                    }
+
+                    contractSummary[franchisee].expiringContracts += parseInt(row.expiring_contracts) || 0;
+                    contractSummary[franchisee].expiredContracts += isExpired ? 1 : 0;
+                    contractSummary[franchisee].totalContracts++;
+
+                    let total = contractSummary[franchisee].activeContracts + contractSummary[franchisee].expiredContracts;
+                    contractSummary[franchisee].renewalRate = total > 0 ? ((contractSummary[franchisee].activeContracts / total) * 100).toFixed(2) : "0";
+
+                    contractSummary[franchisee].branches.push({
+                        location: row.location,
+                        classification: row.classification || "N/A",
+                        startDate: formatDate(row.start_date),
+                        expirationDate: formatDate(row.expiration_date),
+                        remarks: isExpired ? "Expired" : "Active"
+                    });
+                });
+
+                for (let franchisee in contractSummary) {
+                    let summary = contractSummary[franchisee];
+
+                    tables[franchisee] = `
+                        <div class="franchise-section">
+                            <h3 class="franchise-title">
+                                <img src="${summary.logo}" alt="${franchisee}" class="franchise-logo">
+                                ${franchisee} (Total Contracts: ${summary.totalContracts})
+                            </h3>
+
+                            <div class="contract-summary">
+                                <div class="summary-item"><strong>Active Contracts:</strong> <span style="color: green; font-weight: bold;">${summary.activeContracts}</span></div>
+                                <div class="summary-item"><strong>Expiring Next Month:</strong> <span style="color: orange; font-weight: bold;">${summary.expiringContracts}</span></div>
+                                <div class="summary-item"><strong>Expired Contracts:</strong> <span style="color: red; font-weight: bold;">${summary.expiredContracts}</span></div>
+                                <div class="summary-item"><strong>Renewal Rate:</strong> <span style="color: blue; font-weight: bold;">${summary.renewalRate}%</span></div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped report-table">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Location</th>
+                                            <th>Classification</th>
+                                            <th>Start Date</th>
+                                            <th>Expiration Date</th>
+                                            <th>Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                    `;
+
+                    summary.branches.forEach(branch => {
+                        tables[franchisee] += `
+                            <tr>
+                                <td>${branch.location}</td>
+                                <td>${branch.classification}</td>
+                                <td>${branch.startDate}</td>
+                                <td>${branch.expirationDate}</td>
+                                <td class="text-center">${branch.remarks}</td>
+                            </tr>
+                        `;
+                    });
+
+                    tables[franchisee] += `</tbody></table></div></div><br>`;
+                    reportContent.append(tables[franchisee]);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", xhr.responseText);
+                $("#franchiseReportContent").html(`<p>Error loading data</p>`);
+            }
+        });
+    }
+
+    // **Trigger fetch when the "Generate Report" button is clicked**
+    $("#generateFranchiseReport").click(function () {
+        fetchFranchiseReport();
+    });
+
+    // **Trigger fetch when the franchisee filter is changed**
+    $("#franchiseeFilter").change(function () {
+        fetchFranchiseReport();
+    });
+});
+
+
+// LEASING REPORT
+// LEASING REPORT
+$(document).ready(function () {
+    function fetchLeasingReport() {
+        let selectedFranchisee = $("#leasingFranchiseeFilter").val(); // Get selected franchisee filter
+
         $.ajax({
             url: "phpscripts/fetch-leasing-report.php",
             method: "GET",
+            data: { franchisee: selectedFranchisee }, // Send filter data
             dataType: "json",
             success: function (data) {
-                console.log("Leasing Data received:", data); // Debugging
+                console.log("Filtered Leasing Data received:", data); // Debugging
 
                 let reportContent = $("#leasingReportContent");
                 let summaryContent = $("#leasingSummary");
@@ -255,11 +400,11 @@ $(document).ready(function () {
                 summaryContent.html(""); // Clear existing summary
 
                 if (data.length === 0) {
-                    reportContent.html(`<p class="text-center">No leasing data available</p>`);
+                    reportContent.html(`<p class="text-center">No leasing data available for the selected franchisee.</p>`);
                     return;
                 }
 
-                // ✅ Franchise Name & Logo Mapping (Match Stored Filenames)
+                // ✅ Franchise Name & Logo Mapping
                 const franchiseData = {
                     "potato-corner": { name: "Potato Corner", logo: "PotCor.png" },
                     "auntie-anne": { name: "Auntie Anne's", logo: "AuntieAnn.png" },
@@ -274,7 +419,7 @@ $(document).ready(function () {
                 let nextExpiringLease = null;
                 let nextExpiringLeaseDetails = {}; // Store franchisee and location for next expiring lease
 
-                // ✅ First loop: Calculate summary data & lease counts
+                // ✅ Calculate summary data & lease counts
                 data.forEach(row => {
                     let franchiseKey = row.franchisor.toLowerCase().replace(/\s+/g, '-');
                     let franchisee = franchiseData[franchiseKey] ? franchiseData[franchiseKey].name : row.franchisor;
@@ -282,27 +427,22 @@ $(document).ready(function () {
 
                     if (!leaseCounts[franchisee]) {
                         leaseCounts[franchisee] = {
-                            logo: logoPath, // ✅ Store the correct logo path
+                            logo: logoPath, 
                             activeLeases: 0,
                             expiringLeases: 0,
                             expiredLeases: 0
                         };
                     }
 
-                    // ✅ Correctly count active, expiring, and expired leases
                     leaseCounts[franchisee].activeLeases += parseInt(row.active_leases) || 0;
                     leaseCounts[franchisee].expiringLeases += parseInt(row.expiring_leases) || 0;
                     leaseCounts[franchisee].expiredLeases += parseInt(row.expired_leases) || 0;
 
-                    // ✅ Track total active leases globally
                     totalActiveLeases += parseInt(row.active_leases) || 0;
-
                     let totalLeases = parseInt(row.active_leases) + parseInt(row.expired_leases);
                     totalOccupancyRate += totalLeases > 0 ? (parseInt(row.active_leases) / totalLeases) * 100 : 0;
 
                     let leaseExpirationDate = new Date(row.expiration_date);
-                    
-                    // ✅ Track the nearest expiring lease
                     if (!nextExpiringLease || leaseExpirationDate < nextExpiringLease) {
                         nextExpiringLease = leaseExpirationDate;
                         nextExpiringLeaseDetails = {
@@ -319,22 +459,19 @@ $(document).ready(function () {
                     ? `${formatDate(nextExpiringLeaseDetails.expiration_date)} (${nextExpiringLeaseDetails.franchisee} - ${nextExpiringLeaseDetails.location})`
                     : "N/A";
 
-                // ✅ Restore Overall Leasing Summary
+                // ✅ Display Leasing Summary
                 let leasingSummaryHTML = `
                     <div class="alert alert-info">
                         <p><strong>Total Active Leases:</strong> <span style="color: green; font-weight: bold;">${totalActiveLeases}</span></p>
                         <p><strong>Overall Occupancy Rate:</strong> <span style="color: blue; font-weight: bold;">${overallOccupancyRate}</span></p>
                         <p><strong>Next Expiring Lease:</strong> <span style="color: orange; font-weight: bold;">${nextExpiringLeaseFormatted}</span></p>
                     </div>`;
-
-                // ✅ Append the summary to the leasing report
                 summaryContent.html(leasingSummaryHTML);
 
-                // ✅ Second loop: Generate tables
+                // ✅ Generate tables
                 for (let franchisee in leaseCounts) {
                     let summary = leaseCounts[franchisee];
 
-                    // ✅ Calculate Occupancy Rate
                     let totalLeases = summary.activeLeases + summary.expiredLeases;
                     let occupancyRate = totalLeases > 0 ? ((summary.activeLeases / totalLeases) * 100).toFixed(2) + "%" : "0%";
 
@@ -345,7 +482,6 @@ $(document).ready(function () {
                                 ${franchisee} (Total Leases: ${summary.activeLeases})
                             </h3>
 
-                            <!-- ✅ Leasing Summary Section -->
                             <div class="contract-summary">
                                 <div class="summary-item"><strong>Active Leases:</strong> <span style="color: green; font-weight: bold;">${summary.activeLeases}</span></div>
                                 <div class="summary-item"><strong>Expiring Next Month:</strong> <span style="color: orange; font-weight: bold;">${summary.expiringLeases}</span></div>
@@ -353,7 +489,6 @@ $(document).ready(function () {
                                 <div class="summary-item"><strong>Occupancy Rate:</strong> <span style="color: blue; font-weight: bold;">${occupancyRate}</span></div>
                             </div>
 
-                            <!-- ✅ Leasing Table -->
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped report-table">
                                     <thead class="table-dark">
@@ -404,8 +539,15 @@ $(document).ready(function () {
                 $("#leasingReportContent").html(`<p>Error loading data</p>`);
             }
         });
-    });
+    }
+
+    // ✅ Trigger fetch when the "Generate Report" button is clicked
+    $("#generateLeasingReport").click(fetchLeasingReport);
+
+    // ✅ Trigger fetch when the franchisee filter is changed
+    $("#leasingFranchiseeFilter").change(fetchLeasingReport);
 });
+
 
 
 
@@ -615,138 +757,6 @@ $(document).ready(function () {
     $("#exportLeasingCSV").click(exportLeasingTableToCSV);
 });
 
-
-
-
-// AGREEMENT CONTRACT
-$(document).ready(function () {
-    $("#generateFranchiseReport").click(function () {
-        $.ajax({
-            url: "phpscripts/fetch-franchise-report.php",
-            method: "GET",
-            dataType: "json",
-            success: function (data) {
-                console.log("Data received:", data); // Debugging
-
-                let reportContent = $("#franchiseReportContent");
-                reportContent.html(""); // Clear existing content
-
-                if (data.length === 0) {
-                    reportContent.html(`<p class="text-center">No data available</p>`);
-                    return;
-                }
-
-                // ✅ Franchise Name and Logo Mapping (Matching Stored Filenames)
-                const franchiseData = {
-                    "auntie-anne": { name: "Auntie Anne's", logo: "AuntieAnn.png" },
-                    "macao-imperial": { name: "Macao Imperial", logo: "MacaoImp.png" },
-                    "potato-corner": { name: "Potato Corner", logo: "PotCor.png" }
-                };
-
-                let tables = {}; // Store separate tables for each franchisee
-                let contractSummary = {}; // Store summary data per franchisee
-
-                // ✅ First loop: Calculate contract counts per franchise
-                data.forEach(row => {
-                    let franchiseeKey = row.franchisor.toLowerCase().replace(/\s+/g, '-');
-                    let franchisee = franchiseData[franchiseeKey] ? franchiseData[franchiseeKey].name : row.franchisor;
-                    let logoPath = franchiseData[franchiseeKey] ? `assets/images/${franchiseData[franchiseeKey].logo}` : "assets/images/default.png";
-
-                    if (!contractSummary[franchisee]) {
-                        contractSummary[franchisee] = {
-                            logo: logoPath, // Store the correct logo path
-                            activeContracts: 0,
-                            expiringContracts: 0,
-                            expiredContracts: 0,
-                            totalContracts: 0,
-                            renewalRate: 0,
-                            branches: []
-                        };
-                    }
-
-                    // ✅ Fix: Only Count Active Contracts That Are Not Expired
-                    let isExpired = new Date(row.expiration_date) < new Date(); // Check if expired
-                    let isActive = row.remarks.toLowerCase() === "active" && !isExpired;
-
-                    if (isActive) {
-                        contractSummary[franchisee].activeContracts += 1; // Only count truly active contracts
-                    }
-
-                    contractSummary[franchisee].expiringContracts += parseInt(row.expiring_contracts) || 0;
-                    contractSummary[franchisee].expiredContracts += isExpired ? 1 : 0;
-                    contractSummary[franchisee].totalContracts++;
-
-                    // ✅ Renewal Rate Calculation (Unchanged)
-                    let total = contractSummary[franchisee].activeContracts + contractSummary[franchisee].expiredContracts;
-                    contractSummary[franchisee].renewalRate = total > 0 ? ((contractSummary[franchisee].activeContracts / total) * 100).toFixed(2) : "0";
-
-                    // ✅ Store Branch Details
-                    contractSummary[franchisee].branches.push({
-                        location: row.location,
-                        classification: row.classification || "N/A",
-                        startDate: formatDate(row.start_date),
-                        expirationDate: formatDate(row.expiration_date),
-                        remarks: isExpired ? "Expired" : "Active"
-                    });
-                });
-
-                // ✅ Generate Tables & Include Contract Summary
-                for (let franchisee in contractSummary) {
-                    let summary = contractSummary[franchisee];
-
-                    tables[franchisee] = `
-                        <div class="franchise-section">
-                            <h3 class="franchise-title">
-                                <img src="${summary.logo}" alt="${franchisee}" class="franchise-logo">
-                                ${franchisee} (Total Contracts: ${summary.totalContracts})
-                            </h3>
-                            
-                            <!-- ✅ Styled Contract Summary -->
-                            <div class="contract-summary">
-                                <div class="summary-item"><strong>Active Contracts:</strong> <span style="color: green; font-weight: bold;">${summary.activeContracts}</span></div>
-                                <div class="summary-item"><strong>Expiring Next Month:</strong> <span style="color: orange; font-weight: bold;">${summary.expiringContracts}</span></div>
-                                <div class="summary-item"><strong>Expired Contracts:</strong> <span style="color: red; font-weight: bold;">${summary.expiredContracts}</span></div>
-                                <div class="summary-item"><strong>Renewal Rate:</strong> <span style="color: blue; font-weight: bold;">${summary.renewalRate}%</span></div>
-                            </div>
-
-                            <!-- Branch Table -->
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-striped report-table">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>Location</th>
-                                            <th>Classification</th>
-                                            <th>Start Date</th>
-                                            <th>Expiration Date</th>
-                                            <th>Remarks</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                    `;
-
-                    summary.branches.forEach(branch => {
-                        tables[franchisee] += `
-                            <tr>
-                                <td>${branch.location}</td>
-                                <td>${branch.classification}</td>
-                                <td>${branch.startDate}</td>
-                                <td>${branch.expirationDate}</td>
-                                <td class="text-center">${branch.remarks}</td>
-                            </tr>
-                        `;
-                    });
-
-                    tables[franchisee] += `</tbody></table></div></div><br>`;
-                    reportContent.append(tables[franchisee]);
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error("Error:", xhr.responseText);
-                $("#franchiseReportContent").html(`<p>Error loading data</p>`);
-            }
-        });
-    });
-});
 
 
 // ✅ Function to Format Dates

@@ -3,10 +3,14 @@ include("database-connection.php");
 
 header('Content-Type: application/json'); // Ensure JSON response
 
+// Get franchisee filter from GET request
+$franchiseeFilter = isset($_GET['franchisee']) ? mysqli_real_escape_string($con, $_GET['franchisee']) : '';
+
+// Base query
 $query = "SELECT 
             c.franchisee AS franchisor, 
-            c.location,  -- ✅ Ensure location is properly referenced
-            c.classification,  -- ✅ Ensure classification is properly referenced
+            c.location,  
+            c.classification,  
             COUNT(CASE WHEN c.status = 'active' THEN 1 END) AS active_contracts,
             COUNT(CASE WHEN c.agreement_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 MONTH) THEN 1 END) AS expiring_contracts,
             COUNT(CASE WHEN c.agreement_date < CURDATE() THEN 1 END) AS expired_contracts,
@@ -14,9 +18,15 @@ $query = "SELECT
             c.franchise_term AS start_date, 
             c.agreement_date AS expiration_date, 
             c.status AS remarks
-          FROM agreement_contract c
-          GROUP BY c.franchisee, c.location, c.classification, c.franchise_term, c.agreement_date, c.status
-          ORDER BY c.franchisee, c.location";
+          FROM agreement_contract c";
+
+// Apply filter if franchisee is selected
+if (!empty($franchiseeFilter)) {
+    $query .= " WHERE c.franchisee = '$franchiseeFilter'";
+}
+
+$query .= " GROUP BY c.franchisee, c.location, c.classification, c.franchise_term, c.agreement_date, c.status
+            ORDER BY c.franchisee, c.location";
 
 $result = mysqli_query($con, $query);
 
@@ -29,8 +39,8 @@ if (!$result) {
 $data = [];
 while ($row = mysqli_fetch_assoc($result)) {
     // Ensure values are properly set
-    $row['location'] = !empty($row['location']) ? $row['location'] : "Unknown Location";  // ✅ Ensure location is valid
-    $row['classification'] = !empty($row['classification']) ? $row['classification'] : "Not Specified";  // ✅ Ensure classification is valid
+    $row['location'] = !empty($row['location']) ? $row['location'] : "Unknown Location";  
+    $row['classification'] = !empty($row['classification']) ? $row['classification'] : "Not Specified";  
 
     // Ensure values are numbers
     $renewed = (int) $row['renewed_contracts'];

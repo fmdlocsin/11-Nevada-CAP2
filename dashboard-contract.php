@@ -579,6 +579,7 @@ echo "<script>
                                 </div>
 
                                <!-- Franchise Agreement Report Modal -->
+                               <!-- Franchise Agreement Report Modal -->
                                 <div class="modal fade" id="franchiseReportModal" tabindex="-1" aria-labelledby="franchiseReportLabel" aria-hidden="true">
                                     <div class="modal-dialog modal-xl">
                                         <div class="modal-content">
@@ -589,15 +590,31 @@ echo "<script>
                                                 </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
-                                            <div class="modal-body">
-                                                <!-- Summary Section -->
-                                                <div id="franchiseSummary" class="franchise-summary">
-                                </div>
 
+                                            <div class="modal-body">
+                                                <!-- Franchisee Filter -->
+                                                <div class="mb-3">
+                                                    <label for="franchiseeFilter" class="form-label"><strong>Filter by Franchisee:</strong></label>
+                                                    <select id="franchiseeFilter" class="form-select">
+                                                        <option value="">All Franchisees</option>
+                                                        <?php
+                                                        // Fetch distinct franchisee names
+                                                        $franchiseeQuery = "SELECT DISTINCT franchisee FROM agreement_contract";
+                                                        $franchiseeResult = mysqli_query($con, $franchiseeQuery);
+                                                        while ($row = mysqli_fetch_assoc($franchiseeResult)) {
+                                                            echo "<option value='{$row['franchisee']}'>{$row['franchisee']}</option>";
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </div>
+
+                                                <!-- Summary Section -->
+                                                <div id="franchiseSummary" class="franchise-summary"></div>
 
                                                 <!-- Report Tables for Each Franchisee -->
                                                 <div id="franchiseReportContent"></div>
                                             </div>
+
                                             <div class="modal-footer">
                                                 <button class="btn btn-primary" id="exportFranchiseCSV">
                                                     <i class="fas fa-file-csv"></i> Export Agreement Data (CSV)
@@ -612,6 +629,8 @@ echo "<script>
 
 
 
+
+                                <!-- Leasing Contracts Report Modal -->
                                 <!-- Leasing Contracts Report Modal -->
                                 <div class="modal fade" id="leasingReportModal" tabindex="-1" aria-labelledby="leasingReportLabel" aria-hidden="true">
                                     <div class="modal-dialog modal-xl">
@@ -623,13 +642,31 @@ echo "<script>
                                                 </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
+
                                             <div class="modal-body">
+                                                <!-- Franchisee Filter -->
+                                                <div class="mb-3">
+                                                    <label for="leasingFranchiseeFilter" class="form-label"><strong>Filter by Franchisee:</strong></label>
+                                                    <select id="leasingFranchiseeFilter" class="form-select">
+                                                        <option value="">All Franchisees</option>
+                                                        <?php
+                                                        // Fetch distinct franchisee names from lease_contract table
+                                                        $leasingFranchiseeQuery = "SELECT DISTINCT franchisee FROM lease_contract";
+                                                        $leasingFranchiseeResult = mysqli_query($con, $leasingFranchiseeQuery);
+                                                        while ($row = mysqli_fetch_assoc($leasingFranchiseeResult)) {
+                                                            echo "<option value='{$row['franchisee']}'>{$row['franchisee']}</option>";
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </div>
+
                                                 <!-- Summary Section -->
                                                 <div id="leasingSummary" class="leasing-summary"></div>
 
                                                 <!-- Report Tables for Each Leasing Franchisor -->
                                                 <div id="leasingReportContent"></div>
                                             </div>
+
                                             <div class="modal-footer">
                                                 <button class="btn btn-primary" id="exportLeasingCSV">
                                                     <i class="fas fa-file-csv"></i> Export Leasing Data (CSV)
@@ -641,6 +678,7 @@ echo "<script>
                                         </div>
                                     </div>
                                 </div>
+
 
                         </div>
                     </div>
