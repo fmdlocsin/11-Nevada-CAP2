@@ -3,6 +3,8 @@ session_start();
 include ("phpscripts/database-connection.php");
 include ("phpscripts/check-login.php");
 
+$yearlySalesData = []; // ✅ Ensure variable is always set
+
 // Validate database connection
 if (!isset($con) || !$con) {
     die("Database connection failed: " . mysqli_connect_error());
@@ -89,12 +91,6 @@ if (!empty($expenseWhereClauses)) {
 // Execute query
 $expensesResult = mysqli_query($con, $expensesQuery);
 $totalExpenses = ($expensesResult) ? mysqli_fetch_assoc($expensesResult)['total_expenses'] : 0;
-
-
-
-
-
-
 
 
 // Franchise Name Mapping
@@ -276,9 +272,45 @@ if (!empty($franchiseeList)) {
     }
 }
 
+// ✅ Start building the Yearly Sales Trend query
+$yearlySalesQuery = "SELECT YEAR(sr.date_added) AS sales_year, SUM(sr.grand_total) AS total_sales
+                     FROM sales_report sr
+                     JOIN agreement_contract ac ON sr.ac_id = ac.ac_id";
 
+// ✅ Add filtering
+$yearlyWhereClauses = [];
 
+if (!empty($franchiseeList)) {
+    $yearlyWhereClauses[] = "ac.franchisee IN ($franchiseeList)";
+}
 
+if (!empty($branchList)) {
+    $yearlyWhereClauses[] = "ac.location IN ($branchList)";
+}
+
+// ✅ Only add WHERE clause if there are filters
+if (!empty($yearlyWhereClauses)) {
+    $yearlySalesQuery .= " WHERE " . implode(" AND ", $yearlyWhereClauses);
+}
+
+$yearlySalesQuery .= " GROUP BY sales_year ORDER BY sales_year ASC";
+
+// ✅ Now execute the final query **after** filters have been applied
+$yearlySalesResult = mysqli_query($con, $yearlySalesQuery);
+
+// ✅ Debug: Check if the query executed successfully
+if (!$yearlySalesResult) {
+    die(json_encode(["error" => "Yearly Sales Query Failed: " . mysqli_error($con)]));
+}
+
+// ✅ Fetch results and store in array
+$yearlySalesData = [];
+while ($row = mysqli_fetch_assoc($yearlySalesResult)) {
+    $yearlySalesData[] = [
+        'year' => (int) $row['sales_year'],
+        'sales' => (float) $row['total_sales']
+    ];
+}
 
 
 // Return JSON if requested
@@ -293,7 +325,8 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
         "franchiseSales" => $franchise_sales_data,
         "branchSales" => $franchise_branch_sales_data,
         "bestSelling" => $best_selling_data,
-        "worstSelling" => $worst_selling_data
+        "worstSelling" => $worst_selling_data,
+        "yearlySalesTrend" => $yearlySalesData
     ]);
     exit();
 }
@@ -386,6 +419,8 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                 <h1 class="title">Dashboard</h1>
             </div>
         </header>
+
+    <div class="content" id="content-area">
         <div class="container">
             <div class="dash-content">
                 <div class="overview">
@@ -420,12 +455,6 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
 
                             <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
                         </div>
-
-                        
-                       
-
-
-
                     </div>
 
 
@@ -480,14 +509,25 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
 
                         <!-- NEW: Charts are now placed BELOW the summary boxes -->
                         <div class="charts-container">
-                            <!-- Franchise Sales Chart -->
-                            <div class="chart-box">
-                                <h2>Sales Performance per Franchise</h2>
-                                <div class="chart-container">
-                                    <canvas id="franchiseSalesChart"></canvas>
+                            <!-- Left Column for Franchise Sales and Yearly Sales Trend -->
+                            <div class="charts-column">
+                                <!-- Yearly Sales Trend Chart -->
+                                <div class="chart-box-yearly">
+                                        <h2>Yearly Sales Trend</h2>
+                                        <div class="chart-container">
+                                            <canvas id="yearlySalesChart"></canvas>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Franchise Sales Chart -->
+                                    <div class="chart-box">
+                                        <h2>Sales Performance per Franchise</h2>
+                                        <div class="chart-container">
+                                            <canvas id="franchiseSalesChart"></canvas>
+                                        </div>
+                                        <div id="franchiseLegend" class="chart-legend"></div>
+                                    </div>
                                 </div>
-                                <div id="franchiseLegend" class="chart-legend"></div>
-                            </div>
 
                             <!-- Right Section: Franchise & Branch Sales + Best/Worst Selling Charts -->
                             <div class="right-content">
@@ -514,7 +554,7 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                                             <div id="worstSellingLegend" class="chart-legend"></div> <!-- ✅ Legend Added -->
                                         </div>
                                     </div>
-                                </div>
+                                
 
                                 <!-- Report Modal -->
                                 <div id="reportModal" class="modal fade" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
@@ -580,7 +620,8 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
     <!-- JS -->
     <script src="https://code.jquery.com/jquery-3.7.1.js"

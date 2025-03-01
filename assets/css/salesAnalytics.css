@@ -10,6 +10,13 @@
     --box-group-background: #d3d3d3;
 }
 
+#content-area {
+    display: flex; /* Enables Flexbox */
+    justify-content: center; /* Centers horizontally */
+    align-items: center; /* Centers vertically */
+}
+
+
 /* Title Styles */
 h2 {
     font-size: 22px;
@@ -213,17 +220,6 @@ h2 {
     transform: translate(-50%, -50%);
 }
 
-/* Main Charts Container */
-.charts-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    max-width: 1700px;
-    margin: auto;
-    margin-top: 10px;
-    /* padding: 10px; */
-}
-
 
 /* Right Chart Container (Holds Pie + Stacked Bar Charts) */
 .right-chart-container {
@@ -254,20 +250,6 @@ h2 {
     max-width: 350px;
 }
 
-
-/* General Chart Box Styling */
-.chart-box {
-    flex: 1;
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 400px; /* Reduced size */
-    width: 100%;
-}
 
 /* Franchise & Branch Sales Pie Chart */
 #franchiseBranchChartContainer {
@@ -331,6 +313,20 @@ h2 {
     /* padding: 20px; */
 }
 
+.chart-box-yearly {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 500px; /* Reduced size */
+    width: 100%;
+    margin-bottom: 15px;
+}
+
 /* Left Section (Franchise Sales Chart) */
 .chart-box {
     flex: 1;
@@ -366,7 +362,7 @@ h2 {
     flex-direction: column;
     gap: 15px; /* Space between stacked bar charts */
     width: 100%;
-    max-width: 400px; /* Adjust width to fit in the right side */
+    max-width: 500px; /* Adjust width to fit in the right side */
 }
 
 /* Smaller Bar Charts */
@@ -676,6 +672,7 @@ h2 {
     color: white;
     font-weight: bold;
 }
+
 
 
 

@@ -204,9 +204,11 @@ function fetchKPIData(forceReload = false) {
         updateSalesCharts(data);
         updateBestSellingChart(data.bestSelling);
         updateWorstSellingChart(data.worstSelling);
+        updateYearlySalesChart(data);  // Yearly Sales Chart
     })
     .catch(error => console.error("❌ Error fetching KPI data:", error));
 }
+
 
 
 // 🎯 Update Sales Performance Charts
@@ -1018,7 +1020,7 @@ function exportTableToPDF() {
     doc.save(`sales_report_${reportType.replace(/\s+/g, "_").toLowerCase()}.pdf`);
 }
 
-
+// SET DEFAULT DATE TO JANUARY 1ST 2025
 document.addEventListener("DOMContentLoaded", function () {
     // ✅ Get current date
     let today = new Date();
@@ -1048,3 +1050,99 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchKPIData(true);
 });
 
+
+function updateYearlySalesChart(data) {
+    let yearlySalesData = data.yearlySalesTrend;
+
+    console.log("📊 Debugging Yearly Sales Data:", yearlySalesData); // ✅ Debugging Output
+
+    if (!yearlySalesData || yearlySalesData.length === 0) {
+        console.warn("⚠️ No yearly sales data available.");
+        return;
+    }
+
+    let years = yearlySalesData.map(entry => entry.year);
+    let sales = yearlySalesData.map(entry => entry.sales);
+
+    let ctx = document.getElementById("yearlySalesChart").getContext("2d");
+
+    // ✅ Destroy previous instance if it exists
+    if (window.yearlySalesChart && typeof window.yearlySalesChart.destroy === "function") {
+        window.yearlySalesChart.destroy();
+    }
+
+    // ✅ Initialize the new chart
+    window.yearlySalesChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: years,
+            datasets: [{
+                label: "Total Sales Per Year",
+                data: sales,
+                backgroundColor: "rgba(54, 162, 235, 0.2)", // Light blue background fill
+                borderColor: "#007BFF", // Blue line color
+                borderWidth: 2, // Thicker line
+                tension: 0.3, // Smooth curves
+                pointRadius: 6, // Bigger data points
+                pointBackgroundColor: "#007BFF", // Point color
+                pointBorderColor: "#fff",
+                pointHoverRadius: 8 // Increase on hover
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: {
+                        display: false // Hide vertical grid lines
+                    },
+                    ticks: {
+                        font: {
+                            size: 14,
+                            weight: "bold"
+                        }
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: "rgba(0, 0, 0, 0.1)" // Light grid lines
+                    },
+                    ticks: {
+                        font: {
+                            size: 12
+                        },
+                        callback: function(value) {
+                            return "₱" + value.toLocaleString(); // Format with currency
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: "top",
+                    labels: {
+                        font: {
+                            size: 14,
+                            weight: "bold"
+                        },
+                        boxWidth: 15
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: "#000",
+                    titleFont: { size: 14, weight: "bold" },
+                    bodyFont: { size: 12 },
+                    callbacks: {
+                        label: function(context) {
+                            return "₱" + context.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
