@@ -87,7 +87,15 @@ if ($result) {
 
                 <div class="branches">
                     <div class="staffed-branches">
-                        <h1 class="branch-title">Fully Staffed Branches</h1>
+
+                        <!-- Generate Report button -->
+                        <div class="d-inline-flex align-items-center gap-3">
+                            <h1 class="branch-title">Fully Staffed Branches</h1>
+                            <button id="generateStaffedReport" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#staffedReportModal">
+                                Generate Report
+                            </button>
+                        </div>
+
                         <a href="../../pages/manpower/manpower_fullschedule?str=potatoCorner" class="store">
                             <img class="logo" src="../../assets/images/PotCor.png" alt="Potato Corner">
                             <h4 id="store-text">Potato Corner</h4>
@@ -101,8 +109,16 @@ if ($result) {
                             <h4 id="store-text">Macao Imperial Tea</h4>
                         </a>
                     </div>
+
                     <div class="understaffed-branches">
-                        <h1 class="branch-title">Understaffed Branches</h1>
+
+                        <div class="d-inline-flex align-items-center gap-3">
+                            <h1 class="branch-title">Understaffed Branches</h1>
+                            <button id="generateUnderstaffedReport" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#understaffedReportModal" onclick="generateReport('understaffed')">
+                                Generate Report
+                            </button>
+                        </div>
+
                         <a href="../../pages/manpower/manpower_incompleteschedule?str=potatoCorner" class="store">
                             <img class="logo" src="../../assets/images/PotCor.png" alt="Potato Corner">
                             <h4 id="store-text">Potato Corner</h4>

@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $activityType = 'manpower_employee_added';
 
     // Check for required fields
-    if (empty($employeeName) || empty($dob) || empty($address) || empty($email) || empty($mobile)) {
+    if (empty($employeeName) || empty($dob) || empty($address) || empty($email) || empty($mobile) || empty($userType)) {
         $data['status'] = 'error';
         $data['message'] = 'All fields are required.';
     } else {

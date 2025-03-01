@@ -59,6 +59,60 @@ include ("../../phpscripts/check-login.php");
             </div>
         </div>
 
+
+        <!-- Unassign Employee Modal -->
+        <div class="modal fade" id="unassignModal" tabindex="-1" aria-labelledby="unassignModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="unassignModalLabel">Unassign Employee</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="unassignForm">
+                            <input type="hidden" id="unassignEmployeeId">
+                            
+                            <p class="text-center">Select a reason for unassigning:</p>
+                            
+                            <div class="d-flex justify-content-center gap-3">
+                                <div class="box box5 unassign-option" data-value="Resign">
+                                    <i class='bx bx-user-x'></i>
+                                    <span class="text">Resign</span>
+                                </div>
+                                <div class="box box6 unassign-option" data-value="On Leave">
+                                    <i class='bx bx-time'></i>
+                                    <span class="text">On Leave</span>
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="reasonType" id="reasonType">
+                            
+                            <div class="mt-3">
+                                <label for="reasonText" class="form-label">Additional Notes:</label>
+                                <textarea class="form-control" id="reasonText" rows="3" placeholder="Enter reason"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" id="confirmUnassign">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Error Modal -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal-box" id="modalBox">
+                <div class="modal-body">
+                    <p id="modalMessage"></p>
+                </div>
+            </div>
+        </div>
+
+
     </section>
 
     

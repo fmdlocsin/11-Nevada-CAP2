@@ -84,16 +84,14 @@ function displayEmployees() {
     });
 }
 
+// Show Employee Details with Unassign Button
 function showEmployeeDetails() {
     $(document).on("click", ".check-employee", function () {
-        // Remove active class from all employee buttons
         $(".check-employee").removeClass("active");
-
-        // Add active class to the clicked button
         $(this).addClass("active");
 
-        // Fetch employee details
         var employeeId = $(this).data("id");
+
         $.ajax({
             method: "POST",
             url: "../../phpscripts/get-employee-details.php",
@@ -102,6 +100,17 @@ function showEmployeeDetails() {
             success: function (response) {
                 if (response.status === "success") {
                     var employee = response.employee[0];
+
+                    var changeStatusButton = "";
+                    if (employee.employee_status !== "resigned") {
+                        changeStatusButton = `
+                            <div class="header-section2 text-center">
+                                <button class="btn btn-warning unassign-employee" data-id="${employee.user_id}">
+                                    Change Status
+                                </button>
+                            </div>
+                        `;
+                    }
 
                     var htmlContent = `
                         <div class="container2">
@@ -120,13 +129,14 @@ function showEmployeeDetails() {
                             <div class="header-section2">
                                 <span class="header-label">Employment Information</span>
                                 <span class="header-label2">Branch Assignment:</span> ${employee.branch} <br>
-                                <span class="header-label2">Employment Status:</span> ${employee.employee_status}
+                                <span class="header-label2">Employment Status:</span> ${employee.employee_status} <br>
+                                ${employee.employee_status !== "assigned" && employee.certificate_file_name ? `<span class="header-label2">Remarks:</span> ${employee.certificate_file_name} <br>` : ""}
                             </div>
                             <div class="header-section2">
                                 <span class="header-label">Certification Information</span>
                                 <span class="header-label2">Certifications Held:</span> ${employee.certifications}
                             </div>
-                           
+                            ${changeStatusButton}
                         </div>
                     `;
 
@@ -137,28 +147,121 @@ function showEmployeeDetails() {
             },
             error: function (xhr, status, error) {
                 console.error("AJAX Error:", error);
-            },
+            }
         });
     });
 }
 
 
+// Open Modal for Unassigning Employee
+$(document).on("click", ".unassign-employee", function () {
+    var employeeId = $(this).data("id");
+    $("#unassignEmployeeId").val(employeeId); // Store employee ID in hidden input
+    $("#unassignModal").modal("show"); // Show modal
+});
+
+// Handle Unassign Form Submission
+$(document).ready(function () {
+    // Handle selection of Unassign options (Resign / On Leave)
+    $(".unassign-option").on("click", function () {
+        $(".unassign-option").removeClass("active");
+        $(this).addClass("active");
+        $("#reasonType").val($(this).data("value"));
+    });
+
+    // Handle Unassign Form Submission
+    $(document).on("click", "#confirmUnassign", function () {
+        var employeeId = $("#unassignEmployeeId").val();
+        var reasonType = $("#reasonType").val();
+        var reasonText = $("#reasonText").val();
+
+        if (!reasonType) {
+            displayModal("Error", "Please select a reason.", "#dc3545");
+            return;
+        }
+
+        console.log("Submitting:", { id: employeeId, reasonType: reasonType, reasonText: reasonText });
+
+        $.ajax({
+            method: "POST",
+            url: "../../phpscripts/unassign-employee.php",
+            data: { id: employeeId, reasonType: reasonType, reasonText: reasonText },
+            dataType: "json",
+            success: function (response) {
+                console.log("Response:", response);
+
+                if (response.status === "success") {
+                    $("#unassignModal").modal("hide");
+                    $("#employeeDetails").html("");
+                    displayEmployees();
+                } else {
+                    console.error("Error:", response.message);
+                    alert("Error: " + response.message);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("AJAX Error:", error);
+                console.log("Server Response:", xhr.responseText);
+                alert("AJAX Error: " + error);
+            }
+        });
+    });
+});
+
+
+
+
+
+// Unassign Employee Functionality
+$(document).on("click", ".unassign-employee", function () {
+    var employeeId = $(this).data("id");
+    $("#unassignEmployeeId").val(employeeId); // Store employee ID
+    $("#unassignModal").modal("show"); // Show modal directly
+});
+
+
+
+
 function addEmployee() {
     $(document).on("click", ".add-employee", function () {
-        var formData = $("#addEmployeeForm").serialize();
+        var formData = $("#addEmployeeForm").serializeArray();
+        var missingFields = [];
+        
+        // Get form values
+        var employeeName = $("input[name='employeeName']").val();
+        var dob = $("input[name='dob']").val();
+        var address = $("input[name='address']").val();
+        var email = $("input[name='email']").val();
+        var mobile = $("input[name='mobile']").val();
+        var userType = $("select[name='employeeRole']").val();
+
+        // Check required fields
+        if (!employeeName) missingFields.push("Employee Name");
+        if (!dob) missingFields.push("Date of Birth");
+        if (!address) missingFields.push("Address");
+        if (!email) missingFields.push("Email");
+        if (!mobile) missingFields.push("Mobile");
+        if (!userType) missingFields.push("Employee Role");
+
+        // If required fields are missing, show the modal with an error
+        if (missingFields.length > 0) {
+            displayModal(
+                "Error",
+                "Failed to create document. Please fill all required fields.",
+                "#dc3545"
+            );
+            return;
+        }
 
         $.ajax({
             method: "POST",
             url: "../../phpscripts/add-employee.php",
-            data: formData,
+            data: $.param(formData), // Serialize Form Data
             dataType: "json",
             success: function (response) {
                 if (response.status === "success") {
-                    $("input, button, textarea, select, a").prop(
-                        "disabled",
-                        true
-                    );
-                    displayModal("Success", response.message, "#198754");
+                    $("input, button, textarea, select, a").prop("disabled", true);
+                    displayModal("Success", "Employee created successfully.", "#198754");
 
                     setTimeout(function () {
                         closeModal();
@@ -176,6 +279,8 @@ function addEmployee() {
         });
     });
 }
+
+
 
 function displayRecentActivities() {
     $.ajax({

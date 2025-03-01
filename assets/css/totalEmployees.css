@@ -345,3 +345,76 @@
         width: 100%;
     }
 }
+
+
+
+/* Unassign Modal Box Options */
+/* Unassign Modal Box Options */
+.unassign-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--box-color);
+    border-radius: 8px;
+    box-shadow: 0 5px 10px var(--box-shadow-color);
+    padding: 20px;
+    width: 40%;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Default styling for the unassign options */
+.unassign-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--box-color);
+    border-radius: 8px;
+    box-shadow: 0 5px 10px var(--box-shadow-color);
+    padding: 20px;
+    width: 40%;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease-in-out;
+}
+
+/* Unique hover colors for Resign and On Leave */
+.unassign-option[data-value="Resign"]:hover {
+    background-color: #dc3545; /* Red */
+    color: white;
+}
+
+.unassign-option[data-value="On Leave"]:hover {
+    background-color: #ffc107; /* Yellow */
+    color: black;
+}
+
+/* Active (selected) styling */
+.unassign-option.active[data-value="Resign"] {
+    background-color: #dc3545; /* Red */
+    color: white;
+    border: 2px solid white;
+    transform: scale(1.05);
+}
+
+.unassign-option.active[data-value="On Leave"] {
+    background-color: #ffc107; /* Yellow */
+    color: black;
+    border: 2px solid white;
+    transform: scale(1.05);
+}
+
+/* Icon styling */
+.unassign-option i {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+/* Text inside the box */
+.unassign-option .text {
+    font-size: 18px;
+    font-weight: 600;
+}
