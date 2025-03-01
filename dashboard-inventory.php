@@ -169,7 +169,6 @@ $highTurnoverResult = $stmtHigh->get_result();
                 ORDER BY turnover_rate ASC 
                 LIMIT 5";
 
-
 $stmtLow = $con->prepare($lowTurnoverQuery); // ✅ Correct variable name
 if (!$stmtLow) {
     echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
@@ -193,13 +192,13 @@ $lowTurnoverResult = $stmtLow->get_result();
     $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("-30 days"));
     $endDate = $_POST["endDate"] ?? date("Y-m-d");
 
-    $sellThroughQuery = "SELECT DATE(datetime_added) AS sale_date, 
+    $sellThroughQuery = "SELECT branch, DATE(datetime_added) AS sale_date, 
                     (SUM(sold) / NULLIF(SUM(delivery), 0)) * 100 AS sell_through_rate
                     FROM item_inventory 
                     WHERE branch IN ($placeholders) 
                     AND DATE(datetime_added) BETWEEN ? AND ?
-                    GROUP BY DATE(datetime_added)
-                    ORDER BY sale_date ASC";
+                    GROUP BY branch, DATE(datetime_added)
+                    ORDER BY branch, sale_date ASC";
 
 
     $stmtSellThrough = $con->prepare($sellThroughQuery);
@@ -217,11 +216,15 @@ $lowTurnoverResult = $stmtLow->get_result();
     $stmtSellThrough->execute();
     $sellThroughResult = $stmtSellThrough->get_result();
 
-    $sellThroughRate = ["dates" => [], "values" => []];
+    $sellThroughRate = ["data" => []]; // ✅ Fix structure
     while ($row = $sellThroughResult->fetch_assoc()) {
-        $sellThroughRate["dates"][] = $row["sale_date"];
-        $sellThroughRate["values"][] = floatval($row["sell_through_rate"]);
+        $sellThroughRate["data"][] = [
+            "branch" => $row["branch"], // ✅ Include branch name
+            "sale_date" => $row["sale_date"],
+            "sell_through_rate" => floatval($row["sell_through_rate"])
+        ];
     }
+    
 
 
     // ✅ Send JSON Response

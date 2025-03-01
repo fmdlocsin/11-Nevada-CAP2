@@ -157,7 +157,8 @@ let sellThroughChart, highTurnoverChart, lowTurnoverChart; // ✅ Store chart in
 function updateSellThroughGraph(sellThroughRate) {
     console.log("Updating Sell-Through Rate Graph...", sellThroughRate);
 
-    if (!sellThroughRate || !sellThroughRate.dates || sellThroughRate.dates.length === 0) {
+    // ✅ Ensure it's an array
+    if (!sellThroughRate || !sellThroughRate.data || !Array.isArray(sellThroughRate.data) || sellThroughRate.data.length === 0) {
         console.warn("⚠ No data available for Sell-Through Rate.");
         return;
     }
@@ -169,34 +170,57 @@ function updateSellThroughGraph(sellThroughRate) {
 
     const ctx = document.getElementById("sellThroughChart").getContext("2d");
 
+    let datasets = [];
+    let branchColors = ["blue", "red", "green", "orange", "purple", "brown"]; // ✅ Assign different colors per branch
+    let branchIndex = 0;
+
+    // ✅ Organize data by branch
+    let branchData = {};
+    sellThroughRate.data.forEach(entry => {
+        if (!branchData[entry.branch]) {
+            branchData[entry.branch] = { dates: [], values: [] };
+        }
+        branchData[entry.branch].dates.push(entry.sale_date);
+        branchData[entry.branch].values.push(entry.sell_through_rate);
+    });
+
+    // ✅ Prepare dataset for each branch
+    Object.keys(branchData).forEach(branch => {
+        datasets.push({
+            label: `${branch} Sell-Through Rate (%)`,
+            data: branchData[branch].values, // ✅ Y-axis (percentage)
+            borderColor: branchColors[branchIndex % branchColors.length], // ✅ Assign unique color
+            backgroundColor: branchColors[branchIndex % branchColors.length] + "33", // ✅ Lighter color for fill
+            fill: true
+        });
+        branchIndex++;
+    });
+
     sellThroughChart = new Chart(ctx, {
         type: "line",
         data: {
-            labels: sellThroughRate.dates, // X-axis (time)
-            datasets: [{
-                label: "Sell-Through Rate (%)",
-                data: sellThroughRate.values, // Y-axis (percentage)
-                borderColor: "blue",
-                backgroundColor: "rgba(0, 0, 255, 0.1)",
-                fill: true
-            }]
+            labels: branchData[Object.keys(branchData)[0]].dates || [], // ✅ Use dates from the first branch as x-axis
+            datasets: datasets
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // ✅ Ensures chart does not grow infinitely
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        callback: function(value) { return value + "%"; } // ✅ Show percentages
+                        callback: function(value) { return value + "%"; }
                     }
                 }
             }
         }
     });
 
-    console.log("Sell-Through Rate Graph Updated!");
+    console.log("✅ Sell-Through Rate Graph Updated!");
 }
+
+
+
 
 function updateGraphs(highTurnover, lowTurnover) {
     console.log("Updating Graphs...");
