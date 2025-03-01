@@ -94,42 +94,63 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
+    
+        // ✅ Default start and end date to the current week (Monday - Sunday)
+    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
+    $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
 
     // ✅ Dynamic query for multiple branches
     $placeholders = implode(",", array_fill(0, count($branches), "?"));
 
     // ✅ Fetch inventory KPIs
     $query = "SELECT 
-                SUM(beginning - sold - waste) AS stock_level,
-                COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
-                SUM(waste) AS total_wastage
-              FROM item_inventory 
-              WHERE branch IN ($placeholders)";
+            SUM(beginning - sold - waste) AS stock_level,
+            COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
+            SUM(waste) AS total_wastage
+            FROM item_inventory 
+            WHERE branch IN ($placeholders) 
+            AND DATE(datetime_added) BETWEEN ? AND ?";
 
-    $stmt = $con->prepare($query);
-    if (!$stmt) {
-        echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
-        exit;
-    }
-    $stmt->bind_param(str_repeat("s", count($branches)), ...$branches);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $data = $result->fetch_assoc();
+   
+   
+$stmt = $con->prepare($query);
+if (!$stmt) {
+    echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+    exit;
+}
+
+$types = str_repeat("s", count($branches)) . "ss"; // ✅ Generate the correct types
+$params = array_merge($branches, [$startDate, $endDate]); // ✅ Merge all parameters
+
+$stmt->bind_param($types, ...$params); // ✅ Fix: No positional arguments after unpacking
+$stmt->execute();
+$result = $stmt->get_result();
+$data = $result->fetch_assoc();
 
     // ✅ Fetch top 5 high turnover items for selected branches
     $highTurnoverQuery = "SELECT i.item_name, 
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) AS turnover_rate 
                 FROM item_inventory ii 
                 INNER JOIN items i ON ii.item_id = i.item_id 
-                WHERE ii.branch IN ($placeholders)
+                WHERE ii.branch IN ($placeholders) 
+                AND DATE(ii.datetime_added) BETWEEN ? AND ?
                 GROUP BY i.item_name 
                 ORDER BY turnover_rate DESC 
                 LIMIT 5";
 
-    $stmtHigh = $con->prepare($highTurnoverQuery);
-    $stmtHigh->bind_param(str_repeat("s", count($branches)), ...$branches);
-    $stmtHigh->execute();
-    $highTurnoverResult = $stmtHigh->get_result();
+
+$stmtHigh = $con->prepare($highTurnoverQuery);
+if (!$stmtHigh) {
+    echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+    exit;
+}
+
+$types = str_repeat("s", count($branches)) . "ss"; // ✅ Generate correct types string
+$params = array_merge($branches, [$startDate, $endDate]); // ✅ Merge branch values with date range
+
+$stmtHigh->bind_param($types, ...$params); // ✅ Fix: No positional arguments after unpacking
+$stmtHigh->execute();
+$highTurnoverResult = $stmtHigh->get_result();                                  
 
     $highTurnover = ["labels" => [], "values" => []];
     while ($row = $highTurnoverResult->fetch_assoc()) {
@@ -142,15 +163,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) AS turnover_rate 
                 FROM item_inventory ii 
                 INNER JOIN items i ON ii.item_id = i.item_id 
-                WHERE ii.branch IN ($placeholders)
+                WHERE ii.branch IN ($placeholders) 
+                AND DATE(ii.datetime_added) BETWEEN ? AND ?
                 GROUP BY i.item_name 
                 ORDER BY turnover_rate ASC 
                 LIMIT 5";
 
-    $stmtLow = $con->prepare($lowTurnoverQuery);
-    $stmtLow->bind_param(str_repeat("s", count($branches)), ...$branches);
-    $stmtLow->execute();
-    $lowTurnoverResult = $stmtLow->get_result();
+
+$stmtLow = $con->prepare($lowTurnoverQuery); // ✅ Correct variable name
+if (!$stmtLow) {
+    echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+    exit;
+}
+
+$types = str_repeat("s", count($branches)) . "ss"; // ✅ Generate correct types string
+$params = array_merge($branches, [$startDate, $endDate]); // ✅ Merge branch values with date range
+
+$stmtLow->bind_param($types, ...$params); // ✅ Fix: No positional arguments after unpacking
+$stmtLow->execute();
+$lowTurnoverResult = $stmtLow->get_result();
 
     $lowTurnover = ["labels" => [], "values" => []];
     while ($row = $lowTurnoverResult->fetch_assoc()) {
@@ -169,6 +200,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
                     AND DATE(datetime_added) BETWEEN ? AND ?
                     GROUP BY DATE(datetime_added)
                     ORDER BY sale_date ASC";
+
 
     $stmtSellThrough = $con->prepare($sellThroughQuery);
     if (!$stmtSellThrough) {
@@ -407,10 +439,10 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                 <!-- Filters Section -->
                 <div class="filter-section2">
                     <label for="startDate">Start Date:</label>
-                    <input type="date" id="startDate" class="form-control" onchange="fetchKPIData()">
+                    <input type="date" id="startDate" class="form-control">
                     
                     <label for="endDate">End Date:</label>
-                    <input type="date" id="endDate" class="form-control" onchange="fetchKPIData()">
+                    <input type="date" id="endDate" class="form-control">
 
                     <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
                 </div>
