@@ -49,7 +49,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
 
     // ✅ Exception Report Query
     $query = "SELECT 
-                i.item_name, ii.branch,
+                ii.franchisee,  -- ✅ Include franchisee in SELECT
+                i.item_name, 
+                ii.branch,
                 (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
                 (SUM(ii.waste) / NULLIF((SUM(ii.beginning) + SUM(ii.delivery) - SUM(ii.sold) - SUM(ii.waste)), 0)) * 100 AS waste_percentage,
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
@@ -57,8 +59,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
             INNER JOIN items i ON ii.item_id = i.item_id
             WHERE ii.branch IN (" . implode(",", array_fill(0, count($branches), "?")) . ")
             AND DATE(ii.datetime_added) BETWEEN ? AND ?
-            GROUP BY i.item_name, ii.branch
+            GROUP BY ii.franchisee, i.item_name, ii.branch  -- ✅ Now grouping by both franchisee & branch
             ORDER BY waste_percentage DESC";
+
 
     $stmt = $con->prepare($query);
     if (!$stmt) {
@@ -360,7 +363,7 @@ $lowTurnoverResult = $stmtLow->get_result();
     exit;
 }
 
-// the thingy for report generation
+// the thingy for detailed generation
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // ✅ Map franchise names to match the database format
 $franchiseMap = [
@@ -678,44 +681,36 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                     </div>
                 </div>
 
-                <!-- exception modal -->
-                <div id="exceptionReportModal" class="modal fade" tabindex="-1">
-                     <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header bg-danger text-white">
-                                <h5 class="modal-title">Exception Report</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                        <div class="modal-body">
-                            <div class="alert alert-secondary">
-                                <h6><strong>Applied Filters:</strong></h6>
-                                <p><strong>Franchisee(s):</strong> <span id="exceptionSelectedFranchisees">All</span></p>
-                                <p><strong>Branch(es):</strong> <span id="exceptionSelectedBranches">All</span></p>
-                                <p><strong>Date Range:</strong> <span id="exceptionSelectedDateRange">Not Set</span></p>
-                            </div>
-                        <div class="table-responsive">
-                            <table id="exceptionReportTable" class="table table-bordered">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>Item Name</th>
-                                        <th>Current Stock</th>
-                                        <th>Stock Status</th>
-                                        <th>Waste Status</th>
-                                        <th>Waste Percentage</th>
-                                        <th>Turnover Rate</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="exceptionReportTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-success" onclick="exportExceptionToCSV()">Export as CSV</button>
-                            <button class="btn btn-danger" onclick="exportExceptionToPDF()">Export as PDF</button>
-                        </div>
-                        </div>
-                    </div>
+<!-- Exception Report Modal -->
+<div id="exceptionReportModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Exception Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-secondary">
+                    <h6><strong>Applied Filters:</strong></h6>
+                    <p><strong>Franchisee(s):</strong> <span id="exceptionSelectedFranchisees">All</span></p>
+                    <p><strong>Branch(es):</strong> <span id="exceptionSelectedBranches">All</span></p>
+                    <p><strong>Date Range:</strong> <span id="exceptionSelectedDateRange">Not Set</span></p>
                 </div>
+
+                <!-- ✅ Exception Report Tables Will Be Inserted Here -->
+                <div id="exceptionReportTablesContainer"></div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="exportExceptionToCSV()">Export as CSV</button>
+                <button class="btn btn-danger" onclick="exportExceptionToPDF()">Export as PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 
 
             

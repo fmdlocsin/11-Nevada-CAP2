@@ -431,6 +431,12 @@ function generateExceptionReport() {
 }
 
 // Fetch Exception Report Data
+const franchiseDisplayMap = {
+    "potato-corner": "Potato Corner",
+    "auntie-anne": "Auntie Anne's",
+    "macao-imperial": "Macao Imperial"
+};
+
 function fetchExceptionReport(franchisees, branches, startDate, endDate) {
     console.log("📌 Fetching Exception Report", { franchisees, branches, startDate, endDate });
 
@@ -450,7 +456,7 @@ function fetchExceptionReport(franchisees, branches, startDate, endDate) {
 
             if (!response || typeof response !== "object") {
                 console.warn("⚠ No valid data received.");
-                $("#exceptionReportTableBody").html("<tr><td colspan='6' class='text-center'>No data available</td></tr>");
+                $("#exceptionReportTablesContainer").html("<p class='text-center text-danger'>No data available</p>");
                 return;
             }
 
@@ -459,32 +465,76 @@ function fetchExceptionReport(franchisees, branches, startDate, endDate) {
 
             if (!data || !Array.isArray(data) || data.length === 0) {
                 console.warn("⚠ No exception data available.");
-                $("#exceptionReportTableBody").html("<tr><td colspan='6' class='text-center'>No data available</td></tr>");
+                $("#exceptionReportTablesContainer").html("<p class='text-center'>No data available</p>");
                 return;
             }
 
-            $("#exceptionReportTableBody").empty();
-            data.forEach(item => {
-                let stockStatus = getStockStatus(item.current_stock, item.turnover_rate);
-                $("#exceptionReportTableBody").append(`
-                    <tr>
-                        <td>${item.item_name}</td>
-                        <td>${item.current_stock}</td>
-                        <td>${stockStatus}</td>
-                        <td>${item.waste_status}</td>
-                        <td>${parseFloat(item.waste_percentage || 0).toFixed(2)}%</td>
-                        <td>${parseFloat(item.turnover_rate || 0).toFixed(2)}%</td>
+            // ✅ Clear previous content
+            $("#exceptionReportTablesContainer").empty();
 
-                    </tr>
-                `);
+            // ✅ Group data by franchise & branch
+            let groupedData = {};
+            data.forEach(item => {
+                let formattedFranchise = franchiseDisplayMap[item.franchisee] || item.franchisee; // ✅ Convert franchise to display format
+                let key = `${formattedFranchise} - ${item.branch}`; // ✅ Franchise + Branch Grouping
+                if (!groupedData[key]) {
+                    groupedData[key] = [];
+                }
+                groupedData[key].push(item);
+            });
+
+            // ✅ Create separate tables for each franchise-branch combination
+            Object.keys(groupedData).forEach(group => {
+                let items = groupedData[group];
+
+                let tableHtml = `
+                    <h4 class="mt-4 text-center">${group}</h4> 
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Current Stock</th>
+                                    <th>Stock Status</th>
+                                    <th>Waste Status</th>
+                                    <th>Waste Percentage</th>
+                                    <th>Turnover Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                items.forEach(item => {
+                    let stockStatus = getStockStatus(item.current_stock, item.turnover_rate);
+                    tableHtml += `
+                        <tr>
+                            <td>${item.item_name}</td>
+                            <td>${item.current_stock}</td>
+                            <td>${stockStatus}</td>
+                            <td>${item.waste_status}</td>
+                            <td>${parseFloat(item.waste_percentage || 0).toFixed(2)}%</td>
+                            <td>${parseFloat(item.turnover_rate || 0).toFixed(2)}%</td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                $("#exceptionReportTablesContainer").append(tableHtml);
             });
         },
         error: function(xhr) {
             console.error("❌ AJAX Error:", xhr.responseText);
-            $("#exceptionReportTableBody").html("<tr><td colspan='6' class='text-center text-danger'>Failed to fetch report</td></tr>");
+            $("#exceptionReportTablesContainer").html("<p class='text-center text-danger'>Failed to fetch report</p>");
         }
     });
 }
+
+
 
 
 
