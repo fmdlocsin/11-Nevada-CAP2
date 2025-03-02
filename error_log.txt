@@ -1,0 +1,107 @@
+[02-Mar-2025 11:01:34 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:01:34 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:01:34 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:01:34 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:01:34 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getStockStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:76
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 76
+[02-Mar-2025 11:02:01 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:02:01 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:02:01 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:02:01 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:02:01 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getStockStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:77
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 77
+[02-Mar-2025 11:03:27 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:03:27 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:03:27 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:03:27 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:03:27 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getWasteStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:78
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 78
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:06:56 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:08:23 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getStockStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:65
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 65
+[02-Mar-2025 11:09:05 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:10:38 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:11:33 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getStockStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:73
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 73
+[02-Mar-2025 11:11:42 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:11:59 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getWasteStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:79
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 79
+[02-Mar-2025 11:12:11 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:12:23 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 8
+[02-Mar-2025 11:12:27 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:13:33 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:13:57 Europe/Berlin] 📌 Exception Report Rows Fetched: 18

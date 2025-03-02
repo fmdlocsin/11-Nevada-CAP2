@@ -391,6 +391,103 @@ const franchiseNameMap = {
     "Auntie Anne's": "Auntie Anne's",
     "Macao Imperial Tea": "Macao Imperial Tea"
 };
+// ✅ Define getStockStatus() FIRST
+function getStockStatus($currentStock, $turnoverRate) {
+    if ($currentStock === 0) return "Stockout";
+    if ($turnoverRate === 0) return "Unknown"; // No sales data available
+
+    $stockDays = $currentStock; // Estimate how long stock will last
+
+    if ($stockDays > 14) return "High";
+    if ($stockDays >= 7) return "Moderate";
+    if ($stockDays > 0) return "Low";
+    return "Stockout";
+}
+
+
+function generateExceptionReport() {
+    let selectedFranchisees = [...document.querySelectorAll(".franchise-btn.btn-selected")].map(btn => btn.dataset.franchise) || [];
+    let selectedBranches = [...document.querySelectorAll(".branch-btn.btn-selected")].map(btn => btn.dataset.branch) || [];
+
+    let today = new Date();
+    let firstDay = new Date(today.setDate(today.getDate() - today.getDay())); // Sunday
+    let lastDay = new Date(today.setDate(today.getDate() - today.getDay() + 6)); // Saturday
+
+    let formatDate = (date) => {
+        let d = new Date(date);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
+
+    let startDate = document.getElementById("startDate").value || formatDate(firstDay);
+    let endDate = document.getElementById("endDate").value || formatDate(lastDay);
+
+    document.getElementById("exceptionSelectedFranchisees").innerText = selectedFranchisees.length > 0 ? selectedFranchisees.join(", ") : "All";
+    document.getElementById("exceptionSelectedBranches").innerText = selectedBranches.length > 0 ? selectedBranches.join(", ") : "All";
+    document.getElementById("exceptionSelectedDateRange").innerText = `${startDate} to ${endDate}`;
+
+    $("#exceptionReportModal").modal("show");
+
+    fetchExceptionReport(selectedFranchisees, selectedBranches, startDate, endDate);
+}
+
+// Fetch Exception Report Data
+function fetchExceptionReport(franchisees, branches, startDate, endDate) {
+    console.log("📌 Fetching Exception Report", { franchisees, branches, startDate, endDate });
+
+    $.ajax({
+        url: "dashboard-inventory.php",
+        type: "POST",
+        data: {
+            exceptionReport: true,
+            franchisees: franchisees,
+            branches: JSON.stringify(branches),
+            startDate: startDate,
+            endDate: endDate
+        },
+        dataType: "json",
+        success: function(response) {
+            console.log("✅ Raw Exception Report Data Received:", response);
+
+            if (!response || typeof response !== "object") {
+                console.warn("⚠ No valid data received.");
+                $("#exceptionReportTableBody").html("<tr><td colspan='6' class='text-center'>No data available</td></tr>");
+                return;
+            }
+
+            let data = response.exception_report;
+            console.log("📌 Exception Report Data Array:", data);
+
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                console.warn("⚠ No exception data available.");
+                $("#exceptionReportTableBody").html("<tr><td colspan='6' class='text-center'>No data available</td></tr>");
+                return;
+            }
+
+            $("#exceptionReportTableBody").empty();
+            data.forEach(item => {
+                let stockStatus = getStockStatus(item.current_stock, item.turnover_rate);
+                $("#exceptionReportTableBody").append(`
+                    <tr>
+                        <td>${item.item_name}</td>
+                        <td>${item.current_stock}</td>
+                        <td>${stockStatus}</td>
+                        <td>${item.waste_status}</td>
+                        <td>${parseFloat(item.waste_percentage || 0).toFixed(2)}%</td>
+                        <td>${parseFloat(item.turnover_rate || 0).toFixed(2)}%</td>
+
+                    </tr>
+                `);
+            });
+        },
+        error: function(xhr) {
+            console.error("❌ AJAX Error:", xhr.responseText);
+            $("#exceptionReportTableBody").html("<tr><td colspan='6' class='text-center text-danger'>Failed to fetch report</td></tr>");
+        }
+    });
+}
+
+
+
 
     // GENERATE REPORT
     function generateReport() {

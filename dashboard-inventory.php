@@ -5,10 +5,92 @@ include ("phpscripts/check-login.php");
 
 
 
+
 // ✅ Prevent PHP errors from displaying in the AJAX response
 ini_set('log_errors', 1);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1); // Temporarily enable error display for debugging
+ini_set('error_log', __DIR__ . '/error_log.txt'); // Save errors to a file
 error_reporting(E_ALL);
+
+// ✅ Define getStockStatus() FIRST
+function getStockStatus($currentStock, $turnoverRate) {
+    if ($currentStock === 0) return "Stockout";
+    if ($turnoverRate === 0) return "Unknown"; // No sales data available
+
+    $stockDays = $currentStock; // Estimate how long stock will last
+
+    if ($stockDays > 14) return "High";
+    if ($stockDays >= 7) return "Moderate";
+    if ($stockDays > 0) return "Low";
+    return "Stockout";
+}
+
+// ✅ Define getWasteStatus() SECOND // WASTE DATA DETERMINE STATUS CHANGE IF REAL DATA IS WRONG
+function getWasteStatus($wastePercentage, $turnoverRate) {
+    if ($wastePercentage > 20 && $turnoverRate < 40) return "High Waste";
+    if ($wastePercentage > 10) return "Moderate Waste";
+    return "Low Waste";
+}
+
+// ✅ Now, the Exception Report Query can use the functions
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $branches = json_decode($_POST["branches"], true);
+    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("last Sunday"));
+    $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("next Saturday"));
+
+    if (!isset($con) || !$con) {
+        error_log("Database connection failed: " . mysqli_connect_error());
+        echo json_encode(["error" => "Database connection failed"]);
+        exit;
+    }
+
+    // ✅ Exception Report Query
+    $query = "SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (" . implode(",", array_fill(0, count($branches), "?")) . ")
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC";
+
+    $stmt = $con->prepare($query);
+    if (!$stmt) {
+        error_log("❌ SQL Prepare Failed: " . $con->error);
+        echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+        exit;
+    }
+
+    $types = str_repeat("s", count($branches)) . "ss";
+    $params = array_merge($branches, [$startDate, $endDate]);
+    $stmt->bind_param($types, ...$params);
+
+    if (!$stmt->execute()) {
+        error_log("❌ SQL Execution Failed: " . $stmt->error);
+        echo json_encode(["error" => "SQL Execution Failed: " . $stmt->error]);
+        exit;
+    }
+
+    $result = $stmt->get_result();
+    $reportData = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $row['stock_status'] = getStockStatus($row['current_stock'], $row['turnover_rate']);
+        $row['waste_status'] = getWasteStatus($row['waste_percentage'], $row['turnover_rate']);
+        $reportData[] = $row;
+    }
+
+    error_log("📌 Exception Report Rows Fetched: " . count($reportData));
+
+    echo json_encode(["exception_report" => $reportData ?? []], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 
 // ✅ Franchise selection: Fetch branches
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
@@ -246,10 +328,6 @@ $lowTurnoverResult = $stmtLow->get_result();
         exit;
     }
     
-        if (!$stmtLowStock) {
-            echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
-        exit;
-        }
         $types = str_repeat("s", count($branches)); // Correctly matches the placeholders
         $params = [...$branches]; // Only pass branch values
 
@@ -275,7 +353,7 @@ $lowTurnoverResult = $stmtLow->get_result();
         "high_turnover" => $highTurnover,
         "low_turnover" => $lowTurnover,
         "sell_through_rate" => $sellThroughRate,
-        "low_stock_items" => $lowStockData
+        "low_stock_items" => $lowStockData,
     ], JSON_UNESCAPED_UNICODE);
 
     exit;
@@ -357,6 +435,10 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
     
     
 }
+
+
+
+
 ?>
 
 <!DOCTYPE html>
@@ -495,6 +577,8 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                     <input type="date" id="endDate" class="form-control">
 
                     <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+                    <button class="btn btn-warning" onclick="generateExceptionReport()">Exception Report</button>
+
                 </div>  
             </div>
 
@@ -592,6 +676,46 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                         </div>
                     </div>
                 </div>
+
+                <!-- exception modal -->
+                <div id="exceptionReportModal" class="modal fade" tabindex="-1">
+                     <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title">Exception Report</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                        <div class="modal-body">
+                            <div class="alert alert-secondary">
+                                <h6><strong>Applied Filters:</strong></h6>
+                                <p><strong>Franchisee(s):</strong> <span id="exceptionSelectedFranchisees">All</span></p>
+                                <p><strong>Branch(es):</strong> <span id="exceptionSelectedBranches">All</span></p>
+                                <p><strong>Date Range:</strong> <span id="exceptionSelectedDateRange">Not Set</span></p>
+                            </div>
+                        <div class="table-responsive">
+                            <table id="exceptionReportTable" class="table table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Item Name</th>
+                                        <th>Current Stock</th>
+                                        <th>Stock Status</th>
+                                        <th>Waste Status</th>
+                                        <th>Waste Percentage</th>
+                                        <th>Turnover Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="exceptionReportTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-success" onclick="exportExceptionToCSV()">Export as CSV</button>
+                            <button class="btn btn-danger" onclick="exportExceptionToPDF()">Export as PDF</button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+
 
             
         </div>
