@@ -589,88 +589,133 @@ function fetchReport(type) {
                 return;
             }
 
-            // ✅ Only Modify Weekly Reports
             if (type === "weekly") {
                 let weeklyGroupedData = {}; // Store grouped data for weekly report
-
+            
                 data.forEach(row => {
                     let formattedFranchise = franchiseNameMap[row.franchise] || row.franchise;
                     let productDisplay = row.product_name ? row.product_name.replace(/,/g, ", ") : "N/A";
-
+            
                     // ✅ Format Weekly Date Range
                     let formattedDate = row.date;
                     let match = row.date.match(/Week (\d+) of (\d+)/);
                     if (match) {
                         let weekNumber = parseInt(match[1], 10);
                         let year = parseInt(match[2], 10);
-
+            
                         let firstDayOfWeek = new Date(year, 0, (weekNumber - 1) * 7 + 1);
                         let lastDayOfWeek = new Date(year, 0, (weekNumber - 1) * 7 + 7);
-
+            
                         formattedDate = `${firstDayOfWeek.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} - ${lastDayOfWeek.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;
                     }
-
-                    // ✅ Group by date, franchisee, and branch
-                    let key = `${formattedDate}-${formattedFranchise}-${row.branch}`;
-                    if (!weeklyGroupedData[key]) {
-                        weeklyGroupedData[key] = {
+            
+                    // ✅ Group by franchise first, then by date and branch
+                    if (!weeklyGroupedData[formattedFranchise]) {
+                        weeklyGroupedData[formattedFranchise] = {};
+                    }
+            
+                    let key = `${formattedDate}-${row.branch}`;
+                    if (!weeklyGroupedData[formattedFranchise][key]) {
+                        weeklyGroupedData[formattedFranchise][key] = {
                             franchise: formattedFranchise,
                             branch: row.branch,
                             date: formattedDate,
                             products: [],
                             totalSales: 0,
-                            // totalExpenses: 0,
-                            // profit: 0
                         };
                     }
-
+            
                     // ✅ Add product-specific data
-                    weeklyGroupedData[key].products.push({
+                    weeklyGroupedData[formattedFranchise][key].products.push({
                         product: productDisplay,
                         sales: parseFloat(row.total_sales.replace(/,/g, "")),
-                        // expenses: parseFloat(row.total_expenses.replace(/,/g, "")),
-                        // profit: parseFloat(row.profit.replace(/,/g, ""))
                     });
-
+            
                     // ✅ Accumulate totals for the weekly summary row
-                    weeklyGroupedData[key].totalSales += parseFloat(row.total_sales.replace(/,/g, ""));
-
-                    
-                    // weeklyGroupedData[key].totalExpenses += parseFloat(row.total_expenses.replace(/,/g, ""));
-                    // weeklyGroupedData[key].profit += parseFloat(row.profit.replace(/,/g, ""));
+                    weeklyGroupedData[formattedFranchise][key].totalSales += parseFloat(row.total_sales.replace(/,/g, ""));
                 });
-
-                // ✅ Append weekly grouped data to the table
-                Object.values(weeklyGroupedData).sort((a, b) => {
-                    let dateA = new Date(a.date.split(" - ")[1]); // Get the end date of the range
-                    let dateB = new Date(b.date.split(" - ")[1]); // Get the end date of the range
-                    return dateB - dateA; // Sort latest first
-                })
-                .forEach(entry => {
-                    let firstRow = true;
-                    entry.products.forEach(productData => {
-                        let tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td>${firstRow ? entry.date : ""}</td>
-                            <td>${firstRow ? entry.franchise : ""}</td>
-                            <td>${firstRow ? entry.branch : ""}</td>
-                            <td>${productData.product}</td>
-                            <td class="text-end">${productData.sales.toLocaleString()}</td>
-                            
-                        `;
-                        reportTableBody.appendChild(tr);
-                        firstRow = false; // Prevents duplicate franchise/branch names
-                    });
-
-                    // ✅ Add total sales row at the end of the weekly section
-                    let totalRow = document.createElement("tr");
-                    totalRow.classList.add("table-warning", "fw-bold");
-                    totalRow.innerHTML = `
-                        <td colspan="4" class="text-end fw-bold">TOTAL WEEKLY SALES</td>
-                        <td class="text-end fw-bold">${entry.totalSales.toLocaleString()}</td>
+            
+                // ✅ Clear previous tables
+                reportTableBody.innerHTML = "";
+            
+                // ✅ Franchise display order
+                const franchiseOrder = ["Auntie Anne's", "Macao Imperial", "Potato Corner"];
+            
+                // ✅ Franchise logo mapping
+                const franchiseLogos = {
+                    "Auntie Anne's": "AuntieAnn.png",
+                    "Macao Imperial": "MacaoImp.png",
+                    "Potato Corner": "PotCor.png"
+                };
+            
+                // ✅ Generate separate tables per franchise
+                franchiseOrder.forEach(franchise => {
+                    if (!weeklyGroupedData[franchise]) return; // Skip if no data exists
+            
+                    // ✅ Calculate total franchise sales
+                    let totalFranchiseSales = Object.values(weeklyGroupedData[franchise]).reduce((sum, entry) => sum + entry.totalSales, 0);
+            
+                    // ✅ Get correct logo or fallback
+                    let franchiseLogo = franchiseLogos[franchise] ? `assets/images/${franchiseLogos[franchise]}` : "assets/images/default.png";
+            
+                    let franchiseSection = document.createElement("div");
+                    franchiseSection.classList.add("franchise-section", "mb-4", "p-3", "border", "rounded", "bg-white", "shadow-sm");
+            
+                    franchiseSection.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                            <div class="d-flex align-items-center">
+                                <div class="franchise-logo-container me-2">
+                                    <img src="${franchiseLogo}" alt="${franchise}" class="franchise-logo">
+                                </div>
+                                <h4 class="fw-bold mb-0 franchise-title-report">${franchise}</h4>
+                            </div>
+                            <span class="badge bg-primary fs-6 p-2 total-sales-badge">Total Sales: ₱ ${totalFranchiseSales.toLocaleString()}</span>
+                        </div>
+                        <table class="table table-bordered table-striped shadow-sm report-table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Week Range</th>
+                                    <th>Branch</th>
+                                    <th>Product</th>
+                                    <th class="text-end">Total Sales</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-${franchise.toLowerCase().replace(/\s+/g, '-')}">
+                            </tbody>
+                        </table>
                     `;
-                    reportTableBody.appendChild(totalRow);
-
+            
+                    reportTableBody.appendChild(franchiseSection);
+                    let franchiseTableBody = document.getElementById(`table-${franchise.toLowerCase().replace(/\s+/g, '-')}`);
+            
+                    // ✅ Append weekly grouped data for this franchise
+                    Object.values(weeklyGroupedData[franchise]).sort((a, b) => {
+                        let dateA = new Date(a.date.split(" - ")[1]); // Get the end date of the range
+                        let dateB = new Date(b.date.split(" - ")[1]); // Get the end date of the range
+                        return dateB - dateA; // Sort latest first
+                    }).forEach(entry => {
+                        let firstRow = true;
+                        entry.products.forEach(productData => {
+                            let tr = document.createElement("tr");
+                            tr.innerHTML = `
+                                <td>${firstRow ? entry.date : ""}</td>
+                                <td>${firstRow ? entry.branch : ""}</td>
+                                <td>${productData.product}</td>
+                                <td class="text-end">${productData.sales.toLocaleString()}</td>
+                            `;
+                            franchiseTableBody.appendChild(tr);
+                            firstRow = false; // Prevents duplicate franchise/branch names
+                        });
+            
+                        // ✅ Add total sales row at the end of the weekly section
+                        let totalRow = document.createElement("tr");
+                        totalRow.classList.add("table-warning", "fw-bold");
+                        totalRow.innerHTML = `
+                            <td colspan="3" class="text-end fw-bold">TOTAL WEEKLY SALES</td>
+                            <td class="text-end fw-bold">${entry.totalSales.toLocaleString()}</td>
+                        `;
+                        franchiseTableBody.appendChild(totalRow);
+                    });
                 });
 
             } else if (type === "monthly") {
@@ -686,16 +731,20 @@ function fetchReport(type) {
                         formattedDate = match[1];
                     }
             
-                    // ✅ Group by month, franchisee, and branch (but separate products)
-                    let key = `${formattedDate}-${formattedFranchise}-${row.branch}`;
-                    if (!monthlyGroupedData[key]) {
-                        monthlyGroupedData[key] = {
+                    // ✅ Group by franchise first, then by month and branch
+                    if (!monthlyGroupedData[formattedFranchise]) {
+                        monthlyGroupedData[formattedFranchise] = {};
+                    }
+            
+                    let key = `${formattedDate}-${row.branch}`;
+                    if (!monthlyGroupedData[formattedFranchise][key]) {
+                        monthlyGroupedData[formattedFranchise][key] = {
                             franchise: formattedFranchise,
                             branch: row.branch,
                             date: formattedDate,
                             products: [],
                             totalSales: 0,
-                            totalExpenses: parseFloat(row.total_expenses.replace(/,/g, "")), // Store only once
+                            totalExpenses: parseFloat(row.total_expenses.replace(/,/g, "")) || 0, // Ensure valid number
                             profit: 0
                         };
                     }
@@ -703,52 +752,104 @@ function fetchReport(type) {
                     // ✅ Ensure products are stored separately
                     let productEntry = {
                         product: row.product_name,
-                        sales: parseFloat(row.total_sales.replace(/,/g, "")),
-                        expenses: parseFloat(row.total_expenses.replace(/,/g, "")), // Keep per product for internal use
-                        profit: parseFloat(row.profit.replace(/,/g, ""))
+                        sales: parseFloat(row.total_sales.replace(/,/g, "")) || 0,
+                        expenses: parseFloat(row.total_expenses.replace(/,/g, "")) || 0, 
+                        profit: parseFloat(row.profit.replace(/,/g, "")) || 0
                     };
-                    monthlyGroupedData[key].products.push(productEntry);
-
-                    // ✅ Accumulate totals for the monthly summary row
-                    monthlyGroupedData[key].totalSales += productEntry.sales;
-                     // ✅ Compute total profit correctly using the same formula as fetchKPIData()
-                    Object.values(monthlyGroupedData).forEach(entry => {
-                        entry.profit = entry.totalSales - entry.totalExpenses; // ✅ Match fetchKPIData() logic
-                    });
+            
+                    monthlyGroupedData[formattedFranchise][key].products.push(productEntry);
+                    monthlyGroupedData[formattedFranchise][key].totalSales += productEntry.sales;
                 });
             
-                // ✅ Append monthly grouped data to the table
-                Object.values(monthlyGroupedData).reverse().forEach(entry => {
-                    let firstRow = true;
-                    entry.products.forEach(productData => {
-                        let tr = document.createElement("tr");
-                        tr.innerHTML = `
-                            <td>${firstRow ? entry.date : ""}</td>
-                            <td>${firstRow ? entry.franchise : ""}</td>
-                            <td>${firstRow ? entry.branch : ""}</td>
-                            <td>${productData.product}</td>
-                            <td class="text-end">${productData.sales.toLocaleString()}</td>
-                            <td class="text-end">-</td>  <!-- ✅ Hide per-product expenses -->
-                            <td class="text-end">-</td> <!-- ✅ Replace per-product profit with "-" -->
-                        `;
-                        reportTableBody.appendChild(tr);
-                        firstRow = false; // Prevents duplicate franchise/branch names
-                    });
+                // ✅ Clear previous tables
+                reportTableBody.innerHTML = "";
             
-                    // ✅ Add total monthly sales row
-                    let totalRow = document.createElement("tr");
-                    totalRow.classList.add("table-warning", "fw-bold");
-                    totalRow.innerHTML = `
-                        <td colspan="4" class="text-end fw-bold">TOTAL MONTHLY SALES</td>
-                        <td class="text-end fw-bold">${entry.totalSales.toLocaleString()}</td>
-                        <td class="text-end fw-bold">${entry.totalExpenses.toLocaleString()}</td>
-                        <td class="text-end fw-bold">${entry.profit.toLocaleString()}</td> <!-- ✅ Fixed profit calculation -->
+                // ✅ Franchise display order
+                const franchiseOrder = ["Auntie Anne's", "Macao Imperial", "Potato Corner"];
+            
+                // ✅ Franchise logo mapping
+                const franchiseLogos = {
+                    "Auntie Anne's": "AuntieAnn.png",
+                    "Macao Imperial": "MacaoImp.png",
+                    "Potato Corner": "PotCor.png"
+                };
+            
+                // ✅ Generate separate tables per franchise
+                franchiseOrder.forEach(franchise => {
+                    if (!monthlyGroupedData[franchise]) return; // Skip if franchise data does not exist
+            
+                    // ✅ Calculate total sales for this franchise
+                    let totalFranchiseSales = Object.values(monthlyGroupedData[franchise]).reduce((sum, entry) => sum + entry.totalSales, 0);
+            
+                    // ✅ Get correct logo or fallback
+                    let franchiseLogo = franchiseLogos[franchise] ? `assets/images/${franchiseLogos[franchise]}` : "assets/images/default.png";
+            
+                    let franchiseSection = document.createElement("div");
+                    franchiseSection.classList.add("franchise-section", "mb-4", "p-3", "border", "rounded", "bg-white", "shadow-sm");
+            
+                    franchiseSection.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                            <div class="d-flex align-items-center">
+                                <div class="franchise-logo-container me-2">
+                                    <img src="${franchiseLogo}" alt="${franchise}" class="franchise-logo">
+                                </div>
+                                <h4 class="fw-bold mb-0 franchise-title-report">${franchise}</h4>
+                            </div>
+                            <span class="badge bg-primary fs-6 p-2 total-sales-badge">Total Sales: ₱ ${totalFranchiseSales.toLocaleString()}</span>
+                        </div>
+                        <table class="table table-bordered table-striped shadow-sm report-table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Month</th>
+                                    <th>Branch</th>
+                                    <th>Product</th>
+                                    <th class="text-end">Total Sales</th>
+                                    <th class="text-end">Expenses</th>
+                                    <th class="text-end">Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-${franchise.toLowerCase().replace(/\s+/g, '-')}">
+                            </tbody>
+                        </table>
                     `;
-                    reportTableBody.appendChild(totalRow);
-                });     
+            
+                    reportTableBody.appendChild(franchiseSection);
+                    let franchiseTableBody = document.getElementById(`table-${franchise.toLowerCase().replace(/\s+/g, '-')}`);
+            
+                    // ✅ Append monthly grouped data for this franchise
+                    Object.values(monthlyGroupedData[franchise]).reverse().forEach(entry => {
+                        let firstRow = true;
+                        entry.products.forEach(productData => {
+                            let tr = document.createElement("tr");
+                            tr.innerHTML = `
+                                <td>${firstRow ? entry.date : ""}</td>
+                                <td>${firstRow ? entry.branch : ""}</td>
+                                <td>${productData.product}</td>
+                                <td class="text-end">${productData.sales.toLocaleString()}</td>
+                                <td class="text-end">-</td>  <!-- ✅ Hide per-product expenses -->
+                                <td class="text-end">-</td>  <!-- ✅ Replace per-product profit with "-" -->
+                            `;
+                            franchiseTableBody.appendChild(tr);
+                            firstRow = false; // Prevents duplicate franchise/branch names
+                        });
+            
+                        // ✅ Add total monthly sales row per branch
+                        let totalRow = document.createElement("tr");
+                        totalRow.classList.add("table-warning", "fw-bold");
+                        totalRow.innerHTML = `
+                            <td colspan="3" class="text-end fw-bold">TOTAL MONTHLY SALES</td>
+                            <td class="text-end fw-bold">${entry.totalSales.toLocaleString()}</td>
+                            <td class="text-end fw-bold">${entry.totalExpenses.toLocaleString()}</td>
+                            <td class="text-end fw-bold">${(entry.totalSales - entry.totalExpenses).toLocaleString()}</td>
+                        `;
+                        franchiseTableBody.appendChild(totalRow);
+                    });
+                });
         
             } else {
-                // ✅ DAILY REPORT (No "Total Expenses" & "Profit")
+                // ✅ DAILY REPORT - Separate tables for each franchisee
+                let franchiseGroupedData = {}; // Store grouped data per franchise
+            
                 data.forEach(row => {
                     let formattedFranchise = franchiseNameMap[row.franchise] || row.franchise;
                     let productDisplay = row.product_name ? row.product_name.replace(/,/g, ", ") : "N/A";
@@ -757,18 +858,83 @@ function fetchReport(type) {
                         month: "long",
                         day: "numeric"
                     });
+            
+                    if (!franchiseGroupedData[formattedFranchise]) {
+                        franchiseGroupedData[formattedFranchise] = [];
+                    }
+            
+                    franchiseGroupedData[formattedFranchise].push({
+                        date: formattedDate,
+                        branch: row.branch,
+                        product: productDisplay,
+                        total_sales: row.total_sales
+                    });
+                });
+            
+                // Clear previous tables
+                reportTableBody.innerHTML = "";
+            
+                // ✅ Generate separate tables per franchise
+                const franchiseOrder = ["Auntie Anne's", "Macao Imperial", "Potato Corner"]; // Define specific order
 
-                    let tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td>${formattedDate}</td>
-                        <td>${formattedFranchise}</td>
-                        <td>${row.branch}</td>
-                        <td>${productDisplay}</td>
-                        <td class="text-end">${row.total_sales}</td>
-                    `;
-                    reportTableBody.appendChild(tr);
+                // Franchise logo mapping
+                const franchiseLogos = {
+                    "Auntie Anne's": "AuntieAnn.png",
+                    "Macao Imperial": "MacaoImp.png",
+                    "Potato Corner": "PotCor.png"
+                };
+
+                franchiseOrder.forEach(franchise => {
+                    if (!franchiseGroupedData[franchise]) return; // Skip if franchise data does not exist
+
+                    let totalFranchiseSales = franchiseGroupedData[franchise].reduce((sum, entry) => sum + parseFloat(entry.total_sales.replace(/,/g, "")), 0);
+                    
+                    // Get the correct logo filename
+                    let franchiseLogo = franchiseLogos[franchise] || "default.png"; // Fallback to default logo if not found
+
+                    let franchiseSection = document.createElement("div");
+                    franchiseSection.classList.add("franchise-section", "mb-4", "p-3", "border", "rounded", "bg-white", "shadow-sm");
+
+                    franchiseSection.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                        <div class="d-flex align-items-center">
+                            <div class="franchise-logo-container me-2">
+                                <img src="assets/images/${franchiseLogo}" alt="${franchise}" class="franchise-logo">
+                            </div>
+                            <h4 class="fw-bold mb-0 franchise-title-report">${franchise}</h4>
+                        </div>
+                        <span class="badge bg-primary fs-6 p-2 total-sales-badge">Total Sales: ₱ ${totalFranchiseSales.toLocaleString()}</span>
+                    </div>
+                    <table class="table table-bordered table-striped shadow-sm report-table">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Branch</th>
+                                <th>Product</th>
+                                <th class="text-end">Total Sales</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-${franchise.replace(/\s+/g, '-')}">
+                        </tbody>
+                    </table>
+                `;
+                    reportTableBody.appendChild(franchiseSection);
+
+                    let franchiseTableBody = document.getElementById(`table-${franchise.replace(/\s+/g, '-')}`);
+
+                    franchiseGroupedData[franchise].forEach(entry => {
+                        let tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${entry.date}</td>
+                            <td>${entry.branch}</td>
+                            <td>${entry.product}</td>
+                            <td class="text-end">${entry.total_sales}</td>
+                        `;
+                        franchiseTableBody.appendChild(tr);
+                    });
                 });
             }
+            
         })
         .catch(error => console.error("❌ Error fetching report data:", error));
 

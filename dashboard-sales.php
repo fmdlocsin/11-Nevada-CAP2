@@ -585,7 +585,7 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                                                 <!-- Report Table -->
                                                 <div class="table-responsive mt-3">
                                                     <table id="reportTable" class="table table-bordered table-hover table-striped">
-                                                        <thead class="table-dark">
+                                                        <!-- <thead class="table-dark">
                                                             <tr>
                                                                 <th>Date</th>
                                                                 <th>Franchisee</th>
@@ -595,7 +595,7 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                                                                 <th class="text-end">Total Expenses</th>
                                                                 <th class="text-end">Profit</th>
                                                             </tr>
-                                                        </thead>
+                                                        </thead> -->
                                                         <tbody id="reportTableBody">
                                                             <!-- Data will be inserted here -->
                                                         </tbody>

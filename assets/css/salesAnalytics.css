@@ -663,14 +663,107 @@ h2 {
     margin-bottom: 10px;
 }
 
+/* Default button styles */
 .report-btn {
-    transition: 0.3s;
+    background-color: #f8f9fa; /* Light gray background */
+    color: #007bff; /* Default text color */
+    border: 2px solid #007bff;
+    padding: 8px 15px;
+    font-size: 0.875rem; /* Smaller font size (adjust as needed) */
+    font-weight: 400;
+    border-radius: 6px;
+    transition: all 0.3s ease-in-out;
 }
 
+/* Button hover effect */
+.report-btn:hover {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+/* Active (selected) button */
 .report-btn.active {
-    background-color: #0d6efd;
+    background-color: #0056b3; /* Darker blue */
     color: white;
-    font-weight: bold;
+    border-color: #0056b3;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow effect */
+}
+
+
+
+/* Style the franchise section like the contract summary */
+.franchise-section {
+    background: #ffffff;
+    border: none !important; /* Remove border */
+    box-shadow: none !important; /* Remove shadow */
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px; /* Space between franchise sections */
+}
+
+/* Report Table Styles */
+.report-table {
+    table-layout: fixed; /* Ensures all columns respect width limits */
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.table-dark th {
+    background: #343a40 !important;
+    color: white !important;
+}
+
+/* Badge styling for total sales */
+.badge.bg-primary {
+    background-color: #007bff !important;
+    padding: 8px 12px;
+    border-radius: 5px;
+}
+
+/* Fix alignment issue */
+.text-end {
+    text-align: right;
+}
+
+/* Ensure the report modal has a white background */
+#reportTableBody {
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Container for franchise logo */
+.franchise-logo-container {
+    width: 45px;
+    height: 45px;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure franchise header and badge stay in the same row */
+.d-flex.justify-content-between {
+    flex-wrap: nowrap; /* Prevent line break */
+}
+
+/* Reduce badge padding so it doesn't break */
+.total-sales-badge {
+    white-space: nowrap; /* Prevent text from wrapping */
+    font-size: 0.9rem; /* Slightly reduce font size */
+    padding: 6px 12px; /* Adjust padding */
+}
+
+/* Reduce the franchise title font size */
+.franchise-title-report {
+    font-size: 20px; /* Adjust this value as needed */
+    font-weight: 600; /* Keep it bold but slightly lighter */
+    margin-bottom: 0;
+    color: #333;
 }
 
 
