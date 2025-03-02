@@ -840,11 +840,25 @@ function exportFranchiseTableToPDF() {
         format: "A4"
     });
 
-    let img = new Image();
-    img.src = "assets/images/formDesign.png"; // Ensure correct path
+    // Load both background images 
+    let img1 = new Image(); 
+    let img2 = new Image(); 
+    img1.src = "assets/images/formDesign.png"; 
+    
+    // First page image 
+    img2.src = "assets/images/formDesign2.png"; // Pages 2 onwards
 
-    img.onload = function () {
-        doc.addImage(img, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+    // Wait for both images to load before proceeding
+
+    img1.onload = function () {
+        doc.addImage(img1, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+
+        // Override addPage so that every new page gets the background first
+        originalAddPage = doc.addPage.bind(doc);
+            doc.addPage = function () {
+            originalAddPage();
+            doc.addImage(img2, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+        };
 
         let titleY = 140;
         doc.setFont("helvetica", "bold");
@@ -902,6 +916,10 @@ function exportFranchiseTableToPDF() {
             return;
         }
 
+        addBackground = function() {
+            doc.addImage(img,"PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+          };
+
         tables.forEach((table, index) => {
             let franchiseSection = table.closest(".franchise-section");
             let franchiseTitle = franchiseSection.querySelector(".franchise-title")?.innerText || "Unknown Franchise";
@@ -956,7 +974,7 @@ function exportFranchiseTableToPDF() {
                 alternateRowStyles: { fillColor: [245, 245, 245] },
                 margin: { left: 40, right: 40 },
                 tableWidth: "auto",
-                columnStyles: { 0: { cellWidth: "auto" } }
+                columnStyles: { 0: { cellWidth: "auto" } },
             });
 
             startY = doc.lastAutoTable.finalY + 50;
