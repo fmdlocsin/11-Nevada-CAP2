@@ -1,4 +1,10 @@
 <?php
+
+// ✅ Check if session is already started before calling session_start()
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 function check_login($con)
 {
     if (isset($_SESSION['user_email'])) {
@@ -12,10 +18,15 @@ function check_login($con)
 
         if ($result && $result->num_rows > 0) {
             $user_data = $result->fetch_assoc();
-            return $user_data; // Return user data, including user_type
+
+            // ✅ Store both email and username in the session
+            $_SESSION['username'] = $user_data['user_name']; // Make sure 'user_name' is the correct column
+
+            return $user_data;
         }
     }
 
+    // Redirect to login if session is not valid
     header("Location: ./login.php");
     exit;
 }

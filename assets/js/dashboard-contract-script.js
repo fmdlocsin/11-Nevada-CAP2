@@ -272,6 +272,13 @@ $(document).ready(function () {
                 };
 
                 let tables = {};
+
+                let totalActiveAgreements = 0;
+                let totalContracts = 0;
+                let totalRenewals = 0;
+                let nextExpiringAgreement = null;
+                let nextExpiringDetails = {};
+
                 let contractSummary = {};
 
                 data.forEach(row => {
@@ -296,11 +303,30 @@ $(document).ready(function () {
 
                     if (isActive) {
                         contractSummary[franchisee].activeContracts += 1;
+                        totalActiveAgreements += 1;
                     }
 
                     contractSummary[franchisee].expiringContracts += parseInt(row.expiring_contracts) || 0;
                     contractSummary[franchisee].expiredContracts += isExpired ? 1 : 0;
                     contractSummary[franchisee].totalContracts++;
+                    totalContracts++;
+
+                    // ✅ Fix: Ensure Expiration Date is Valid
+                    let agreementDate = new Date(row.expiration_date);
+                    let today = new Date(); // Get today's date
+
+                    if (!isNaN(agreementDate.getTime()) && agreementDate >= today) { // Only consider future dates
+                        if (!nextExpiringAgreement || agreementDate < nextExpiringAgreement) {
+                            nextExpiringAgreement = agreementDate;
+                            nextExpiringDetails = {
+                                franchisee: franchisee,
+                                location: row.location,
+                                expiration_date: row.expiration_date
+                            };
+                        }
+                    }
+
+
 
                     let total = contractSummary[franchisee].activeContracts + contractSummary[franchisee].expiredContracts;
                     contractSummary[franchisee].renewalRate = total > 0 ? ((contractSummary[franchisee].activeContracts / total) * 100).toFixed(2) : "0";
@@ -314,6 +340,20 @@ $(document).ready(function () {
                         remarks: isExpired ? "Expired" : "Active"
                     });
                 });
+
+                let overallRenewalRate = totalContracts > 0 ? ((totalActiveAgreements / totalContracts) * 100).toFixed(2) + "%" : "0%";
+                let nextExpiringAgreementFormatted = nextExpiringAgreement
+                    ? `${formatDate(nextExpiringDetails.expiration_date)} (${nextExpiringDetails.franchisee} - ${nextExpiringDetails.location})`
+                    : "N/A";
+
+                // ✅ Display Overall Summary at the Top
+                let summaryHTML = `
+                    <div class="alert alert-info summary-box">
+                        <p><strong>Total Active Agreements:</strong> <span style="color: green; font-weight: bold;">${totalActiveAgreements}</span></p>
+                        <p><strong>Overall Renewal Rate:</strong> <span style="color: blue; font-weight: bold;">${overallRenewalRate}</span></p>
+                        <p><strong>Next Expiring Agreement:</strong> <span style="color: orange; font-weight: bold;">${nextExpiringAgreementFormatted}</span></p>
+                    </div>`;
+                summaryContent.html(summaryHTML);
 
                 for (let franchisee in contractSummary) {
                     let summary = contractSummary[franchisee];
@@ -565,121 +605,133 @@ function exportLeasingTableToPDF() {
         format: "A4"
     });
 
-    // ✅ Add Report Title
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    let pageWidth = doc.internal.pageSize.getWidth();
-    doc.text("Leasing Contracts Report", pageWidth / 2, 50, { align: "center" });
+    let img = new Image();
+    img.src = "assets/images/formDesign.png"; // Ensure correct path
 
-    // ✅ Add Date of Report Generation
-    let currentDate = new Date().toLocaleDateString();
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Date Generated: ${currentDate}`, pageWidth - 150, 70); // Right-aligned date
+    img.onload = function () {
+        doc.addImage(img, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
 
-    let startY = 100; // Starting Y position for content
-
-    // ✅ Extract Overall Summary
-    let overallSummaryDiv = document.querySelector("#leasingSummary");
-    if (overallSummaryDiv) {
-        let summaryText = overallSummaryDiv.innerText.trim().split("\n");
-        let summaryHeight = 20 + summaryText.length * 14; // ✅ Adjust height dynamically
-
-        // ✅ Add Gray Background to Summary with Proper Height
-        doc.setFillColor(230, 230, 230); // Light gray background
-        doc.roundedRect(40, startY, pageWidth - 80, summaryHeight, 5, 5, "F"); // Rounded background
-
+        let titleY = 140;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.text("Overall Summary:", 50, startY + 20);
+        doc.setFontSize(22);
+        let pageWidth = doc.internal.pageSize.getWidth();
+        doc.text("Leasing Contracts Report", pageWidth / 2, titleY, { align: "center" });
 
+        // ✅ Keep "Date Generated" and "Exported by" left-aligned but reduce font size
+        let dateY = titleY + 40;
+        let currentDate = new Date().toLocaleDateString();
+        doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(50, 50, 50); // Dark gray text
+        doc.text(`Date Generated: ${currentDate}`, 50, dateY);
 
-        let textY = startY + 40;
-        summaryText.forEach(line => {
-            doc.text(line, 60, textY);
-            textY += 10;
-        });
+        let userY = dateY + 12;
+        let exportedBy = typeof loggedInUser !== "undefined" ? loggedInUser : "Unknown User";
+        doc.text(`Exported by: ${exportedBy}`, 50, userY);
 
-        startY += summaryHeight + 40; // ✅ Properly spaced below the summary
-    }
+        let startY = userY + 35;
 
-    // ✅ Restrict table selection to the Leasing modal only
-    let tables = document.querySelectorAll("#leasingReportModal .franchise-section .report-table");
+        // ✅ Include Overall Summary
+        let overallSummaryDiv = document.querySelector("#leasingSummary");
+        if (overallSummaryDiv) {
+            let summaryText = overallSummaryDiv.innerText.trim().split("\n");
+            let summaryHeight = 20 + summaryText.length * 14;
 
-    if (!tables.length) {
-        console.error("❌ Error: No tables found!");
-        alert("Error: Leasing report table not found.");
-        return;
-    }
+            // ✅ Set White Background with 50% Transparency and Black Outline
+            doc.setDrawColor(0, 0, 0); // Black outline
+            doc.setFillColor(255, 255, 255); // White Background
+            doc.roundedRect(40, startY, pageWidth - 80, summaryHeight, 5, 5, "FD"); // "FD" fills and draws outline
 
-    tables.forEach((table, index) => {
-        let franchiseSection = table.closest(".franchise-section");
-        let franchiseTitle = franchiseSection.querySelector(".franchise-title")?.innerText || "Unknown Franchise";
 
-        // ✅ Add Franchise Title
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
-        doc.setTextColor(0, 0, 0);
-        doc.text(franchiseTitle, 50, startY);
-        startY += 20;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Overall Summary:", 50, startY + 20);
 
-        // ✅ Extract Franchise Summary
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(50, 50, 50);
+
+            let textY = startY + 40;
+            summaryText.forEach(line => {
+                doc.text(line, 60, textY);
+                textY += 10;
+            });
+
+            startY += summaryHeight + 40;
+        }
+
+        let tables = document.querySelectorAll("#leasingReportModal .franchise-section .report-table");
+
+        if (!tables.length) {
+            console.error("❌ Error: No tables found!");
+            alert("Error: Leasing report table not found.");
+            return;
+        }
+
+        tables.forEach((table, index) => {
+            let franchiseSection = table.closest(".franchise-section");
+            let franchiseTitle = franchiseSection.querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.setTextColor(0, 0, 0);
+            doc.text(franchiseTitle, 50, startY);
+            startY += 20;
+
+            // ✅ Extract Franchise Summary
         let summaryDiv = franchiseSection.querySelector(".contract-summary");
         if (summaryDiv) {
             let summaryText = summaryDiv.innerText.trim().split("\n").join("  |  "); // Format summary
             doc.setFont("helvetica", "italic");
             doc.setFontSize(10);
-            doc.setTextColor(80, 80, 80);
             doc.text(summaryText, 60, startY);
             startY += 20; // ✅ Space before table
         }
 
         // ✅ Extract Table Data
-        let headers = [];
-        let data = [];
-        let rows = table.querySelectorAll("tr");
+            let headers = [];
+            let data = [];
+            let rows = table.querySelectorAll("tr");
 
-        rows.forEach((row, rowIndex) => {
-            let rowData = [];
-            let cols = row.querySelectorAll("th, td");
+            rows.forEach((row, rowIndex) => {
+                let rowData = [];
+                let cols = row.querySelectorAll("th, td");
 
-            cols.forEach(col => {
-                rowData.push(col.innerText);
+                cols.forEach(col => {
+                    rowData.push(col.innerText);
+                });
+
+                if (rowIndex === 0) {
+                    headers = rowData;
+                } else {
+                    let contractDuration = rowData.length >= 7 ? rowData[6] : "N/A"; // ✅ Extract contract duration
+                rowData.splice(6, 0, contractDuration); // ✅ Insert duration in correct position
+                    data.push(rowData);
+                }
             });
 
-            if (rowIndex === 0) {
-                headers = rowData;
-            } else {
-                let contractDuration = rowData.length >= 7 ? rowData[6] : "N/A"; // ✅ Extract contract duration
-                rowData.splice(6, 0, contractDuration); // ✅ Insert duration in correct position
-                data.push(rowData);
-            }            
+            // ✅ Generate Table in PDF with Improved Spacing
+            doc.autoTable({
+                head: [headers],
+                body: data,
+                startY: startY,
+                theme: "grid",
+                styles: { fontSize: 10, cellPadding: 4 },
+                headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+                margin: { left: 40, right: 40 },
+                tableWidth: "auto",
+                columnStyles: { 0: { cellWidth: "auto" } }
+            });
+
+            startY = doc.lastAutoTable.finalY + 50;
         });
 
-        // ✅ Generate Table in PDF with Improved Spacing
-        doc.autoTable({
-            head: [headers],
-            body: data,
-            startY: startY,
-            theme: "grid",
-            styles: { fontSize: 10, cellPadding: 4 },
-            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-            alternateRowStyles: { fillColor: [245, 245, 245] },
-            margin: { left: 40, right: 40 },
-            tableWidth: "auto",
-            columnStyles: { 0: { cellWidth: "auto" } }
-        });
-
-        startY = doc.lastAutoTable.finalY + 50; // ✅ Extra spacing between tables
-    });
-
-    // ✅ Save PDF
-    doc.save(`leasing_report_${new Date().toISOString().split("T")[0]}.pdf`);
+        doc.save(`leasing_report_${new Date().toISOString().split("T")[0]}.pdf`);
+    };
 }
+
+
 
 // ✅ Bind to Button
 $(document).ready(function () {
@@ -788,93 +840,136 @@ function exportFranchiseTableToPDF() {
         format: "A4"
     });
 
-    // ✅ Add Report Title
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    let pageWidth = doc.internal.pageSize.getWidth();
-    doc.text("Franchisee Agreement Contracts Report", pageWidth / 2, 50, { align: "center" });
+    let img = new Image();
+    img.src = "assets/images/formDesign.png"; // Ensure correct path
 
-    // ✅ Add Date of Report Generation
-    let currentDate = new Date().toLocaleDateString();
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Date Generated: ${currentDate}`, 400, 80);
+    img.onload = function () {
+        doc.addImage(img, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
 
-    let startY = 130;
-
-    // ✅ Restrict table selection to the Franchise Agreement modal only
-    let tables = document.querySelectorAll("#franchiseReportModal .franchise-section .report-table");
-
-    if (!tables.length) {
-        console.error("❌ Error: No tables found!");
-        alert("Error: Franchise report table not found.");
-        return;
-    }
-
-    tables.forEach((table, index) => {
-        let franchiseSection = table.closest(".franchise-section");
-        let franchiseTitle = franchiseSection.querySelector(".franchise-title")?.innerText || "Unknown Franchise";
-
-        // ✅ Add Franchise Title
+        let titleY = 140;
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(14);
-        doc.text(franchiseTitle, 50, startY);
-        startY += 20;
+        doc.setFontSize(22);
+        let pageWidth = doc.internal.pageSize.getWidth();
+        doc.text("Franchisee Agreement Contracts Report", pageWidth / 2, titleY, { align: "center" });
 
-        // ✅ Extract Franchise Summary
-        let summaryDiv = franchiseSection.querySelector(".contract-summary");
-        if (summaryDiv) {
-            let summaryText = summaryDiv.innerText.trim().split("\n").join("  |  "); // Format summary
-            doc.setFont("helvetica", "italic");
+        // ✅ Keep "Date Generated" and "Exported by" left-aligned but reduce font size
+        let dateY = titleY + 40;
+        let currentDate = new Date().toLocaleDateString();
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Date Generated: ${currentDate}`, 50, dateY);
+
+        let userY = dateY + 12;
+        let exportedBy = typeof loggedInUser !== "undefined" ? loggedInUser : "Unknown User";
+        doc.text(`Exported by: ${exportedBy}`, 50, userY);
+
+        let startY = userY + 35;
+
+        // ✅ Include Overall Summary
+        let overallSummaryDiv = document.querySelector("#franchiseSummary");
+        if (overallSummaryDiv) {
+            let summaryText = overallSummaryDiv.innerText.trim().split("\n");
+            let summaryHeight = 20 + summaryText.length * 14;
+
+            // ✅ Set White Background with 50% Transparency and Black Outline
+            doc.setDrawColor(0, 0, 0); // Black outline
+            doc.setFillColor(255, 255, 255); // White Background
+            doc.roundedRect(40, startY, pageWidth - 80, summaryHeight, 5, 5, "FD"); // "FD" fills and draws outline
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Overall Summary:", 50, startY + 20);
+
+            doc.setFont("helvetica", "normal");
             doc.setFontSize(10);
-            doc.text(summaryText, 50, startY);
-            startY += 20;
-        }
+            doc.setTextColor(50, 50, 50);
 
-        // ✅ Extract Table Data
-        let headers = [];
-        let data = [];
-        let rows = table.querySelectorAll("tr");
-
-        rows.forEach((row, rowIndex) => {
-            let rowData = [];
-            let cols = row.querySelectorAll("th, td");
-
-            cols.forEach((col, colIndex) => {
-                rowData.push(col.innerText);
+            let textY = startY + 40;
+            summaryText.forEach(line => {
+                doc.text(line, 60, textY);
+                textY += 10;
             });
 
-            if (rowIndex === 0) {
-                // ✅ Add "Contract Duration (Months)" to headers
-                headers = rowData;
-            } else {
-                // ✅ Add Contract Duration Data (Fetch from modal table)
-                let contractDuration = rowData.length >= 5 ? rowData[4] : "N/A"; // Extract from table row
-                rowData.splice(4, 0, contractDuration); // Insert duration in correct position
-                data.push(rowData);
+            startY += summaryHeight + 40;
+        }
+
+        let tables = document.querySelectorAll("#franchiseReportModal .franchise-section .report-table");
+
+        if (!tables.length) {
+            console.error("❌ Error: No tables found!");
+            alert("Error: Franchise report table not found.");
+            return;
+        }
+
+        tables.forEach((table, index) => {
+            let franchiseSection = table.closest(".franchise-section");
+            let franchiseTitle = franchiseSection.querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text(franchiseTitle, 50, startY);
+            startY += 20;
+
+            // ✅ Extract Franchise Summary
+            let summaryDiv = franchiseSection.querySelector(".contract-summary");
+            if (summaryDiv) {
+                let summaryText = summaryDiv.innerText.trim().split("\n").join("  |  ");
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(10);
+                doc.text(summaryText, 60, startY);
+                startY += 20;
             }
+
+            // Extract Table Data
+            let headers = [];
+            let data = [];
+            let rows = table.querySelectorAll("tr");
+
+            rows.forEach((row, rowIndex) => {
+                let rowData = [];
+                let cols = row.querySelectorAll("th, td");
+
+                cols.forEach((col, colIndex) => {
+                    rowData.push(col.innerText);
+                });
+
+                if (rowIndex === 0) {
+                    // Add "Contract Duration (Months)" to headers
+                    headers = rowData;
+                } else {
+                    // Add Contract Duration Data (Fetch from modal table)
+                    let contractDuration = rowData.length >= 5 ? rowData[4] : "N/A"; // Extract from table row
+                    rowData.splice(4, 0, contractDuration); // Insert duration in correct position
+                    data.push(rowData);
+                }
+            });
+
+            // Generate Table in PDF (Updated with Contract Duration)
+            doc.autoTable({
+                head: [headers],
+                body: data,
+                startY: startY,
+                theme: "grid",
+                styles: { fontSize: 10, cellPadding: 3 },
+                headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+                margin: { left: 40, right: 40 },
+                tableWidth: "auto",
+                columnStyles: { 0: { cellWidth: "auto" } }
+            });
+
+            startY = doc.lastAutoTable.finalY + 50;
         });
 
-        // ✅ Generate Table in PDF (Updated with Contract Duration)
-        doc.autoTable({
-            head: [headers],
-            body: data,
-            startY: startY,
-            theme: "grid",
-            styles: { fontSize: 10, cellPadding: 3 },
-            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-            alternateRowStyles: { fillColor: [245, 245, 245] },
-            margin: { left: 40, right: 40 },
-            tableWidth: "auto",
-            columnStyles: { 0: { cellWidth: "auto" } }
-        });
-
-        startY = doc.lastAutoTable.finalY + 50; // Space between franchise tables
-    });
-
-    // ✅ Save PDF
-    doc.save(`franchise_report_${new Date().toISOString().split("T")[0]}.pdf`);
+        doc.save(`franchise_report_${new Date().toISOString().split("T")[0]}.pdf`);
+    };
 }
+
+
+
+
+
 
 
 // ✅ Bind to Button
@@ -898,6 +993,20 @@ function exportFranchiseTableToCSV() {
     // ✅ Add Report Title
     csv.push(`"Franchisee Agreement Contracts Report"`);
     csv.push(""); // Empty row for spacing
+
+    // ✅ Extract Overall Summary
+    let overallSummaryDiv = document.querySelector("#franchiseSummary");
+    if (overallSummaryDiv) {
+        csv.push(`"Overall Summary"`);
+        csv.push(""); // Space below title
+
+        let summaryLines = overallSummaryDiv.innerText.trim().split("\n");
+        summaryLines.forEach(line => {
+            csv.push(`"${line.trim()}"`);
+        });
+
+        csv.push(""); // Space after summary
+    }
 
     tables.forEach(table => {
         let franchiseTitle = table.closest(".franchise-section").querySelector(".franchise-title")?.innerText || "Unknown Franchise";
