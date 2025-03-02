@@ -344,9 +344,9 @@ function fetchReport(type) {
         data: { type: type },
         dataType: "json",
         success: function (response) {
-            $("#reportModalLabel").html(`
-                Fully Staffed Branches Report
-            `);
+            let reportTitle = type === "fully_staffed" ? "Fully Staffed Branches Report" : "Understaffed Branches Report";
+            $("#reportModalLabel").html(reportTitle);
+
             $("#reportData").empty();
 
             if (response.status === "success") {
@@ -396,8 +396,11 @@ function fetchReport(type) {
                                     <thead class="table-dark">
                                         <tr>
                                             <th>Branch Name</th>
+                                            ${type === "understaffed" ? "<th>Required Staff</th>" : ""} <!-- ✅ Add column if understaffed -->
                                             <th>Employee</th>
                                             <th>Shift</th>
+                                            <th>Phone Number</th>  <!-- ✅ New Column -->
+                                            <th>Address</th>       <!-- ✅ New Column -->
                                         </tr>
                                     </thead>
                                     <tbody id="table-${franchiseeKey.replace(/\s+/g, '-')}">
@@ -414,15 +417,21 @@ function fetchReport(type) {
                     franchise.branches.forEach(entry => {
                         let employees = entry.employee_details.split(", "); // Split multiple employees
                         let shifts = entry.employee_shifts.split(", "); // Split shifts
+                        let phoneNumbers = entry.phone_numbers ? entry.phone_numbers.split(", ") : []; // ✅ Get phone numbers
+                        let addresses = entry.addresses ? entry.addresses.split(", ") : []; // ✅ Get addresses
+
 
                         employees.forEach((employee, index) => {
                             franchiseTableBody.append(`
                                 <tr>
                                     <td>${index === 0 ? entry.branch_name : ""}</td> <!-- Show branch name only on first row -->
+                                    ${type === "understaffed" ? `<td>${index === 0 ? `${entry.employee_count}/2` : ""}</td>` : ""} <!-- ✅ Fix Required Staff Calculation -->
                                     <td>${employee}</td>
                                     <td>${shifts[index] || "N/A"}</td> <!-- Match shifts with employees -->
+                                    <td>${phoneNumbers[index] || "No phone info available"}</td>  <!-- ✅ New Column -->
+                                    <td>${addresses[index] || "No address info available"}</td> <!-- ✅ New Column -->
                                 </tr>
-                            `);
+                            `);                            
                         });
                     });
                 });
@@ -434,15 +443,14 @@ function fetchReport(type) {
             // ✅ Show the modal
             $("#reportModal").modal("show");
 
-            // ✅ Export CSV Function
             $("#exportCSV").off("click").on("click", function () {
-                exportFullyStaffedToCSV();
+                exportManpowerToCSV(type); // ✅ Updated to support both Fully Staffed & Understaffed
             });            
-
-            // ✅ Export PDF Function
+            
             $("#exportPDF").off("click").on("click", function () {
-                exportFullyStaffedToPDF();
-            });            
+                exportManpowerToPDF(type); // ✅ Updated to support both Fully Staffed & Understaffed
+            });
+            
         },
         error: function (xhr, status, error) {
             console.error("AJAX Error:", error);
@@ -452,12 +460,13 @@ function fetchReport(type) {
 
 
 // EXPORT TO CSV FUNCTION
-function exportFullyStaffedToCSV() {
+function exportManpowerToCSV(type) {
     let csvContent = "data:text/csv;charset=utf-8,";
 
     // ✅ Add Report Title and Date
+    let reportTitle = type === "fully_staffed" ? "Fully Staffed Branches Report" : "Understaffed Branches Report";
     let currentDate = new Date().toLocaleDateString();
-    csvContent += `Fully Staffed Branches Report\nDate Generated: ${currentDate}\n\n`;
+    csvContent += `${reportTitle}\nDate Generated: ${currentDate}\n\n`;
 
     // ✅ Get all franchise sections
     let tables = document.querySelectorAll("#reportModal .franchise-section .report-table");
@@ -468,7 +477,7 @@ function exportFullyStaffedToCSV() {
         return;
     }
 
-    tables.forEach((table, index) => {
+    tables.forEach((table) => {
         let franchiseSection = table.closest(".franchise-section");
         let franchiseTitle = franchiseSection.querySelector(".franchise-title-report")?.innerText || "Unknown Franchise";
 
@@ -508,37 +517,39 @@ function exportFullyStaffedToCSV() {
     let encodedUri = encodeURI(csvContent);
     let link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `fully_staffed_report_${new Date().toISOString().split("T")[0]}.csv`);
+    link.setAttribute("download", `${type}_report_${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
 
+
 // EXPORT TO PDF FUNCTION
-function exportFullyStaffedToPDF() {
+function exportManpowerToPDF(type) {
     const { jsPDF } = window.jspdf;
     let doc = new jsPDF({
-        orientation: "portrait",
+        orientation: "portrait",  // ✅ Ensuring portrait mode
         unit: "pt",
         format: "A4"
     });
 
     // ✅ Add Report Title
+    let reportTitle = type === "fully_staffed" ? "Fully Staffed Branches Report" : "Understaffed Branches Report";
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     let pageWidth = doc.internal.pageSize.getWidth();
-    doc.text("Fully Staffed Branches Report", pageWidth / 2, 50, { align: "center" });
+    doc.text(reportTitle, pageWidth / 2, 50, { align: "center" });
 
     // ✅ Add Date of Report Generation
     let currentDate = new Date().toLocaleDateString();
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(`Date Generated: ${currentDate}`, 400, 80);
+    doc.text(`Date Generated: ${currentDate}`, 50, 80);
 
-    let startY = 130;
+    let startY = 120;
 
-    // ✅ Restrict table selection to the Fully Staffed Branches modal only
+    // ✅ Restrict table selection to the modal only
     let tables = document.querySelectorAll("#reportModal .franchise-section .report-table");
 
     if (!tables.length) {
@@ -547,7 +558,7 @@ function exportFullyStaffedToPDF() {
         return;
     }
 
-    tables.forEach((table, index) => {
+    tables.forEach((table) => {
         let franchiseSection = table.closest(".franchise-section");
         let franchiseTitle = franchiseSection.querySelector(".franchise-title-report")?.innerText || "Unknown Franchise";
 
@@ -576,7 +587,7 @@ function exportFullyStaffedToPDF() {
             let rowData = [];
             let cols = row.querySelectorAll("th, td");
 
-            cols.forEach((col, colIndex) => {
+            cols.forEach((col) => {
                 rowData.push(col.innerText);
             });
 
@@ -593,7 +604,7 @@ function exportFullyStaffedToPDF() {
             body: data,
             startY: startY,
             theme: "grid",
-            styles: { fontSize: 10, cellPadding: 3 },
+            styles: { fontSize: 9, cellPadding: 3 },
             headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
             alternateRowStyles: { fillColor: [245, 245, 245] },
             margin: { left: 40, right: 40 },
@@ -601,10 +612,10 @@ function exportFullyStaffedToPDF() {
             columnStyles: { 0: { cellWidth: "auto" } }
         });
 
-        startY = doc.lastAutoTable.finalY + 50; // Space between franchise tables
+        startY = doc.lastAutoTable.finalY + 40; // Space between franchise tables
     });
 
     // ✅ Save PDF
-    doc.save(`fully_staffed_report_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`${type}_report_${new Date().toISOString().split("T")[0]}.pdf`);
 }
 
