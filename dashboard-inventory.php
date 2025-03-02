@@ -457,9 +457,9 @@ $lowTurnoverResult = $stmtLow->get_result();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/navbar.css">
     <link rel="stylesheet" href="assets/css/dashboard2.css">
-    <link rel="stylesheet" href="assets/css/inventory-dashboard.css">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="assets/css/inventory-dashboard.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
@@ -518,18 +518,19 @@ $lowTurnoverResult = $stmtLow->get_result();
         </div>
     </nav>
 
+   
     <section class="home">
         <header class="contractheader">
-            <h1 class="title">Dashboard</h1>
+            <div class="container-header">
+                <h1 class="title">Dashboard</h1>
+            </div>
         </header>
-
-
-    <div class="container">
+        <div class="container">
             <div class="dash-content">
                 <div class="overview">
-                    <div class="greeting">
-                        <h2>Hi, <strong>Group/Branch Manager</strong>!</h2>
-                    </div>
+                <div class="greeting">
+                            <h2>Hi, <strong>Group/Branch Manager</strong>!</h2>
+                        </div>
                     <div class="title">
                         <i class='bx bx-time-five'></i>
                         <span class="text">Analytics</span>
@@ -542,24 +543,26 @@ $lowTurnoverResult = $stmtLow->get_result();
                     <span class="filter-label">Filter:</span>
                 </div>
 
+                <div id="filters" class="filter-section">
 
-
-                <!-- Franchise Selection Buttons -->
-                <div class="franchise-filter">
-                    <div class="btn-group">
-                        <button class="franchise-btn" data-franchise="Auntie Anne's">
-                            <img src="assets/images/AuntieAnn.png" alt="Auntie Anne's Logo">
-                            Auntie Anne's
-                        </button>
-                        <button class="franchise-btn" data-franchise="Macao Imperial Tea">
-                            <img src="assets/images/MacaoImp.png" alt="Macao Imperial Tea Logo">
-                            Macao Imperial
-                        </button>
-                        <button class="franchise-btn" data-franchise="Potato Corner">
-                            <img src="assets/images/PotCor.png" alt="Potato Corner Logo">
-                            Potato Corner
-                        </button>
+                    <!-- Franchise Selection Buttons -->
+                    <div class="franchise-filter">
+                        <div class="btn-group">
+                            <button class="franchise-btn" data-franchise="Auntie Anne's">
+                                <img src="assets/images/AuntieAnn.png" alt="Auntie Anne's Logo">
+                                Auntie Anne's
+                            </button>
+                            <button class="franchise-btn" data-franchise="Macao Imperial Tea">
+                                <img src="assets/images/MacaoImp.png" alt="Macao Imperial Tea Logo">
+                                Macao Imperial
+                            </button>
+                            <button class="franchise-btn" data-franchise="Potato Corner">
+                                <img src="assets/images/PotCor.png" alt="Potato Corner Logo">
+                                Potato Corner
+                            </button>
+                        </div>
                     </div>
+
                 </div>
 
 
@@ -568,20 +571,23 @@ $lowTurnoverResult = $stmtLow->get_result();
                 <div id="branch-buttons" class="mt-3"></div>
 
 
-                <!-- Filters Section -->
-                <div class="filter-section2">
-                    <label for="startDate">Start Date:</label>
-                    <input type="date" id="startDate" class="form-control">
-                    
-                    <label for="endDate">End Date:</label>
-                    <input type="date" id="endDate" class="form-control">
+                <!-- Centered Filters Section -->
+                <div class="filter-container">
+                    <div class="filter-section2">
+                        <label for="startDate">Start Date:</label>
+                        <input type="date" id="startDate" class="form-control">
+                        
+                        <label for="endDate">End Date:</label>
+                        <input type="date" id="endDate" class="form-control">
+                    </div>
 
-                    <button class="btn btn-primary" onclick="generateReport()">Detailed Report</button>
-                    <button class="btn btn-primary" onclick="generateMonthlyReport()">Monthly Report</button>
-                    <button class="btn btn-primary" onclick="generateExceptionReport()">Exception Report</button>
-
-                </div>  
-            </div>
+                    <!-- Buttons Section -->
+                    <div class="button-container">
+                        <button class="btn btn-primary" onclick="generateReport()">Detailed Report</button>
+                        <button class="btn btn-primary" onclick="generateMonthlyReport()">Monthly Report</button>
+                        <button class="btn btn-primary" onclick="generateExceptionReport()">Exception Report</button>
+                    </div>
+                </div>
 
                 <!-- KPI Cards -->
                 <div class="row kpi-row">
@@ -634,40 +640,38 @@ $lowTurnoverResult = $stmtLow->get_result();
                     </div>
                 </div>
 
-                <div class="chart-box">
+                <div class="chart-box low-stock-chart">
                     <h2>Low Stock Items Chart</h2>
                     <canvas id="lowStockChart"></canvas>
                 </div>
 
-
                 <!-- Report Modal -->
-<!-- Report Modal -->
-<div id="reportModal" class="modal fade" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Detailed / Monthly Inventory Report</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-secondary">
-                    <h6><strong>Applied Filters:</strong></h6>
-                    <p><strong>Franchisee(s):</strong> <span id="selectedFranchisees">All</span></p>
-                    <p><strong>Branch(es):</strong> <span id="selectedBranches">All</span></p>
-                    <p><strong>Date Range:</strong> <span id="selectedDateRange">Not Set</span></p>
+                <div id="reportModal" class="modal fade" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title">Detailed / Monthly Inventory Report</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-secondary">
+                                    <h6><strong>Applied Filters:</strong></h6>
+                                    <p><strong>Franchisee(s):</strong> <span id="selectedFranchisees">All</span></p>
+                                    <p><strong>Branch(es):</strong> <span id="selectedBranches">All</span></p>
+                                    <p><strong>Date Range:</strong> <span id="selectedDateRange">Not Set</span></p>
+                                </div>
+
+                                <!-- ✅ Ensure this container is properly referenced in JS -->
+                                <div id="reportTablesContainer"></div>
+
+                            </div>
+                            <div class="modal-footer">
+                            <button class="btn btn-success" onclick="exportReportToCSV('detailed/Monthly')">Export as CSV</button>
+                            <button class="btn btn-danger" onclick="exportReportToPDF('detailed/Monthly')">Export as PDF</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- ✅ Ensure this container is properly referenced in JS -->
-                <div id="reportTablesContainer"></div>
-
-            </div>
-            <div class="modal-footer">
-            <button class="btn btn-success" onclick="exportReportToCSV('detailed/Monthly')">Export as CSV</button>
-            <button class="btn btn-danger" onclick="exportReportToPDF('detailed/Monthly')">Export as PDF</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 
 <!-- Exception Report Modal -->

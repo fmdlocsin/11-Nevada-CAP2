@@ -154,21 +154,90 @@ h2 {
     color: var(--header-color);
 }
 
-/* Filters Section */
-.filter-section2 {
+.filter-section {
     display: flex;
     align-items: center;
+    flex-direction: column; /* Stack elements vertically */
     gap: 15px;
+    /* background-color: #f8f9fa; */
     padding: 10px 15px;
+    /* border-radius: 8px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); */
 }
 
-.filter-section2 label {
-    white-space: nowrap;
+.filter-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px; /* Adds spacing between elements */
 }
 
-.filter-section2 button {
-    white-space: nowrap;
-    margin-left: 20px;
+.filter-section2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px; /* Reduced gap for seamless alignment */
+    border-radius: 12px; /* More refined rounded edges */
+    overflow: hidden;
+    padding: 5px; /* Slight padding for a balanced look */
+}
+
+.btn-toggle {
+    flex: 1; /* Equal width */
+    border: 2px solid #007bff; /* Outline to match the theme */
+    background-color: white;
+    color: #007bff;
+    padding: 14px 22px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    outline: none;
+    text-align: center;
+    border-radius: 8px; /* Rounded button edges */
+}
+
+/* Add a border between buttons */
+.btn-toggle:not(:last-child) {
+    margin-right: -2px; /* Prevents border overlap */
+}
+
+/* Hover Effect */
+.btn-toggle:hover {
+    background-color: #d6e4ff; /* Light blue for soft interaction */
+    transform: translateY(-2px); /* Slight lift effect */
+    box-shadow: 0px 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+/* Active Button (Selected) */
+.btn-toggle.active {
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
+}
+
+/* Click Effect */
+.btn-toggle:active {
+    transform: scale(0.95);
+    box-shadow: inset 3px 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+
+
+.form-control {
+    width: 180px;
+    padding: 5px;
 }
 
 /* KPI Cards */
@@ -291,6 +360,12 @@ h2 {
 .table .text-end {
     text-align: right;
 }
+
+.low-stock-chart {
+    margin-top: 20px; /* Adjust value as needed */
+    margin-bottom: 20px;
+}
+
 
 /* Responsive Layout */
 @media screen and (max-width: 992px) {
