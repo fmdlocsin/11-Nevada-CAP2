@@ -95,6 +95,77 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
     exit;
 }
 
+// the thingy for detailed generation
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reportType'])) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $franchisees = isset($_POST["franchisees"]) ? $_POST["franchisees"] : [];
+    $branches = json_decode($_POST["branches"], true);  // ✅ Fix: Decode JSON array properly
+    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
+    $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
+
+    if (!isset($con) || !$con) {
+        echo json_encode(["error" => "Database connection failed: " . mysqli_connect_error()]);
+        exit;
+    }
+
+    if (!is_array($branches) || empty($branches)) {
+        echo json_encode(["error" => "No branches selected."]);
+        exit;
+    }
+
+    // ✅ Query to Fetch Detailed Report Data
+    $query = "SELECT 
+                ii.franchisee,
+                ii.branch,
+                i.item_name,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning) + SUM(ii.delivery), 0)) * 100 AS sell_through_rate,
+                (SUM(ii.beginning + ii.delivery - ii.sold - ii.waste) / NULLIF(AVG(ii.sold), 0)) AS days_until_stockout,
+                AVG(ii.sold) AS average_sales,
+                SUM(ii.waste) AS stock_waste,
+                (SUM(ii.beginning) + SUM(ii.delivery) - SUM(ii.sold) - SUM(ii.waste)) AS current_stock  -- ✅ Added current stock
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (" . implode(",", array_fill(0, count($branches), "?")) . ")
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY ii.franchisee, ii.branch, i.item_name
+            ORDER BY ii.franchisee, ii.branch, sell_through_rate DESC";
+
+    $stmt = $con->prepare($query);
+    if (!$stmt) {
+        echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+        exit;
+    }
+
+    $types = str_repeat("s", count($branches)) . "ss"; // Bind branches + start/end date
+    $params = array_merge($branches, [$startDate, $endDate]);
+    $stmt->bind_param($types, ...$params);
+
+    if (!$stmt->execute()) {
+        echo json_encode(["error" => "SQL Execution Failed: " . $stmt->error]);
+        exit;
+    }
+
+    $result = $stmt->get_result();
+    $reportData = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $reportData[] = [
+            "franchisee" => $row["franchisee"],
+            "branch" => $row["branch"],
+            "item_name" => $row["item_name"],
+            "sell_through_rate" => round($row["sell_through_rate"], 2) . "%",
+            "days_until_stockout" => round($row["days_until_stockout"], 1),
+            "average_sales" => round($row["average_sales"], 2),
+            "stock_waste" => round($row["stock_waste"], 2),
+            "current_stock" => intval($row["current_stock"]) // ✅ Ensure integer format
+        ];
+    }
+
+    echo json_encode(["data" => $reportData], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 
 // ✅ Franchise selection: Fetch branches
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
@@ -279,7 +350,7 @@ $lowTurnoverResult = $stmtLow->get_result();
     $endDate = $_POST["endDate"] ?? date("Y-m-d");
 
     $sellThroughQuery = "SELECT branch, DATE(datetime_added) AS sale_date, 
-                    (SUM(sold) / NULLIF(SUM(delivery), 0)) * 100 AS sell_through_rate
+                    (SUM(sold) / NULLIF(SUM(beginning) + SUM(delivery), 0)) * 100 AS sell_through_rate
                     FROM item_inventory 
                     WHERE branch IN ($placeholders) 
                     AND DATE(datetime_added) BETWEEN ? AND ?
@@ -363,82 +434,7 @@ $lowTurnoverResult = $stmtLow->get_result();
     exit;
 }
 
-// the thingy for detailed generation
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // ✅ Map franchise names to match the database format
-$franchiseMap = [
-    "Potato Corner" => "potato-corner",
-    "Auntie Anne's" => "auntie-anne",
-    "Macao Imperial Tea" => "macao-imperial"
-];
 
-// ✅ Convert input franchise names to database format
-$franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[$f] ?? $f, $_POST["franchisees"]) : [];
-
-    $branches = isset($_POST["branches"]) ? $_POST["branches"] : [];
-    $startDate = $_POST["startDate"] ?? "2000-01-01"; // Default to all-time
-    $endDate = $_POST["endDate"] ?? date("Y-m-d"); // Default to today
-
-    if (!isset($con) || !$con) {
-        echo json_encode(["error" => "Database connection failed: " . mysqli_connect_error()]);
-        exit;
-    }
-
-    // ✅ Build SQL Query
-    $query = "SELECT 
-        i.item_name,
-        (SUM(ii.sold) / NULLIF(SUM(ii.delivery), 0)) * 100 AS sell_through_rate,
-        (SUM(ii.beginning + ii.delivery - ii.sold - ii.waste) / NULLIF(AVG(ii.sold), 0)) AS days_until_stockout,
-        AVG(ii.sold) AS average_sales,
-        SUM(ii.waste) AS stock_waste
-    FROM item_inventory ii
-    INNER JOIN items i ON ii.item_id = i.item_id
-    WHERE 1=1";
-
-    // ✅ Fix Franchisee Filtering
-    if (!empty($franchisees)) {
-        $query .= " AND ii.franchisee IN (" . implode(',', array_map(fn($f) => "'$f'", $franchisees)) . ")";
-    }
-
-    // ✅ Fix Branch Filtering
-    if (!empty($branches)) {
-        $query .= " AND ii.branch IN (" . implode(',', array_map(fn($b) => "'$b'", $branches)) . ")";
-    }
-
-    // ✅ Always Apply Date Range (Defaults to "All Time" if no selection)
-    $query .= " AND DATE(ii.datetime_added) BETWEEN '$startDate' AND '$endDate'";
-
-    $query .= " GROUP BY i.item_name ORDER BY sell_through_rate DESC";
-
-    // ✅ Debugging Output
-    //echo json_encode(["query" => $query, "franchisees" => $franchisees, "branches" => $branches, "startDate" => $startDate, "endDate" => $endDate]);
-
-    $result = mysqli_query($con, $query);
-    if (!$result) {
-        echo json_encode(["error" => "SQL Error: " . mysqli_error($con)]);
-        exit;
-    }
-
-    $reportData = [];
-    while ($row = mysqli_fetch_assoc($result)) {
-        $reportData[] = [
-            "item_name" => $row["item_name"],
-            "sell_through_rate" => round($row["sell_through_rate"], 2) . "%",
-            "days_until_stockout" => round($row["days_until_stockout"], 1),
-            "average_sales" => round($row["average_sales"], 2),
-            "stock_waste" => round($row["stock_waste"], 2)
-        ];
-    }
-
-    if (empty($reportData)) {
-        echo json_encode(["data" => [], "message" => "No matching records found."], JSON_UNESCAPED_UNICODE);
-    } else {
-        echo json_encode(["data" => $reportData], JSON_UNESCAPED_UNICODE);
-    }
-    exit;
-    
-    
-}
 
 
 
@@ -580,7 +576,7 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                     <label for="endDate">End Date:</label>
                     <input type="date" id="endDate" class="form-control">
 
-                    <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+                    <button class="btn btn-primary" onclick="generateReport()">Detailed Report</button>
                     <button class="btn btn-warning" onclick="generateExceptionReport()">Exception Report</button>
 
                 </div>  
@@ -644,42 +640,34 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
 
 
                 <!-- Report Modal -->
-                <div id="reportModal" class="modal fade" tabindex="-1">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header bg-primary text-white">
-                                <h5 class="modal-title">Inventory Report</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="alert alert-secondary">
-                                    <h6><strong>Applied Filters:</strong></h6>
-                                    <p><strong>Franchisee(s):</strong> <span id="selectedFranchisees">All</span></p>
-                                    <p><strong>Branch(es):</strong> <span id="selectedBranches">All</span></p>
-                                    <p><strong>Date Range:</strong> <span id="selectedDateRange">Not Set</span></p>
-                                </div>
-                                <div class="table-responsive">
-                                    <table id="reportTable" class="table table-bordered">
-                                        <thead class="table-dark">
-                                            <tr>
-                                                <th>Item Name</th>
-                                                <th>Stock Level</th>
-                                                <th>Days Until Stockout</th>
-                                                <th>Average Sales</th>
-                                                <th class="text-end">Stock Waste</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="reportTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-success" onclick="exportTableToCSV()">Export as CSV</button>
-                                <button class="btn btn-danger" onclick="exportTableToPDF()">Export as PDF</button>
-                            </div>
-                        </div>
-                    </div>
+<!-- Report Modal -->
+<div id="reportModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Detailed Inventory Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-secondary">
+                    <h6><strong>Applied Filters:</strong></h6>
+                    <p><strong>Franchisee(s):</strong> <span id="selectedFranchisees">All</span></p>
+                    <p><strong>Branch(es):</strong> <span id="selectedBranches">All</span></p>
+                    <p><strong>Date Range:</strong> <span id="selectedDateRange">Not Set</span></p>
                 </div>
+
+                <!-- ✅ Ensure this container is properly referenced in JS -->
+                <div id="reportTablesContainer"></div>
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" onclick="exportTableToCSV()">Export as CSV</button>
+                <button class="btn btn-danger" onclick="exportTableToPDF()">Export as PDF</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Exception Report Modal -->
 <div id="exceptionReportModal" class="modal fade" tabindex="-1">

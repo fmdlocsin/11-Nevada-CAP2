@@ -541,46 +541,56 @@ function fetchExceptionReport(franchisees, branches, startDate, endDate) {
 
     // GENERATE REPORT
     function generateReport() {
- // ✅ Get selected franchises
-// ✅ Ensure selectedFranchisees and selectedBranches are always arrays
-let selectedFranchisees = [...document.querySelectorAll(".franchise-btn.btn-selected")].map(btn => btn.dataset.franchise) || [];
-let selectedBranches = [...document.querySelectorAll(".branch-btn.btn-selected")].map(btn => btn.dataset.branch) || [];
-
-
-    // ✅ Ensure Franchise Names Are Mapped Correctly
-    let franchiseeDisplay = selectedFranchisees.length > 0
-        ? selectedFranchisees.map(f => franchiseNameMap[f] || f).join(", ")  // Map names if available
-        : "All";  // Default if none selected
-
-    // ✅ Update Modal Display
-    document.getElementById("selectedFranchisees").innerText = franchiseeDisplay;
-    document.getElementById("selectedBranches").innerText = selectedBranches.length > 0 
-        ? selectedBranches.join(", ") 
-        : "All";
-
-
-
-    // ✅ Ensure startDate and endDate are always defined
-let startDate = document.getElementById("startDate").value || "2000-01-01"; // Default to all-time
-let endDate = document.getElementById("endDate").value || new Date().toISOString().split('T')[0]; // Default to today
-
-
-
-    document.getElementById("selectedDateRange").innerText = (startDate && endDate) 
-        ? `${startDate} to ${endDate}` 
-        : "Not Set";
-
-    // Show modal and fetch report
-    $("#reportModal").modal("show");
-    fetchReport("daily", selectedFranchisees, selectedBranches, startDate, endDate);
-}
+        // ✅ Get selected franchises & branches
+        let selectedFranchisees = [...document.querySelectorAll(".franchise-btn.btn-selected")].map(btn => btn.dataset.franchise);
+        let selectedBranches = [...document.querySelectorAll(".branch-btn.btn-selected")].map(btn => btn.dataset.branch);
+    
+        // ✅ Ensure Franchise Names Are Mapped Correctly
+        let franchiseeDisplay = selectedFranchisees.length > 0
+            ? selectedFranchisees.map(f => franchiseNameMap[f] || f).join(", ")
+            : "All";
+    
+        // ✅ Ensure Branch Names Are Correctly Formatted
+        let branchDisplay = selectedBranches.length > 0
+            ? selectedBranches.join(", ")
+            : "All";
+    
+        // ✅ Update Modal Display
+        document.getElementById("selectedFranchisees").innerText = franchiseeDisplay;
+        document.getElementById("selectedBranches").innerText = branchDisplay;
+    
+        // ✅ Ensure startDate and endDate are correctly set to current week
+        let startDate = document.getElementById("startDate").value || new Date(new Date().setDate(new Date().getDate() - new Date().getDay())).toISOString().split('T')[0];
+        let endDate = document.getElementById("endDate").value || new Date(new Date().setDate(new Date().getDate() - new Date().getDay() + 7)).toISOString().split('T')[0];
+    
+        document.getElementById("selectedDateRange").innerText = `${startDate} to ${endDate}`;
+    
+        // ✅ Open the modal before fetching data
+        $("#reportModal").modal("show");
+    
+        // ✅ Ensure that selectedBranches is encoded as JSON
+        fetchReport("daily", selectedFranchisees, JSON.stringify(selectedBranches), startDate, endDate);
+    }
+    
 
 // fetch report
+
+
+
+
+// ✅ Function to determine stock status
+function getStockStatus1(currentStock) {
+    if (currentStock === 0) return "No Stock";
+    if (currentStock < 10) return "Low";
+    if (currentStock < 50) return "Moderate";
+    return "High";
+}
+
 function fetchReport(reportType, selectedFranchisees, selectedBranches, startDate, endDate) {
-    console.log("Fetching report:", reportType, selectedFranchisees, selectedBranches, startDate, endDate); // ✅ Debugging output
+    console.log("📌 Fetching Report", { reportType, selectedFranchisees, selectedBranches, startDate, endDate });
 
     $.ajax({
-        url: "dashboard-inventory.php", // ✅ Fix: Add the correct URL
+        url: "dashboard-inventory.php",
         type: "POST",
         data: {
             reportType: reportType,
@@ -591,56 +601,92 @@ function fetchReport(reportType, selectedFranchisees, selectedBranches, startDat
         },
         dataType: "json",
         success: function(response) {
-    console.log("✅ Report Data Received:", response);
-    
-    // ✅ Log response details for debugging
-    if (!response || typeof response !== "object") {
-        console.error("❌ Invalid JSON response received:", response);
-        return;
-    }
+            console.log("✅ Report Data Received:", response);
 
-    if (!response.data || !Array.isArray(response.data)) {
-        console.warn("⚠ Response does not contain a valid 'data' array:", response);
-        $("#reportTableBody").html("<tr><td colspan='5' class='text-center'>No valid data received.</td></tr>");
-        return;
-    }
-
-            if (response.error) {
-                console.error("⚠ Report Error:", response.error);
-                $("#reportTableBody").html("<tr><td colspan='5' class='text-center text-danger'>Error fetching report data</td></tr>");
+            if (!response || typeof response !== "object" || !response.data || !Array.isArray(response.data)) {
+                console.warn("⚠ No valid data received.");
+                $("#reportTablesContainer").html("<p class='text-center text-danger'>No data available</p>");
                 return;
             }
 
-            // ✅ Clear previous table data
-            $("#reportTableBody").empty();
+            let data = response.data;
+            console.log("📌 Processed Report Data:", data);
 
-            if (!response.data || !Array.isArray(response.data) || response.data.length === 0) {
-                console.warn("⚠ No data found or response is not an array:", response);
-                $("#reportTableBody").html("<tr><td colspan='5' class='text-center'>No data available for selected filters.</td></tr>");
+            if (!data || data.length === 0) {
+                console.warn("⚠ No report data available.");
+                $("#reportTablesContainer").html("<p class='text-center'>No data available</p>");
                 return;
             }
 
-            // ✅ Populate table with received data
-            response.data.forEach(item => {
-                $("#reportTableBody").append(`
-                    <tr>
-                        <td>${item.item_name}</td>
-                        <td>${item.sell_through_rate ? item.sell_through_rate : "N/A"}</td>
+            // ✅ Clear previous content
+            $("#reportTablesContainer").empty();
 
-                        <td>${item.days_until_stockout ? item.days_until_stockout.toFixed(1) : "N/A"}</td>
-                        <td>${item.average_sales ? item.average_sales.toFixed(2) : "N/A"}</td>
-                        <td class="text-end">${item.stock_waste ? item.stock_waste.toFixed(2) : "0.00"}</td>
-                    </tr>
-                `);
+            // ✅ Group data by franchise & branch
+            let groupedData = {};
+            data.forEach(item => {
+                let formattedFranchise = franchiseDisplayMap[item.franchisee] || item.franchisee;
+                let key = `${formattedFranchise} - ${item.branch}`;
+                if (!groupedData[key]) {
+                    groupedData[key] = [];
+                }
+                groupedData[key].push(item);
             });
 
+            // ✅ Create separate tables for each franchise-branch combination
+            Object.keys(groupedData).forEach(group => {
+                let items = groupedData[group];
+
+                let tableHtml = `
+                    <h4 class="mt-4 text-center">${group}</h4> 
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Sell-Through Rate</th>
+                                    <th>Days Until Stockout</th>
+                                    <th>Average Sales</th>
+                                    <th>Stock Waste</th>
+                                    <th>Current Stock</th>
+                                    <th>Stock Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                items.forEach(item => {
+                    let stockStatus = getStockStatus1(item.current_stock);
+                    tableHtml += `
+                        <tr>
+                            <td>${item.item_name}</td>
+                            <td>${item.sell_through_rate}</td>
+                            <td>${item.days_until_stockout}</td>
+                            <td>${item.average_sales}</td>
+                            <td>${item.stock_waste}</td>
+                            <td>${item.current_stock}</td>
+                            <td>${stockStatus}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                $("#reportTablesContainer").append(tableHtml);
+            });
+
+            console.log("✅ Report tables updated successfully!");
         },
-        error: function(xhr, status, error) {
+        error: function(xhr) {
             console.error("❌ AJAX Error:", xhr.responseText);
-            $("#reportTableBody").html("<tr><td colspan='5' class='text-center text-danger'>Failed to fetch report data</td></tr>");
+            $("#reportTablesContainer").html("<p class='text-center text-danger'>Failed to fetch report</p>");
         }
     });
 }
+
 
 function exportTableToCSV() {
     let csv = [];
