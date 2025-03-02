@@ -148,3 +148,19 @@ Stack trace:
 #0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(169): trim(Array)
 #1 {main}
   thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 169
+[02-Mar-2025 15:00:42 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 10
+[02-Mar-2025 15:00:52 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 15:03:09 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:169
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(169): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 169
+[02-Mar-2025 15:03:17 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 15:03:21 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:169
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(169): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 169
+[02-Mar-2025 15:03:23 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
