@@ -646,7 +646,7 @@ $lowTurnoverResult = $stmtLow->get_result();
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Detailed Inventory Report</h5>
+                <h5 class="modal-title">Detailed / Monthly Inventory Report</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -662,8 +662,8 @@ $lowTurnoverResult = $stmtLow->get_result();
 
             </div>
             <div class="modal-footer">
-                <button class="btn btn-success" onclick="exportTableToCSV()">Export as CSV</button>
-                <button class="btn btn-danger" onclick="exportTableToPDF()">Export as PDF</button>
+            <button class="btn btn-success" onclick="exportReportToCSV('detailed/Monthly')">Export as CSV</button>
+            <button class="btn btn-danger" onclick="exportReportToPDF('detailed/Monthly')">Export as PDF</button>
             </div>
         </div>
     </div>
@@ -691,8 +691,8 @@ $lowTurnoverResult = $stmtLow->get_result();
 
             </div>
             <div class="modal-footer">
-                <button class="btn btn-success" onclick="exportExceptionToCSV()">Export as CSV</button>
-                <button class="btn btn-danger" onclick="exportExceptionToPDF()">Export as PDF</button>
+            <button class="btn btn-success" onclick="exportReportToCSV('exception')">Export as CSV</button>
+            <button class="btn btn-danger" onclick="exportReportToPDF('exception')">Export as PDF</button>
             </div>
         </div>
     </div>

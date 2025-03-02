@@ -189,3 +189,7 @@ Stack trace:
             AND DATE(ii.datetime_added) BETWEEN ? AND ?
             GROUP...' at line 10
 [02-Mar-2025 15:47:48 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 16:14:06 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 10
+[02-Mar-2025 16:14:08 Europe/Berlin] 📌 Exception Report Rows Fetched: 18

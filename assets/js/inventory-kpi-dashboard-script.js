@@ -819,86 +819,120 @@ function fetchMonthlyReport(reportType, selectedFranchisees, selectedBranches, s
 }
 
 
-
-function exportTableToCSV() {
+function exportReportToCSV(reportType) {
     let csv = [];
-    let franchise = document.getElementById("selectedFranchisees").innerText;
-    let branch = document.getElementById("selectedBranches").innerText;
-    let dateRange = document.getElementById("selectedDateRange").innerText;
+    let dateRange, containerId, franchisees, branches;
 
-    // ✅ Add report title and metadata
-    csv.push('"Inventory Report"');
-    csv.push(`"Franchise:","${franchise}"`);
-    csv.push(`"Branch:","${branch}"`);
-    csv.push(`"Date Range:","${dateRange}"`);
-    csv.push(""); // Empty line before table
-
-    let rows = document.querySelectorAll("#reportTable tr");
-
-    // ✅ Loop through each row to extract the data
-    for (let row of rows) {
-        let cols = row.querySelectorAll("th, td");
-        let rowData = [];
-
-        for (let col of cols) {
-            rowData.push('"' + col.innerText + '"'); // Wrap text in quotes to handle commas
-        }
-
-        csv.push(rowData.join(",")); // Join columns with commas
+    if (reportType === "exception") {
+        dateRange = document.getElementById("exceptionSelectedDateRange").innerText;
+        franchisees = document.getElementById("exceptionSelectedFranchisees").innerText.split(", ");
+        branches = document.getElementById("exceptionSelectedBranches").innerText.split(", ");
+        containerId = "exceptionReportTablesContainer";
+    } else {
+        dateRange = document.getElementById("selectedDateRange").innerText;
+        franchisees = document.getElementById("selectedFranchisees").innerText.split(", ");
+        branches = document.getElementById("selectedBranches").innerText.split(", ");
+        containerId = "reportTablesContainer";
     }
 
-    // ✅ Create a Blob (CSV File)
+    csv.push(`"${reportType.toUpperCase()} Report"`);
+    csv.push(`"Date Range:","${dateRange}"`);
+    csv.push(""); // Empty line before tables
+
+    let tables = document.querySelectorAll(`#${containerId} table`);
+
+    tables.forEach((table, index) => {
+        // ✅ Get the correct franchise and branch based on index
+        let franchise = franchisees[index] || "Unknown Franchise";
+        let branch = branches[index] || "Unknown Branch";
+        let headerText = `${franchise} - ${branch}`;
+
+        csv.push(`"${headerText}"`); // ✅ Add Franchise-Branch header
+
+        let rows = table.querySelectorAll("tr");
+        rows.forEach((row) => {
+            let cols = row.querySelectorAll("th, td");
+            let rowData = [];
+            cols.forEach((col) => {
+                rowData.push('"' + col.innerText + '"'); // Wrap text in quotes
+            });
+            csv.push(rowData.join(",")); // Join columns with commas
+        });
+
+        csv.push(""); // Add space between tables
+    });
+
     let csvBlob = new Blob([csv.join("\n")], { type: "text/csv" });
     let csvUrl = URL.createObjectURL(csvBlob);
 
-    // ✅ Create a Download Link
     let downloadLink = document.createElement("a");
     downloadLink.href = csvUrl;
-    downloadLink.download = `Inventory_Report_${new Date().toISOString().split("T")[0]}.csv`;
+    downloadLink.download = `${reportType}_Report_${new Date().toISOString().split("T")[0]}.csv`;
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
 }
 
-
-function exportTableToPDF() {
+function exportReportToPDF(reportType) {
     let { jsPDF } = window.jspdf;
     let doc = new jsPDF("p", "mm", "a4");
 
-    // ✅ Fetch report details
-    let franchise = document.getElementById("selectedFranchisees").innerText;
-    let branch = document.getElementById("selectedBranches").innerText;
-    let dateRange = document.getElementById("selectedDateRange").innerText;
+    let dateRange, containerId, franchisees, branches;
 
-    // ✅ Set Title and Metadata
+    if (reportType === "exception") {
+        dateRange = document.getElementById("exceptionSelectedDateRange").innerText;
+        franchisees = document.getElementById("exceptionSelectedFranchisees").innerText.split(", ");
+        branches = document.getElementById("exceptionSelectedBranches").innerText.split(", ");
+        containerId = "exceptionReportTablesContainer";
+    } else {
+        dateRange = document.getElementById("selectedDateRange").innerText;
+        franchisees = document.getElementById("selectedFranchisees").innerText.split(", ");
+        branches = document.getElementById("selectedBranches").innerText.split(", ");
+        containerId = "reportTablesContainer";
+    }
+
     doc.setFontSize(14);
-    doc.text("Inventory Report", 10, 10);
+    doc.text(`${reportType.toUpperCase()} Report`, 10, 10);
     doc.setFontSize(10);
-    doc.text(`Franchise: ${franchise}`, 10, 20);
-    doc.text(`Branch: ${branch}`, 10, 25);
-    doc.text(`Date Range: ${dateRange}`, 10, 30);
+    doc.text(`Date Range: ${dateRange}`, 10, 20);
 
-    let rows = [];
-    let headers = [];
+    let tables = document.querySelectorAll(`#${containerId} table`);
+    let startY = 30; // Initial Y position for table placement
 
-    document.querySelectorAll("#reportTable thead tr th").forEach(th => {
-        headers.push(th.innerText);
-    });
+    tables.forEach((table, index) => {
+        // ✅ Get the correct franchise and branch based on index
+        let franchise = franchisees[index] || "Unknown Franchise";
+        let branch = branches[index] || "Unknown Branch";
+        let headerText = `${franchise} - ${branch}`;
 
-    document.querySelectorAll("#reportTable tbody tr").forEach(tr => {
-        let rowData = [];
-        tr.querySelectorAll("td").forEach(td => {
-            rowData.push(td.innerText);
+        doc.setFontSize(12);
+        doc.text(headerText, 10, startY); // ✅ Add Franchise-Branch header before each table
+        startY += 6;
+
+        let rows = [];
+        let headers = [];
+
+        table.querySelectorAll("thead tr th").forEach((th) => {
+            headers.push(th.innerText);
         });
-        rows.push(rowData);
+
+        table.querySelectorAll("tbody tr").forEach((tr) => {
+            let rowData = [];
+            tr.querySelectorAll("td").forEach((td) => {
+                rowData.push(td.innerText);
+            });
+            rows.push(rowData);
+        });
+
+        doc.autoTable({
+            head: [headers],
+            body: rows,
+            startY: startY,
+            theme: "grid",
+        });
+
+        startY = doc.autoTable.previous.finalY + 10; // Adjust Y position for next table
     });
 
-    doc.autoTable({
-        head: [headers],
-        body: rows,
-        startY: 35, // ✅ Move table below metadata
-        theme: "grid"
-    });
-
-    doc.save(`Inventory_Report_${new Date().toISOString().split("T")[0]}.pdf`);
+    doc.save(`${reportType}_Report_${new Date().toISOString().split("T")[0]}.pdf`);
 }
