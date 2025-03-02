@@ -105,3 +105,8 @@ Stack trace:
 [02-Mar-2025 11:12:27 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
 [02-Mar-2025 11:13:33 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
 [02-Mar-2025 11:13:57 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:18:25 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 8
+[02-Mar-2025 11:18:28 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:18:42 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
