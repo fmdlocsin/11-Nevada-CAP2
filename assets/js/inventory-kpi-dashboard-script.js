@@ -147,6 +147,11 @@ $("#report-week-range").text(`Reports for ${weekDates.monday} to ${weekDates.sun
             // ✅ Update Graphs
             updateGraphs(data.high_turnover, data.low_turnover);
             updateSellThroughGraph(data.sell_through_rate);
+            if (!data.low_stock_items || !data.low_stock_items.labels || data.low_stock_items.labels.length === 0) {
+                console.warn("⚠ No low stock items to display.");
+                return;
+            }
+            updateLowStockChart(data.low_stock_items);
         },
         error: function(xhr, status, error) {
             console.error("AJAX Error:", xhr.responseText);
@@ -244,6 +249,60 @@ function updateSellThroughGraph(sellThroughRate) {
 
     console.log("✅ Sell-Through Rate Graph Updated!");
 }
+
+function updateLowStockChart(lowStockData) {
+    console.log("Updating Low Stock Items Chart...", lowStockData);
+
+    if (!lowStockData || !lowStockData.labels || lowStockData.labels.length === 0) {
+        console.warn("⚠ No low stock items to display.");
+        return;
+    }
+
+    // ✅ Destroy previous chart instance if exists
+    if (window.lowStockChart instanceof Chart) {
+        window.lowStockChart.destroy();
+    }
+
+    const ctx = document.getElementById("lowStockChart").getContext("2d");
+
+    // ✅ Assign unique colors per branch dynamically
+    let uniqueBranches = [...new Set(lowStockData.branches)];
+    let branchColors = {};
+    let availableColors = ["red", "blue", "green", "orange", "purple", "brown", "cyan", "magenta"];
+    
+    uniqueBranches.forEach((branch, index) => {
+        branchColors[branch] = availableColors[index % availableColors.length]; // Cycle colors if more branches
+    });
+
+    // ✅ Prepare dataset
+    let datasets = uniqueBranches.map(branch => {
+        return {
+            label: `Branch: ${branch}`,
+            data: lowStockData.labels.map((item, index) => (lowStockData.branches[index] === branch ? lowStockData.values[index] : 0)),
+            backgroundColor: branchColors[branch]
+        };
+    });
+
+    window.lowStockChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: lowStockData.labels, // ✅ Item Names
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y', // ✅ Horizontal bar chart
+            maintainAspectRatio: false,
+            scales: {
+                x: { beginAtZero: true },
+                y: { stacked: true }
+            }
+        }
+    });
+
+    console.log("✅ Low Stock Items Chart Updated!");
+}
+
 
 
 
