@@ -46,11 +46,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
         exit;
     }
 
+
     // ✅ Exception Report Query
     $query = "SELECT 
                 i.item_name, ii.branch,
                 (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
-                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.waste) / NULLIF((SUM(ii.beginning) + SUM(ii.delivery) - SUM(ii.sold) - SUM(ii.waste)), 0)) * 100 AS waste_percentage,
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
             FROM item_inventory ii
             INNER JOIN items i ON ii.item_id = i.item_id

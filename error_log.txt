@@ -118,3 +118,14 @@ Stack trace:
 #0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(165): trim(Array)
 #1 {main}
   thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 165
+[02-Mar-2025 11:27:23 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:43:12 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:43:21 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:43:40 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:44:08 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:44:57 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:45:04 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:45:35 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:45:49 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:46:23 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:48:02 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
