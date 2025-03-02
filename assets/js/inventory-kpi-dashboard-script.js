@@ -4,10 +4,36 @@
 $(document).ready(function() {
     let selectedBranch = "";
 
+    // ✅ Function to Get Monday and Sunday of the Current Week
+function getCurrentWeekDates() {
+    let today = new Date();
+    let firstDay = new Date(today.setDate(today.getDate() - today.getDay() )); // Monday
+    let lastDay = new Date(today.setDate(today.getDate() - today.getDay() + 7)); // Sunday
+
+    // ✅ Format MM-DD-YYYY
+    let formatDate = (date) => {
+        let d = new Date(date);
+        let month = String(d.getMonth() + 1).padStart(2, "0"); // Get month (01-12)
+        let day = String(d.getDate()).padStart(2, "0"); // Get day (01-31)
+        let year = d.getFullYear(); // Get full year
+        return `${month}-${day}-${year}`;
+    };
+
+    return {
+        monday: formatDate(firstDay),
+        sunday: formatDate(lastDay)
+    };
+}
+
+// ✅ Display the Current Week Range
+let weekDates = getCurrentWeekDates();
+$("#report-week-range").text(`Reports for ${weekDates.monday} to ${weekDates.sunday}`);
+
+
     // Fetch and display branches when a franchise is clicked
     $(document).ready(function () {
         let selectedFranchises = [];
-    
+        
         // ✅ Handle Franchise Selection
         $(".franchise-btn").click(function () {
             let franchise = $(this).data("franchise");
@@ -92,7 +118,7 @@ $(document).ready(function() {
     
 
     function updateAnalytics(branches) {
-        let startDate = $("#startDate").val() || new Date(new Date().setDate(new Date().getDate() - new Date().getDay() + 1)).toISOString().split('T')[0]; // Default to Monday
+        let startDate = $("#startDate").val() || new Date(new Date().setDate(new Date().getDate() - new Date().getDay())).toISOString().split('T')[0]; // Default to Monday
         let endDate = $("#endDate").val() || new Date(new Date().setDate(new Date().getDate() - new Date().getDay() + 7)).toISOString().split('T')[0]; // Default to Sunday
 
         console.log("📊 Fetching KPI Data for:", { branches, startDate, endDate });

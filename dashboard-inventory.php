@@ -411,9 +411,15 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                         <i class='bx bx-time-five'></i>
                         <span class="text">Analytics</span>
                     </div>
+                    <!-- ✅ Reports Header -->
+                    <div class="reports-header text-center my-3">
+                        <h3 id="report-week-range" class="fw-bold"></h3>
+                    </div>
+
                     <span class="filter-label">Filter:</span>
                 </div>
-            
+
+
 
                 <!-- Franchise Selection Buttons -->
                 <div class="franchise-filter">
@@ -448,7 +454,7 @@ $franchisees = isset($_POST["franchisees"]) ? array_map(fn($f) => $franchiseMap[
                     <input type="date" id="endDate" class="form-control">
 
                     <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
-                </div>
+                </div>  
             </div>
 
                 <!-- KPI Cards -->
