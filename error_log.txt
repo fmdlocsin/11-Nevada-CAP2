@@ -110,3 +110,11 @@ Stack trace:
             GROUP...' at line 8
 [02-Mar-2025 11:18:28 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
 [02-Mar-2025 11:18:42 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:19:35 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:19:41 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:24:47 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:25:18 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:165
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(165): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 165

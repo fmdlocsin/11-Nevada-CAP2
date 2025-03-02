@@ -19,8 +19,8 @@ function getStockStatus($currentStock, $turnoverRate) {
 
     $stockDays = $currentStock; // Estimate how long stock will last
 
-    if ($stockDays > 14) return "High";
-    if ($stockDays >= 7) return "Moderate";
+    if ($stockDays > 25) return "High";
+    if ($stockDays >= 14) return "Moderate";
     if ($stockDays > 0) return "Low";
     return "Stockout";
 }
