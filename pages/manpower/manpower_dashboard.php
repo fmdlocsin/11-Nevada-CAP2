@@ -90,11 +90,12 @@ if ($result) {
 
                         <!-- Generate Report button -->
                         <div class="d-inline-flex align-items-center gap-3">
-                            <h1 class="branch-title">Fully Staffed Branches</h1>
-                            <button id="generateStaffedReport" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#staffedReportModal">
+                            <h1 class="branch-title mb-0">Fully Staffed Branches</h1>
+                            <button class="btn btn-primary btn-sm d-flex align-items-center" onclick="fetchReport('fully_staffed')">
                                 Generate Report
                             </button>
                         </div>
+
 
                         <a href="../../pages/manpower/manpower_fullschedule?str=potatoCorner" class="store">
                             <img class="logo" src="../../assets/images/PotCor.png" alt="Potato Corner">
@@ -113,8 +114,9 @@ if ($result) {
                     <div class="understaffed-branches">
 
                         <div class="d-inline-flex align-items-center gap-3">
-                            <h1 class="branch-title">Understaffed Branches</h1>
-                            <button id="generateUnderstaffedReport" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#understaffedReportModal" onclick="generateReport('understaffed')">
+                            <h1 class="branch-title mb-0">Understaffed Branches</h1>
+                            <!-- Understaffed Branches Report Button -->
+                            <button class="btn btn-primary btn-sm" onclick="fetchReport('understaffed')">
                                 Generate Report
                             </button>
                         </div>
@@ -134,6 +136,33 @@ if ($result) {
                     </div>
                 </div>
             </div>
+            
+            <!-- Report Modal -->
+            <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl"> <!-- ✅ Increased modal width for better readability -->
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="reportModalLabel">
+                                Fully Staffed Branches Report
+                            </h5>
+                            <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="reportData">
+                                <!-- Report Data Will Be Inserted Here -->
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-success" id="exportCSV">Export as CSV</button>
+                            <button class="btn btn-danger" id="exportPDF">Export as PDF</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
         </div>
     </section>
 
@@ -148,6 +177,11 @@ if ($result) {
         crossorigin="anonymous"></script>
     <script src="../../assets/js/navbar.js"></script>
     <script src="../../assets/js/manage-employee-script.js"></script>
+
+    <!-- EXPORTS SCRIPT -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
 </body>
 
 </html>

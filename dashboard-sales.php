@@ -558,7 +558,7 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
 
                                 <!-- Report Modal -->
                                 <div id="reportModal" class="modal fade" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
+                                    <div class="modal-dialog modal-xl">
                                         <div class="modal-content">
                                             <div class="modal-header bg-primary text-white">
                                                 <h5 class="modal-title">Sales Report</h5>
