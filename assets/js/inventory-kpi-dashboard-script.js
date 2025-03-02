@@ -687,6 +687,138 @@ function fetchReport(reportType, selectedFranchisees, selectedBranches, startDat
     });
 }
 
+function generateMonthlyReport() {
+    // Get selected franchises & branches
+    let selectedFranchisees = [...document.querySelectorAll(".franchise-btn.btn-selected")].map(btn => btn.dataset.franchise);
+    let selectedBranches = [...document.querySelectorAll(".branch-btn.btn-selected")].map(btn => btn.dataset.branch);
+
+    // Get the first and last day of the current month
+    let today = new Date();
+    let firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+    let lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+
+    // Get the month and year for the summary title
+    let monthYear = today.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    // Ensure franchise and branch names are correctly displayed
+    let franchiseeDisplay = selectedFranchisees.length > 0 ? selectedFranchisees.map(f => franchiseNameMap[f] || f).join(", ") : "All";
+    let branchDisplay = selectedBranches.length > 0 ? selectedBranches.join(", ") : "All";
+
+    // Update modal display
+    document.getElementById("selectedFranchisees").innerText = franchiseeDisplay;
+    document.getElementById("selectedBranches").innerText = branchDisplay;
+    document.getElementById("selectedDateRange").innerText = `${firstDay} to ${lastDay}`;
+
+    // Open the modal before fetching data
+    $("#reportModal").modal("show");
+
+    // Fetch report data
+    fetchMonthlyReport("monthly", selectedFranchisees, JSON.stringify(selectedBranches), firstDay, lastDay, monthYear);
+}
+
+function fetchMonthlyReport(reportType, selectedFranchisees, selectedBranches, startDate, endDate, monthYear) {
+    console.log("📌 Fetching Monthly Report", { reportType, selectedFranchisees, selectedBranches, startDate, endDate });
+
+    $.ajax({
+        url: "dashboard-inventory.php",
+        type: "POST",
+        data: {
+            reportType: reportType,
+            franchisees: selectedFranchisees,
+            branches: selectedBranches,
+            startDate: startDate,
+            endDate: endDate
+        },
+        dataType: "json",
+        success: function(response) {
+            console.log("✅ Monthly Report Data Received:", response);
+
+            if (!response || typeof response !== "object" || !response.data || !Array.isArray(response.data)) {
+                console.warn("⚠ No valid data received.");
+                $("#reportTablesContainer").html("<p class='text-center text-danger'>No data available</p>");
+                return;
+            }
+
+            let data = response.data;
+            console.log("📌 Processed Monthly Report Data:", data);
+
+            if (!data || data.length === 0) {
+                console.warn("⚠ No report data available.");
+                $("#reportTablesContainer").html("<p class='text-center'>No data available</p>");
+                return;
+            }
+
+            // ✅ Clear previous content
+            $("#reportTablesContainer").empty();
+
+            // ✅ Group data by franchise & branch
+            let groupedData = {};
+            data.forEach(item => {
+                let formattedFranchise = franchiseDisplayMap[item.franchisee] || item.franchisee;
+                let key = `${formattedFranchise} - ${item.branch}`;
+                if (!groupedData[key]) {
+                    groupedData[key] = [];
+                }
+                groupedData[key].push(item);
+            });
+
+            // ✅ Create separate tables for each franchise-branch combination
+            Object.keys(groupedData).forEach(group => {
+                let items = groupedData[group];
+
+                let tableHtml = `
+                    <h3 class="mt-4 text-center">Summary Report for the Month: ${monthYear}</h3>
+                    <h4 class="mt-2 text-center">${group}</h4> 
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Sell-Through Rate</th>
+                                    <th>Days Until Stockout</th>
+                                    <th>Average Sales</th>
+                                    <th>Stock Waste</th>
+                                    <th>Current Stock</th>
+                                    <th>Stock Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                items.forEach(item => {
+                    let stockStatus = getStockStatus1(item.current_stock);
+                    tableHtml += `
+                        <tr>
+                            <td>${item.item_name}</td>
+                            <td>${item.sell_through_rate}</td>
+                            <td>${item.days_until_stockout}</td>
+                            <td>${item.average_sales}</td>
+                            <td>${item.stock_waste}</td>
+                            <td>${item.current_stock}</td>
+                            <td>${stockStatus}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                $("#reportTablesContainer").append(tableHtml);
+            });
+
+            console.log("✅ Monthly Report tables updated successfully!");
+        },
+        error: function(xhr) {
+            console.error("❌ AJAX Error:", xhr.responseText);
+            $("#reportTablesContainer").html("<p class='text-center text-danger'>Failed to fetch report</p>");
+        }
+    });
+}
+
+
 
 function exportTableToCSV() {
     let csv = [];

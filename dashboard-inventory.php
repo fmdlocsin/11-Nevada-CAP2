@@ -577,7 +577,8 @@ $lowTurnoverResult = $stmtLow->get_result();
                     <input type="date" id="endDate" class="form-control">
 
                     <button class="btn btn-primary" onclick="generateReport()">Detailed Report</button>
-                    <button class="btn btn-warning" onclick="generateExceptionReport()">Exception Report</button>
+                    <button class="btn btn-primary" onclick="generateMonthlyReport()">Monthly Report</button>
+                    <button class="btn btn-primary" onclick="generateExceptionReport()">Exception Report</button>
 
                 </div>  
             </div>
