@@ -956,9 +956,6 @@ function exportFranchiseTableToPDF() {
                     // Add "Contract Duration (Months)" to headers
                     headers = rowData;
                 } else {
-                    // Add Contract Duration Data (Fetch from modal table)
-                    let contractDuration = rowData.length >= 5 ? rowData[4] : "N/A"; // Extract from table row
-                    rowData.splice(4, 0, contractDuration); // Insert duration in correct position
                     data.push(rowData);
                 }
             });

@@ -1185,114 +1185,218 @@ function exportTableToPDF() {
       format: "A4"
     });
   
-    let pageWidth = doc.internal.pageSize.getWidth();
-    let startY = 50;
+    // Load background images for first page and subsequent pages
+    let img1 = new Image();
+    let img2 = new Image();
+    img1.src = "assets/images/formDesign.png";    // Background for the 1st page
+    img2.src = "assets/images/formDesign2.png";     // Background for pages 2+
   
-    // Title
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text("Sales Report", pageWidth / 2, startY, { align: "center" });
-    startY += 30;
+    // Wait for the first image to load
+    img1.onload = function () {
+      // Add the first page background
+      doc.addImage(img1, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
   
-    // Date & Filter Info
-    let currentDate = new Date().toLocaleDateString();
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Date Generated: ${currentDate}`, 400, 80);
+      // Override addPage so that every new page gets the alternate background image
+      const originalAddPage = doc.addPage.bind(doc);
+      doc.addPage = function () {
+        originalAddPage();
+        doc.addImage(img2, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+      };
   
-    let reportType = document.querySelector(".report-btn.active")?.innerText || "Unknown Report Type";
-    let franchiseFilter = document.getElementById("selectedFranchisees")?.innerText || "All";
-    let branchFilter = document.getElementById("selectedBranches")?.innerText || "All";
-    let dateRange = document.getElementById("selectedDateRange")?.innerText || "Not Set";
+      let pageWidth = doc.internal.pageSize.getWidth();
+      let startY = 140;
   
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Report Type: ${reportType}`, 50, 100);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Franchisee(s): ${franchiseFilter}`, 50, 120);
-    doc.text(`Branch(es): ${branchFilter}`, 50, 135);
-    doc.text(`Date Range: ${dateRange}`, 50, 150);
+      // Title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.text("Sales Report", pageWidth / 2, startY, { align: "center" });
+      startY += 40;
   
-    startY = 180; // Reserve space for tables
+      // Date Generated & Exported by (printed outside any box)
+      let currentDate = new Date().toLocaleDateString();
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Date Generated: ${currentDate}`, 50, startY);
+      startY += 12;
+      let exportedBy = typeof loggedInUser !== "undefined" ? loggedInUser : "Unknown User";
+      doc.text(`Exported by: ${exportedBy}`, 50, startY);
+      startY += 20;
   
-    // Check if there are separate franchise sections (used for daily reports)
-    let sections = document.querySelectorAll(".franchise-section");
-    if (sections.length > 0) {
-      // Loop over each franchise section
-      sections.forEach(section => {
-        // Get the franchise title from the element with class "franchise-title-report"
-        let titleEl = section.querySelector(".franchise-title-report");
-        let title = titleEl ? titleEl.innerText.trim() : "Franchise";
+      // Get filter info values
+      let reportType = document.querySelector(".report-btn.active")?.innerText || "Unknown Report Type";
+      let franchiseFilter = document.getElementById("selectedFranchisees")?.innerText || "All";
+      let branchFilter = document.getElementById("selectedBranches")?.innerText || "All";
+      let dateRange = document.getElementById("selectedDateRange")?.innerText || "Not Set";
   
-        // Check for page break before new section
-        if (startY > doc.internal.pageSize.getHeight() - 50) {
-          doc.addPage();
-          startY = 50;
+      // Prepare filter info text lines
+      const filterLines = [
+        `Report Type: ${reportType}`,
+        `Franchisee(s): ${franchiseFilter}`,
+        `Branch(es): ${branchFilter}`,
+        `Date Range: ${dateRange}`
+      ];
+  
+      // Calculate the height for the filter box.
+      // For example: 10pt top padding + 15pt per line + 10pt bottom padding.
+      let filterBoxHeight = 10 + filterLines.length * 15 + 5;
+  
+      // Draw the white rounded rectangle for the filter info
+      doc.setDrawColor(0, 0, 0);    // Black outline
+      doc.setFillColor(255, 255, 255); // White fill
+      doc.roundedRect(40, startY, pageWidth - 80, filterBoxHeight, 5, 5, "FD");
+  
+      // Write each line inside the box with vertical spacing
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(filterLines[0], 50, startY + 15);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(filterLines[1], 50, startY + 30);
+      doc.text(filterLines[2], 50, startY + 45);
+      doc.text(filterLines[3], 50, startY + 60);
+      startY += filterBoxHeight + 35; // update startY after the box
+  
+      // Now, add the rest of your table export logic here...
+      // For example, looping through your franchise sections and generating tables:
+      let sections = document.querySelectorAll(".franchise-section");
+      if (sections.length > 0) {
+        sections.forEach(section => {
+          let titleEl = section.querySelector(".franchise-title-report");
+          let title = titleEl ? titleEl.innerText.trim() : "Franchise";
+  
+          if (startY > doc.internal.pageSize.getHeight() - 50) {
+            doc.addPage();
+            startY = 50;
+          }
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(16);
+          doc.text(title, 40, startY);
+          startY += 20;
+  
+          // (Optional) If your section has a summary, you could add it here.
+          let table = section.querySelector("table");
+          if (!table) return;
+    
+          // Extract headers and data from the table
+          let headers = [];
+          let data = [];
+          let rows = table.querySelectorAll("tr");
+          rows.forEach((row, rowIndex) => {
+            let rowData = [];
+            let cols = row.querySelectorAll("th, td");
+            cols.forEach(col => {
+              rowData.push(col.innerText.trim());
+            });
+            if (rowIndex === 0) {
+              headers = rowData;
+            } else {
+              data.push(rowData);
+            }
+          });
+    
+          // Process total rows based on report type (daily, weekly, monthly)
+          if (reportType.toLowerCase() === "daily") {
+            let totalSalesValue = 0;
+            data.forEach(row => {
+              let salesText = row[row.length - 1].replace(/,/g, "");
+              let value = parseFloat(salesText);
+              if (!isNaN(value)) totalSalesValue += value;
+            });
+            let totalRow = ["", "", "TOTAL SALES", totalSalesValue.toLocaleString()];
+            data.push(totalRow);
+          } else if (reportType.toLowerCase() === "weekly") {
+            data = data.map(row => {
+              if (row.includes("TOTAL WEEKLY SALES")) {
+                return ["", "", "TOTAL WEEKLY SALES", row[row.length - 1]];
+              }
+              return row;
+            });
+          } else if (reportType.toLowerCase() === "monthly") {
+            data = data.map(row => {
+              if (row.includes("TOTAL MONTHLY SALES")) {
+                return ["", "", "TOTAL MONTHLY SALES", row[1], row[2], row[3]];
+              }
+              return row;
+            });
+          }
+    
+          // Generate the table using autoTable
+          doc.autoTable({
+            head: [headers],
+            body: data,
+            startY: startY,
+            theme: "grid",
+            styles: { fontSize: 10, cellPadding: 3 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            margin: { left: 40, right: 40 },
+            tableWidth: "auto",
+            columnStyles: { 0: { cellWidth: "auto" } },
+            didParseCell: function (dataCell) {
+              if (dataCell.row.section === "body") {
+                let rowText = dataCell.row.raw.join(" ");
+                if (rowText.includes("TOTAL WEEKLY SALES") ||
+                    rowText.includes("TOTAL MONTHLY SALES") ||
+                    rowText.includes("TOTAL SALES")) {
+                  Object.values(dataCell.row.cells).forEach(cell => {
+                    cell.styles.fillColor = [255, 240, 178];
+                    cell.styles.fontStyle = "bold";
+                  });
+                }
+              }
+            }
+          });
+          startY = doc.lastAutoTable.finalY + 30;
+          if (startY > doc.internal.pageSize.getHeight() - 50) {
+            doc.addPage();
+            startY = 50;
+          }
+        });
+      } else {
+        // Fallback if no separate franchise sections exist (single table export)
+        let table = document.getElementById("reportTable");
+        if (!table) {
+          console.error("❌ Error: Table element not found!");
+          alert("Error: Sales report table not found.");
+          return;
         }
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(16);
-        doc.text(title, 40, startY);
-        startY += 20;
-  
-        // Get the table inside the section
-        let table = section.querySelector("table");
-        if (!table) return; // Skip if no table found
-  
-        // Extract headers and data from the table
         let headers = [];
         let data = [];
         let rows = table.querySelectorAll("tr");
-  
         rows.forEach((row, rowIndex) => {
           let rowData = [];
           let cols = row.querySelectorAll("th, td");
-          cols.forEach(col => {
-            rowData.push(col.innerText.trim());
-          });
+          cols.forEach(col => rowData.push(col.innerText.trim()));
           if (rowIndex === 0) {
             headers = rowData;
           } else {
             data.push(rowData);
           }
         });
-  
-        // Process total rows according to report type
         if (reportType.toLowerCase() === "daily") {
-          // For daily reports, compute total sales (assumed to be in the last column)
           let totalSalesValue = 0;
           data.forEach(row => {
             let salesText = row[row.length - 1].replace(/,/g, "");
             let value = parseFloat(salesText);
-            if (!isNaN(value)) {
-              totalSalesValue += value;
-            }
+            if (!isNaN(value)) totalSalesValue += value;
           });
           let totalRow = ["", "", "TOTAL SALES", totalSalesValue.toLocaleString()];
           data.push(totalRow);
         } else if (reportType.toLowerCase() === "weekly") {
-          // For weekly reports, rebuild any row that includes "TOTAL WEEKLY SALES"
           data = data.map(row => {
             if (row.includes("TOTAL WEEKLY SALES")) {
-              // Build new row: first two cells empty, third cell label, fourth cell total value
               return ["", "", "TOTAL WEEKLY SALES", row[row.length - 1]];
             }
             return row;
           });
         } else if (reportType.toLowerCase() === "monthly") {
-          // For monthly reports, we expect the total row to be read as 4 cells
-          // and we want to shift it so that the first two cells are empty,
-          // the third cell is "TOTAL MONTHLY SALES", then total sales, total expenses, and profit.
           data = data.map(row => {
             if (row.includes("TOTAL MONTHLY SALES")) {
-              // If the row has 4 cells (due to colspan in the HTML table), then:
-              // row[0] is "TOTAL MONTHLY SALES", row[1] is total sales, row[2] is total expenses, row[3] is profit.
               return ["", "", "TOTAL MONTHLY SALES", row[1], row[2], row[3]];
             }
             return row;
           });
         }
-  
-        // Generate table for the current section using autoTable
         doc.autoTable({
           head: [headers],
           body: data,
@@ -1300,99 +1404,23 @@ function exportTableToPDF() {
           theme: "grid",
           styles: { fontSize: 10, cellPadding: 3 },
           headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-          alternateRowStyles: { fillColor: [245, 245, 245] },
           margin: { left: 40, right: 40 },
-          tableWidth: "auto",
-          columnStyles: { 0: { cellWidth: "auto" } },
           didParseCell: function (dataCell) {
-            if (dataCell.row.section === "body") {
-              let rowText = dataCell.row.raw.join(" ");
-              if (rowText.includes("TOTAL WEEKLY SALES") ||
-                  rowText.includes("TOTAL MONTHLY SALES") ||
-                  rowText.includes("TOTAL SALES")) {
-                Object.values(dataCell.row.cells).forEach(cell => {
-                  cell.styles.fillColor = [255, 240, 178]; // Soft yellow
-                  cell.styles.fontStyle = "bold";
-                });
-              }
+            if (dataCell.row.section === "body" && dataCell.row.raw.join(" ").includes("TOTAL")) {
+              dataCell.cell.styles.fillColor = [255, 240, 178];
+              dataCell.cell.styles.fontStyle = "bold";
             }
           }
         });
-        startY = doc.lastAutoTable.finalY + 30;
-        if (startY > doc.internal.pageSize.getHeight() - 50) {
-          doc.addPage();
-          startY = 50;
-        }
-      });
-    } else {
-      // Fallback: single table export if no separate sections exist
-      let table = document.getElementById("reportTable");
-      if (!table) {
-        console.error("❌ Error: Table element not found!");
-        alert("Error: Sales report table not found.");
-        return;
       }
-      let headers = [];
-      let data = [];
-      let rows = table.querySelectorAll("tr");
-  
-      rows.forEach((row, rowIndex) => {
-        let rowData = [];
-        let cols = row.querySelectorAll("th, td");
-        cols.forEach(col => rowData.push(col.innerText.trim()));
-        if (rowIndex === 0) {
-          headers = rowData;
-        } else {
-          data.push(rowData);
-        }
-      });
-  
-      if (reportType.toLowerCase() === "daily") {
-        let totalSalesValue = 0;
-        data.forEach(row => {
-          let salesText = row[row.length - 1].replace(/,/g, "");
-          let value = parseFloat(salesText);
-          if (!isNaN(value)) {
-            totalSalesValue += value;
-          }
-        });
-        let totalRow = ["", "", "TOTAL SALES", totalSalesValue.toLocaleString()];
-        data.push(totalRow);
-      } else if (reportType.toLowerCase() === "weekly") {
-        data = data.map(row => {
-          if (row.includes("TOTAL WEEKLY SALES")) {
-            return ["", "", "TOTAL WEEKLY SALES", row[row.length - 1]];
-          }
-          return row;
-        });
-      } else if (reportType.toLowerCase() === "monthly") {
-        data = data.map(row => {
-          if (row.includes("TOTAL MONTHLY SALES")) {
-            return ["", "", "TOTAL MONTHLY SALES", row[1], row[2], row[3]];
-          }
-          return row;
-        });
-      }
-      doc.autoTable({
-        head: [headers],
-        body: data,
-        startY: startY,
-        theme: "grid",
-        styles: { fontSize: 10, cellPadding: 3 },
-        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-        margin: { left: 40, right: 40 },
-        didParseCell: function (dataCell) {
-          if (dataCell.row.section === "body" && dataCell.row.raw.join(" ").includes("TOTAL")) {
-            dataCell.cell.styles.fillColor = [255, 240, 178];
-            dataCell.cell.styles.fontStyle = "bold";
-          }
-        }
-      });
-    }
-  
-    // Save the PDF
-    doc.save(`sales_report_${reportType.replace(/\s+/g, "_").toLowerCase()}.pdf`);
+    
+      // Save the PDF with a filename based on the report type
+      doc.save(`sales_report_${reportType.replace(/\s+/g, "_").toLowerCase()}.pdf`);
+    };
   }
+  
+  
+  
   
 
   

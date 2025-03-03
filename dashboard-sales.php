@@ -10,6 +10,8 @@ if (!isset($con) || !$con) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
+$username = $_SESSION['user_name'] ?? "Unknown User";
+
 // Get filters from GET request
 $franchisees = isset($_GET['franchisees']) ? explode(",", $_GET['franchisees']) : [];
 $branches = isset($_GET['branches']) ? explode(",", $_GET['branches']) : [];
@@ -350,6 +352,10 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
     <link rel="stylesheet" href="assets/css/salesAnalytics.css">
     <!-- ===== Boxicons CSS ===== -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <script>
+        var loggedInUser = <?php echo json_encode($username); ?>;
+    </script>
 
 
 </head>
