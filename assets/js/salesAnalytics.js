@@ -991,52 +991,189 @@ function setActiveReportButton(type) {
 
 
 // EXPORT CSV
+// EXPORT CSV
 function exportTableToCSV() {
-    let table = document.getElementById("reportTable");
-
-    if (!table) {
+    let csvLines = [];
+  
+    // Get the selected report type and filters
+    let reportType =
+      document.querySelector(".report-btn.active")?.innerText || "Unknown Report Type";
+    let franchiseFilter =
+      document.getElementById("selectedFranchisees")?.innerText || "All";
+    let branchFilter = document.getElementById("selectedBranches")?.innerText || "All";
+    let dateRange = document.getElementById("selectedDateRange")?.innerText || "Not Set";
+  
+    // Add header information
+    csvLines.push('"Sales Report"');
+    csvLines.push(`"Report Type:","${reportType}"`);
+    csvLines.push(`"Franchise(s):","${franchiseFilter}"`);
+    csvLines.push(`"Branch(es):","${branchFilter}"`);
+    csvLines.push(`"Date Range:","${dateRange}"`);
+    csvLines.push(""); // Blank line
+  
+    // Check if there are separate franchise sections (for daily/weekly/monthly)
+    let sections = document.querySelectorAll(".franchise-section");
+    if (sections.length > 0) {
+      sections.forEach(section => {
+        // Get the franchise title
+        let titleEl = section.querySelector(".franchise-title-report");
+        let title = titleEl ? titleEl.innerText.trim() : "Franchise";
+        // Add the franchise heading row
+        csvLines.push(`"${title}"`);
+  
+        // Get the table in this section
+        let table = section.querySelector("table");
+        if (!table) return; // Skip if not found
+  
+        // Extract all rows from the table
+        let rows = table.querySelectorAll("tr");
+        let sectionRows = [];
+        rows.forEach((row, rowIndex) => {
+          let cols = row.querySelectorAll("th, td");
+          let rowData = [];
+          cols.forEach(col => {
+            // Escape the cell value by wrapping in quotes
+            rowData.push(`"${col.innerText.trim()}"`);
+          });
+          sectionRows.push(rowData.join(","));
+        });
+  
+        // Process totals based on report type
+        if (reportType.toLowerCase() === "daily") {
+          // Compute total sales (assumed last column) from data rows (skip header)
+          let totalSalesValue = 0;
+          for (let i = 1; i < rows.length; i++) {
+            let cells = rows[i].querySelectorAll("th, td");
+            if (cells.length > 0) {
+              let valueText = cells[cells.length - 1].innerText.trim().replace(/,/g, "");
+              let val = parseFloat(valueText);
+              if (!isNaN(val)) totalSalesValue += val;
+            }
+          }
+          // Create a total row with empty cells for all but the last two columns
+          let headerCells = rows[0].querySelectorAll("th, td");
+          let colCount = headerCells.length;
+          let totalRowArr = [];
+          for (let j = 0; j < colCount - 2; j++) {
+            totalRowArr.push('""');
+          }
+          totalRowArr.push('"TOTAL SALES"');
+          totalRowArr.push(`"${totalSalesValue.toLocaleString()}"`);
+          sectionRows.push(totalRowArr.join(","));
+        } else if (reportType.toLowerCase() === "weekly") {
+          // Rebuild any row that contains "TOTAL WEEKLY SALES"
+          sectionRows = sectionRows.map(line => {
+            if (line.indexOf("TOTAL WEEKLY SALES") > -1) {
+              // Find the original row from the table to extract the total value
+              let tr = Array.from(rows).find(r => r.innerText.includes("TOTAL WEEKLY SALES"));
+              if (tr) {
+                let cells = tr.querySelectorAll("th, td");
+                let totalValue = cells[cells.length - 1].innerText.trim();
+                return '"" ,"" ,"TOTAL WEEKLY SALES","' + totalValue + '"';
+              }
+            }
+            return line;
+          });
+        } else if (reportType.toLowerCase() === "monthly") {
+          // For monthly, rebuild total row so that:
+          // First two cells empty, third cell = "TOTAL MONTHLY SALES",
+          // followed by total sales, total expenses, and profit.
+          sectionRows = sectionRows.map(line => {
+            if (line.indexOf("TOTAL MONTHLY SALES") > -1) {
+              let tr = Array.from(rows).find(r => r.innerText.includes("TOTAL MONTHLY SALES"));
+              if (tr) {
+                let cells = tr.querySelectorAll("th, td");
+                // Assuming cells: [0]: label, [1]: total sales, [2]: total expenses, [3]: profit
+                let totalSales = cells[1] ? cells[1].innerText.trim() : "";
+                let totalExpenses = cells[2] ? cells[2].innerText.trim() : "";
+                let profit = cells[3] ? cells[3].innerText.trim() : "";
+                return '"" ,"" ,"TOTAL MONTHLY SALES","' + totalSales + '","' + totalExpenses + '","' + profit + '"';
+              }
+            }
+            return line;
+          });
+        }
+  
+        // Append the section rows to the CSV lines, then add an empty line
+        csvLines.push(...sectionRows);
+        csvLines.push("");
+      });
+    } else {
+      // Fallback: single table export if no separate franchise sections exist
+      let table = document.getElementById("reportTable");
+      if (!table) {
         console.error("❌ Error: Table element not found!");
         alert("Error: Sales report table not found.");
         return;
-    }
-
-    let csv = [];
-
-    // ✅ Get the selected report type and filters
-    let reportType = document.querySelector(".report-btn.active")?.innerText || "Unknown Report Type";
-    let franchiseFilter = document.getElementById("selectedFranchisees")?.innerText || "All";
-    let branchFilter = document.getElementById("selectedBranches")?.innerText || "All";
-    let dateRange = document.getElementById("selectedDateRange")?.innerText || "Not Set";
-
-    // ✅ Add Report Type and Filters at the top of the CSV file
-    csv.push(`"Sales Report"`);
-    csv.push(`"Report Type:","${reportType}"`);
-    csv.push(`"Franchise(s):","${franchiseFilter}"`);
-    csv.push(`"Branch(es):","${branchFilter}"`);
-    csv.push(`"Date Range:","${dateRange}"`);
-    csv.push(""); // Empty row for spacing
-
-    let rows = table.querySelectorAll("tr");
-
-    rows.forEach(row => {
+      }
+      let rows = table.querySelectorAll("tr");
+      rows.forEach((row, rowIndex) => {
         let cols = row.querySelectorAll("th, td");
         let rowData = [];
-
         cols.forEach(col => {
-            rowData.push(`"${col.innerText}"`);
+          rowData.push(`"${col.innerText.trim()}"`);
         });
-
-        csv.push(rowData.join(","));
-    });
-
-    let csvContent = "data:text/csv;charset=utf-8," + csv.join("\n");
+        csvLines.push(rowData.join(","));
+      });
+      // Process totals similarly for daily, weekly, or monthly
+      if (reportType.toLowerCase() === "daily") {
+        let totalSalesValue = 0;
+        for (let i = 1; i < rows.length; i++) {
+          let cells = rows[i].querySelectorAll("th, td");
+          if (cells.length > 0) {
+            let valueText = cells[cells.length - 1].innerText.trim().replace(/,/g, "");
+            let val = parseFloat(valueText);
+            if (!isNaN(val)) totalSalesValue += val;
+          }
+        }
+        let headerCells = rows[0].querySelectorAll("th, td");
+        let colCount = headerCells.length;
+        let totalRowArr = [];
+        for (let j = 0; j < colCount - 2; j++) {
+          totalRowArr.push('""');
+        }
+        totalRowArr.push('"TOTAL SALES"');
+        totalRowArr.push(`"${totalSalesValue.toLocaleString()}"`);
+        csvLines.push(totalRowArr.join(","));
+      } else if (reportType.toLowerCase() === "weekly") {
+        csvLines = csvLines.map(line => {
+          if (line.indexOf("TOTAL WEEKLY SALES") > -1) {
+            let tr = Array.from(rows).find(r => r.innerText.includes("TOTAL WEEKLY SALES"));
+            if (tr) {
+              let cells = tr.querySelectorAll("th, td");
+              let totalValue = cells[cells.length - 1].innerText.trim();
+              return '"" ,"" ,"TOTAL WEEKLY SALES","' + totalValue + '"';
+            }
+          }
+          return line;
+        });
+      } else if (reportType.toLowerCase() === "monthly") {
+        csvLines = csvLines.map(line => {
+          if (line.indexOf("TOTAL MONTHLY SALES") > -1) {
+            let tr = Array.from(rows).find(r => r.innerText.includes("TOTAL MONTHLY SALES"));
+            if (tr) {
+              let cells = tr.querySelectorAll("th, td");
+              let totalSales = cells[1] ? cells[1].innerText.trim() : "";
+              let totalExpenses = cells[2] ? cells[2].innerText.trim() : "";
+              let profit = cells[3] ? cells[3].innerText.trim() : "";
+              return '"" ,"" ,"TOTAL MONTHLY SALES","' + totalSales + '","' + totalExpenses + '","' + profit + '"';
+            }
+          }
+          return line;
+        });
+      }
+    }
+  
+    // Build CSV content and trigger download
+    let csvContent = "data:text/csv;charset=utf-8," + csvLines.join("\n");
     let encodedUri = encodeURI(csvContent);
     let link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", `sales_report_${reportType.replace(/\s+/g, "_").toLowerCase()}.csv`);
     document.body.appendChild(link);
     link.click();
-}
+  }
+  
 
 
 // EXPORT TO PDF
