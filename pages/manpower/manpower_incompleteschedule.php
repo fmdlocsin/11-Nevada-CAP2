@@ -6,6 +6,16 @@ include("../../phpscripts/check-login.php");
 $store = isset($_GET['str']) ? $_GET['str'] : '';
 $branch_id = isset($_GET['branch_id']) ? (int)$_GET['branch_id'] : 0;
 
+
+// Function to format franchise names (e.g., auntieAnne => auntie-anne)
+function formatFranchiseName($name) {
+    // Insert a hyphen before any uppercase letter that follows a lowercase letter
+    return strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $name));
+}
+
+// Always define $formattedStore before outputting any HTML
+$formattedStore = formatFranchiseName($store);
+
 $data = [];
 
 // Fetch employees specifically assigned to the selected branch
@@ -111,6 +121,9 @@ $data = [];
             </div>
         </div>
 
+         <!-- Hidden input to pass the formatted franchise name -->
+        <input type="hidden" id="storeValue" value="<?php echo htmlspecialchars($formattedStore); ?>">
+
     <!-- Modal -->
 <!-- Assign Employees Modal -->
 <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
@@ -208,42 +221,40 @@ $(document).ready(function () {
 
     // Save selected employees
     $('#saveAssignments').on('click', function () {
-    const selectedEmployees = [];
-    $('.assignCheckbox:checked').each(function () {
-        selectedEmployees.push($(this).val());
+            const selectedEmployees = [];
+            $('.assignCheckbox:checked').each(function () {
+                selectedEmployees.push($(this).val());
+            });
+            const acId = $('#openAssignModal').data('ac-id');
+            const storeValue = $('#storeValue').val();
+            console.log("Sending Data to Backend:", {
+                assigned_at: acId,
+                employees: selectedEmployees,
+                store: storeValue
+            });
+            $.ajax({
+                url: '../../phpscripts/assign-employees.php',
+                method: 'POST',
+                data: {
+                    assigned_at: acId,
+                    employees: selectedEmployees,
+                    store: storeValue
+                },
+                success: function (response) {
+                    console.log("Response from Backend:", response);
+                    if (response.status === 'success') {
+                        alert('Employees assigned successfully!');
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Successfully assigned employees.');
+                    }
+                    $('#assignModal').modal('hide');
+                },
+                error: function () {
+                    alert('Failed to assign employees. Please try again.');
+                }
+            });
     });
-
-    // Retrieve ac_id from #openAssignModal
-    const acId = $('#openAssignModal').data('ac-id');
-    console.log("Sending Data to Backend:", {
-        assigned_at: acId,
-        employees: selectedEmployees
-    });
-
-    $.ajax({
-        url: '../../phpscripts/assign-employees.php',
-        method: 'POST',
-        data: {
-            assigned_at: acId,
-            employees: selectedEmployees
-        },
-        success: function (response) {
-            console.log("Response from Backend:", response);
-            if (response.status === 'success') {
-                alert('Employees assigned successfully!');
-                location.reload();
-            } else {
-                alert(response.message || 'Successfully assigned employees.');
-            }
-            $('#assignModal').modal('hide');
-        },
-        error: function () {
-            alert('Failed to assign employees. Please try again.');
-        }
-    });
-});
-
-
 });
 
 

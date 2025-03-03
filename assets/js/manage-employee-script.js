@@ -101,6 +101,16 @@ function showEmployeeDetails() {
                 if (response.status === "success") {
                     var employee = response.employee[0];
 
+                    // Map franchisee values to display names
+                    var franchiseeMapping = {
+                        "auntie-anne": "Auntie Anne",
+                        "macao-imperial": "Macao Imperial",
+                        "potato-corner": "Potato Corner"
+                    };
+
+                    // Convert the stored franchisee value to lowercase to match our mapping keys
+                    var displayFranchisee = franchiseeMapping[employee.franchisee.toLowerCase()] || employee.franchisee;
+
                     var changeStatusButton = "";
                     if (employee.employee_status !== "resigned") {
                         changeStatusButton = `
@@ -128,6 +138,7 @@ function showEmployeeDetails() {
                             </div>
                             <div class="header-section2">
                                 <span class="header-label">Employment Information</span>
+                                <span class="header-label2">Franchisee:</span> ${displayFranchisee} <br>
                                 <span class="header-label2">Branch Assignment:</span> ${employee.branch} <br>
                                 <span class="header-label2">Employment Status:</span> ${employee.employee_status} <br>
                                 ${employee.employee_status !== "assigned" && employee.certificate_file_name ? `<span class="header-label2">Remarks:</span> ${employee.certificate_file_name} <br>` : ""}
@@ -338,22 +349,27 @@ $(document).on("click", "#modalCloseBtn", closeModal);
 
 // ------------ GENERATE REPORTS ------------
 function fetchReport(type) {
+    // Get the selected franchise filter value
+    let franchiseFilter = $("#reportFranchiseeFilter").val();
+    
     $.ajax({
         url: "../../phpscripts/fetch-manpower-report.php",
         type: "GET",
-        data: { type: type },
+        data: { 
+            type: type,
+            franchisee: franchiseFilter // pass filter value to PHP
+        },
         dataType: "json",
         success: function (response) {
             let reportTitle = type === "fully_staffed" ? "Fully Staffed Branches Report" : "Understaffed Branches Report";
             $("#reportModalLabel").html(reportTitle);
-
             $("#reportData").empty();
 
             if (response.status === "success") {
                 let reportContainer = $("#reportData");
                 let groupedData = {};
 
-                // ✅ Group branches by franchisee
+                // Group branches by franchisee
                 response.branches.forEach(function (branch) {
                     let franchisee = branch.franchisee;
                     if (!groupedData[franchisee]) {
@@ -366,17 +382,16 @@ function fetchReport(type) {
                     groupedData[franchisee].totalEmployees += parseInt(branch.employee_count);
                 });
 
-                // ✅ Franchise logo mapping
+                // Franchise logo mapping
                 const franchiseData = {
                     "auntie-anne": { name: "Auntie Anne's", logo: "AuntieAnn.png" },
                     "macao-imperial": { name: "Macao Imperial", logo: "MacaoImp.png" },
                     "potato-corner": { name: "Potato Corner", logo: "PotCor.png" }
                 };
 
-                // ✅ Generate separate sections per franchisee
+                // Generate separate sections per franchisee
                 Object.keys(groupedData).forEach(franchiseeKey => {
                     let franchise = groupedData[franchiseeKey];
-
                     let franchiseInfo = franchiseData[franchiseeKey.toLowerCase().replace(/\s+/g, '-')];
                     let franchiseName = franchiseInfo ? franchiseInfo.name : franchiseeKey;
                     let franchiseLogo = franchiseInfo ? `../../assets/images/${franchiseInfo.logo}` : "../../assets/images/default.png";
@@ -390,17 +405,16 @@ function fetchReport(type) {
                                 </div>
                                 <span class="badge bg-primary fs-6 p-2 total-employee-badge">Total Employees: ${franchise.totalEmployees}</span>
                             </div>
-
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped report-table rounded">
                                     <thead class="table-dark">
                                         <tr>
                                             <th>Branch Name</th>
-                                            ${type === "understaffed" ? "<th>Required Staff</th>" : ""} <!-- ✅ Add column if understaffed -->
+                                            ${type === "understaffed" ? "<th>Required Staff</th>" : ""}
                                             <th>Employee</th>
                                             <th>Shift</th>
-                                            <th>Phone Number</th>  <!-- ✅ New Column -->
-                                            <th>Address</th>       <!-- ✅ New Column -->
+                                            <th>Phone Number</th>
+                                            <th>Address</th>
                                         </tr>
                                     </thead>
                                     <tbody id="table-${franchiseeKey.replace(/\s+/g, '-')}">
@@ -413,50 +427,59 @@ function fetchReport(type) {
                     reportContainer.append(franchiseSection);
                     let franchiseTableBody = $(`#table-${franchiseeKey.replace(/\s+/g, '-')}`);
 
-                    // ✅ Append branch details to respective franchise section
-                    franchise.branches.forEach(entry => {
-                        let employees = entry.employee_details.split(", "); // Split multiple employees
-                        let shifts = entry.employee_shifts.split(", "); // Split shifts
-                        let phoneNumbers = entry.phone_numbers ? entry.phone_numbers.split(", ") : []; // ✅ Get phone numbers
-                        let addresses = entry.addresses ? entry.addresses.split(", ") : []; // ✅ Get addresses
-
+                    // Append branch details to respective franchise section
+                    franchise.branches.forEach((entry, index) => {
+                        let employees = entry.employee_details.split(", ");
+                        let shifts = entry.employee_shifts.split(", ");
+                        let phoneNumbers = entry.phone_numbers ? entry.phone_numbers.split(", ") : [];
+                        let addresses = entry.addresses ? entry.addresses.split(", ") : [];
 
                         employees.forEach((employee, index) => {
                             franchiseTableBody.append(`
                                 <tr>
-                                    <td>${index === 0 ? entry.branch_name : ""}</td> <!-- Show branch name only on first row -->
-                                    ${type === "understaffed" ? `<td>${index === 0 ? `${entry.employee_count}/2` : ""}</td>` : ""} <!-- ✅ Fix Required Staff Calculation -->
+                                    <td>${index === 0 ? entry.branch_name : ""}</td>
+                                    ${type === "understaffed" ? `<td>${index === 0 ? `${entry.employee_count}/2` : ""}</td>` : ""}
                                     <td>${employee}</td>
-                                    <td>${shifts[index] || "N/A"}</td> <!-- Match shifts with employees -->
-                                    <td>${phoneNumbers[index] || "No phone info available"}</td>  <!-- ✅ New Column -->
-                                    <td>${addresses[index] || "No address info available"}</td> <!-- ✅ New Column -->
+                                    <td>${shifts[index] || "N/A"}</td>
+                                    <td>${phoneNumbers[index] || "No phone info available"}</td>
+                                    <td>${addresses[index] || "No address info available"}</td>
                                 </tr>
-                            `);                            
+                            `);
                         });
                     });
                 });
-
             } else {
-                $("#reportData").append(`<div class="text-center fw-bold">No fully staffed branches available.</div>`);
+                $("#reportData").append(`<div class="text-center fw-bold">No data available for the selected franchisee.</div>`);
             }
 
-            // ✅ Show the modal
+            // Show the modal
             $("#reportModal").modal("show");
 
             $("#exportCSV").off("click").on("click", function () {
-                exportManpowerToCSV(type); // ✅ Updated to support both Fully Staffed & Understaffed
-            });            
-            
-            $("#exportPDF").off("click").on("click", function () {
-                exportManpowerToPDF(type); // ✅ Updated to support both Fully Staffed & Understaffed
+                exportManpowerToCSV(type);
             });
-            
+            $("#exportPDF").off("click").on("click", function () {
+                exportManpowerToPDF(type);
+            });
         },
         error: function (xhr, status, error) {
-            console.error("AJAX Error:", error);
-        },
+            console.error("Error:", xhr.responseText);
+            $("#reportData").html(`<p>Error loading data</p>`);
+        }
     });
 }
+
+// Trigger fetch when the "Generate Report" button is clicked or the filter changes
+$(document).ready(function () {
+    $("#generateFranchiseReport").click(function () {
+        fetchReport("fully_staffed");
+    });
+    $("#reportFranchiseeFilter").change(function () {
+        fetchReport("fully_staffed");
+    });
+});
+
+
 
 
 // EXPORT TO CSV FUNCTION

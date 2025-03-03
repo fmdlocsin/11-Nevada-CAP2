@@ -139,26 +139,59 @@ if ($result) {
             
             <!-- Report Modal -->
             <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-xl"> <!-- ✅ Increased modal width for better readability -->
-                    <div class="modal-content">
-                        <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title" id="reportModalLabel">
-                                Fully Staffed Branches Report
-                            </h5>
-                            <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div id="reportData">
-                                <!-- Report Data Will Be Inserted Here -->
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-success" id="exportCSV">Export as CSV</button>
-                            <button class="btn btn-danger" id="exportPDF">Export as PDF</button>
-                        </div>
+            <div class="modal-dialog modal-xl"> 
+                <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="reportModalLabel">
+                    Fully Staffed Branches Report
+                    </h5>
+                    <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Franchise Filter Dropdown -->
+                    <div class="mb-3">
+                    <label for="reportFranchiseeFilter" class="form-label"><strong>Filter by Franchisee:</strong></label>
+                    <select id="reportFranchiseeFilter" class="form-select">
+                    <option value="">All Franchisees</option>
+                    <?php
+                        // Define mapping of stored franchise names to display names
+                        $franchiseNameMap = [
+                        "auntie-anne"   => "Auntie Anne's",
+                        "macao-imperial" => "Macao Imperial",
+                        "potato-corner"  => "Potato Corner"
+                        ];
+                        // Fetch distinct franchisee names from user_information table
+                        $franchiseeQuery = "SELECT DISTINCT franchisee FROM user_information";
+                        $franchiseeResult = mysqli_query($con, $franchiseeQuery);
+                        while ($row = mysqli_fetch_assoc($franchiseeResult)) {
+                            $rawFranchisee = strtolower(trim($row['franchisee']));
+                            // Skip if the franchisee value is "0" or empty
+                            if ($rawFranchisee === "0" || $rawFranchisee === "") {
+                                continue;
+                            }
+                            $formattedFranchisee = isset($franchiseNameMap[$rawFranchisee])
+                                ? $franchiseNameMap[$rawFranchisee]
+                                : ucfirst(str_replace("-", " ", $rawFranchisee));
+                            echo "<option value='{$row['franchisee']}'>{$formattedFranchisee}</option>";
+                        }
+                    ?>
+                    </select>
+
+                    </div>
+                    <!-- Report Data -->
+                    <div id="reportData">
+                    <!-- Report Data Will Be Inserted Here -->
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" id="exportCSV">Export as CSV</button>
+                    <button class="btn btn-danger" id="exportPDF">Export as PDF</button>
+                </div>
+                </div>
             </div>
+            </div>
+
+
 
 
 
