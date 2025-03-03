@@ -936,3 +936,22 @@ function exportReportToPDF(reportType) {
 
     doc.save(`${reportType}_Report_${new Date().toISOString().split("T")[0]}.pdf`);
 }
+
+function getCurrentWeekDates() {
+    let today = new Date();
+    let firstDay = new Date(today.setDate(today.getDate() - today.getDay())); // Monday
+    let lastDay = new Date(today.setDate(today.getDate() - today.getDay() + 6)); // Sunday
+
+    // ✅ Format YYYY-MM-DD for <input type="date">
+    let formatDate = (date) => date.toISOString().split("T")[0];
+
+    return {
+        monday: formatDate(firstDay),
+        sunday: formatDate(lastDay),
+    };
+}
+
+// ✅ Set the date inputs when the page loads
+let weekDates = getCurrentWeekDates();
+$("#startDate").val(weekDates.monday);
+$("#endDate").val(weekDates.sunday);

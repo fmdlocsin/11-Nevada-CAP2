@@ -193,3 +193,4 @@ Stack trace:
             AND DATE(ii.datetime_added) BETWEEN ? AND ?
             GROUP...' at line 10
 [02-Mar-2025 16:14:08 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[03-Mar-2025 07:17:27 Europe/Berlin] 📌 Exception Report Rows Fetched: 18

@@ -534,11 +534,11 @@ $lowTurnoverResult = $stmtLow->get_result();
                     <div class="title">
                         <i class='bx bx-time-five'></i>
                         <span class="text">Analytics</span>
-                    </div>
+                    </div>  
                     <!-- ✅ Reports Header -->
-                    <div class="reports-header text-center my-3">
+                    <!-- <div class="reports-header text-center my-3">
                         <h3 id="report-week-range" class="fw-bold"></h3>
-                    </div>
+                    </div> -->
 
                     <span class="filter-label">Filter:</span>
                 </div>
@@ -573,13 +573,13 @@ $lowTurnoverResult = $stmtLow->get_result();
 
                 <!-- Centered Filters Section -->
                 <div class="filter-container">
-                    <div class="filter-section2">
-                        <label for="startDate">Start Date:</label>
-                        <input type="date" id="startDate" class="form-control">
+                <div class="filter-section2">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" class="form-control">
                         
-                        <label for="endDate">End Date:</label>
-                        <input type="date" id="endDate" class="form-control">
-                    </div>
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" class="form-control">
+                </div>
 
                     <!-- Buttons Section -->
                     <div class="button-container">
