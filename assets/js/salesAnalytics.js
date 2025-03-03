@@ -1043,30 +1043,31 @@ function exportTableToCSV() {
 function exportTableToPDF() {
     const { jsPDF } = window.jspdf;
     let doc = new jsPDF({
-        orientation: "portrait",
-        unit: "pt",
-        format: "A4"
+      orientation: "portrait",
+      unit: "pt",
+      format: "A4"
     });
-
-    // ✅ Add Title
+  
+    let pageWidth = doc.internal.pageSize.getWidth();
+    let startY = 50;
+  
+    // Title
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    let pageWidth = doc.internal.pageSize.getWidth();
-    doc.text("Sales Report", pageWidth / 2, 50, { align: "center" });
-
-    // ✅ Add "Date" Section
+    doc.text("Sales Report", pageWidth / 2, startY, { align: "center" });
+    startY += 30;
+  
+    // Date & Filter Info
     let currentDate = new Date().toLocaleDateString();
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text(`Date Generated: ${currentDate}`, 400, 80);
-
-    // ✅ Get selected filters
+  
     let reportType = document.querySelector(".report-btn.active")?.innerText || "Unknown Report Type";
     let franchiseFilter = document.getElementById("selectedFranchisees")?.innerText || "All";
     let branchFilter = document.getElementById("selectedBranches")?.innerText || "All";
     let dateRange = document.getElementById("selectedDateRange")?.innerText || "Not Set";
-
-    // ✅ Add Report Type & Filters
+  
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.text(`Report Type: ${reportType}`, 50, 100);
@@ -1074,117 +1075,192 @@ function exportTableToPDF() {
     doc.text(`Franchisee(s): ${franchiseFilter}`, 50, 120);
     doc.text(`Branch(es): ${branchFilter}`, 50, 135);
     doc.text(`Date Range: ${dateRange}`, 50, 150);
-
-    // ✅ Space before table
-    let startY = 180;
-
-    // ✅ Extract Table Data
-    let table = document.getElementById("reportTable");
-    if (!table) {
+  
+    startY = 180; // Reserve space for tables
+  
+    // Check if there are separate franchise sections (used for daily reports)
+    let sections = document.querySelectorAll(".franchise-section");
+    if (sections.length > 0) {
+      // Loop over each franchise section
+      sections.forEach(section => {
+        // Get the franchise title from the element with class "franchise-title-report"
+        let titleEl = section.querySelector(".franchise-title-report");
+        let title = titleEl ? titleEl.innerText.trim() : "Franchise";
+  
+        // Check for page break before new section
+        if (startY > doc.internal.pageSize.getHeight() - 50) {
+          doc.addPage();
+          startY = 50;
+        }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text(title, 40, startY);
+        startY += 20;
+  
+        // Get the table inside the section
+        let table = section.querySelector("table");
+        if (!table) return; // Skip if no table found
+  
+        // Extract headers and data from the table
+        let headers = [];
+        let data = [];
+        let rows = table.querySelectorAll("tr");
+  
+        rows.forEach((row, rowIndex) => {
+          let rowData = [];
+          let cols = row.querySelectorAll("th, td");
+          cols.forEach(col => {
+            rowData.push(col.innerText.trim());
+          });
+          if (rowIndex === 0) {
+            headers = rowData;
+          } else {
+            data.push(rowData);
+          }
+        });
+  
+        // Process total rows according to report type
+        if (reportType.toLowerCase() === "daily") {
+          // For daily reports, compute total sales (assumed to be in the last column)
+          let totalSalesValue = 0;
+          data.forEach(row => {
+            let salesText = row[row.length - 1].replace(/,/g, "");
+            let value = parseFloat(salesText);
+            if (!isNaN(value)) {
+              totalSalesValue += value;
+            }
+          });
+          let totalRow = ["", "", "TOTAL SALES", totalSalesValue.toLocaleString()];
+          data.push(totalRow);
+        } else if (reportType.toLowerCase() === "weekly") {
+          // For weekly reports, rebuild any row that includes "TOTAL WEEKLY SALES"
+          data = data.map(row => {
+            if (row.includes("TOTAL WEEKLY SALES")) {
+              // Build new row: first two cells empty, third cell label, fourth cell total value
+              return ["", "", "TOTAL WEEKLY SALES", row[row.length - 1]];
+            }
+            return row;
+          });
+        } else if (reportType.toLowerCase() === "monthly") {
+          // For monthly reports, we expect the total row to be read as 4 cells
+          // and we want to shift it so that the first two cells are empty,
+          // the third cell is "TOTAL MONTHLY SALES", then total sales, total expenses, and profit.
+          data = data.map(row => {
+            if (row.includes("TOTAL MONTHLY SALES")) {
+              // If the row has 4 cells (due to colspan in the HTML table), then:
+              // row[0] is "TOTAL MONTHLY SALES", row[1] is total sales, row[2] is total expenses, row[3] is profit.
+              return ["", "", "TOTAL MONTHLY SALES", row[1], row[2], row[3]];
+            }
+            return row;
+          });
+        }
+  
+        // Generate table for the current section using autoTable
+        doc.autoTable({
+          head: [headers],
+          body: data,
+          startY: startY,
+          theme: "grid",
+          styles: { fontSize: 10, cellPadding: 3 },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+          alternateRowStyles: { fillColor: [245, 245, 245] },
+          margin: { left: 40, right: 40 },
+          tableWidth: "auto",
+          columnStyles: { 0: { cellWidth: "auto" } },
+          didParseCell: function (dataCell) {
+            if (dataCell.row.section === "body") {
+              let rowText = dataCell.row.raw.join(" ");
+              if (rowText.includes("TOTAL WEEKLY SALES") ||
+                  rowText.includes("TOTAL MONTHLY SALES") ||
+                  rowText.includes("TOTAL SALES")) {
+                Object.values(dataCell.row.cells).forEach(cell => {
+                  cell.styles.fillColor = [255, 240, 178]; // Soft yellow
+                  cell.styles.fontStyle = "bold";
+                });
+              }
+            }
+          }
+        });
+        startY = doc.lastAutoTable.finalY + 30;
+        if (startY > doc.internal.pageSize.getHeight() - 50) {
+          doc.addPage();
+          startY = 50;
+        }
+      });
+    } else {
+      // Fallback: single table export if no separate sections exist
+      let table = document.getElementById("reportTable");
+      if (!table) {
         console.error("❌ Error: Table element not found!");
         alert("Error: Sales report table not found.");
         return;
-    }
-
-    let headers = [];
-    let data = [];
-    let rows = table.querySelectorAll("tr");
-
-    // ✅ Detect column indices for "Total Expenses" & "Profit"
-    let expenseIndex = -1;
-    let profitIndex = -1;
-
-    rows.forEach((row, rowIndex) => {
+      }
+      let headers = [];
+      let data = [];
+      let rows = table.querySelectorAll("tr");
+  
+      rows.forEach((row, rowIndex) => {
         let rowData = [];
         let cols = row.querySelectorAll("th, td");
-
-        cols.forEach((col, colIndex) => {
-            let text = col.innerText.trim();
-
-            // ✅ Detect column positions
-            if (rowIndex === 0) {
-                if (text === "Total Expenses") expenseIndex = colIndex;
-                if (text === "Profit") profitIndex = colIndex;
-
-                // ✅ Remove "Total Expenses" & "Profit" columns for Daily & Weekly
-                if ((reportType === "Daily" || reportType === "Weekly") && (colIndex === expenseIndex || colIndex === profitIndex)) {
-                    return;
-                }
-                rowData.push(text);
-            } else {
-                // ✅ Remove "Total Expenses" & "Profit" data for Daily & Weekly
-                if ((reportType === "Daily" || reportType === "Weekly") && (colIndex === expenseIndex || colIndex === profitIndex)) {
-                    return;
-                }
-
-                rowData.push(text);
-            }
-        });
-
+        cols.forEach(col => rowData.push(col.innerText.trim()));
         if (rowIndex === 0) {
-            headers = rowData; // Store updated headers
+          headers = rowData;
         } else {
-            data.push(rowData); // Store filtered data rows
+          data.push(rowData);
         }
-    });
-
-    // ✅ Fix: Ensure correct colspan for "TOTAL WEEKLY SALES" & "TOTAL MONTHLY SALES"
-    data = data.map(row => {
-        if (row.includes("TOTAL WEEKLY SALES")) {
-            // ✅ Adjust colspan to 4 and **ensure total sales are included**
-            // return ["", "", "",{ content: "TOTAL WEEKLY SALES", styles: { fillColor: [255, 240, 178], fontStyle: "bold" } }, row[row.length - 1]];
-            return ["", "", "", "TOTAL WEEKLY SALES" , row[row.length - 1]];
-        }
-        if (row.includes("TOTAL MONTHLY SALES")) {
-            // ✅ Adjust colspan to 4 and **ensure all values are displayed properly**
-            // return ["", "", "",{ content: "TOTAL MONTHLY SALES", styles: { fillColor: [255, 240, 178], fontStyle: "bold" } }, row[row.length - 3], row[row.length - 2], row[row.length - 1]];
-            return ["", "", "", "TOTAL MONTHLY SALES", row[row.length - 3], row[row.length - 2], row[row.length - 1]];
-        }
-        return row;
-    });
-
-    // ✅ Generate Table with `autoTable`
-    doc.autoTable({
+      });
+  
+      if (reportType.toLowerCase() === "daily") {
+        let totalSalesValue = 0;
+        data.forEach(row => {
+          let salesText = row[row.length - 1].replace(/,/g, "");
+          let value = parseFloat(salesText);
+          if (!isNaN(value)) {
+            totalSalesValue += value;
+          }
+        });
+        let totalRow = ["", "", "TOTAL SALES", totalSalesValue.toLocaleString()];
+        data.push(totalRow);
+      } else if (reportType.toLowerCase() === "weekly") {
+        data = data.map(row => {
+          if (row.includes("TOTAL WEEKLY SALES")) {
+            return ["", "", "TOTAL WEEKLY SALES", row[row.length - 1]];
+          }
+          return row;
+        });
+      } else if (reportType.toLowerCase() === "monthly") {
+        data = data.map(row => {
+          if (row.includes("TOTAL MONTHLY SALES")) {
+            return ["", "", "TOTAL MONTHLY SALES", row[1], row[2], row[3]];
+          }
+          return row;
+        });
+      }
+      doc.autoTable({
         head: [headers],
         body: data,
         startY: startY,
         theme: "grid",
         styles: { fontSize: 10, cellPadding: 3 },
         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-        alternateRowStyles: { fillColor: [245, 245, 245] },
         margin: { left: 40, right: 40 },
-        tableWidth: "auto",
-        columnStyles: { 0: { cellWidth: "auto" } },
-
-        // ✅ Ensure only the actual total rows are styled and remove unnecessary yellow rows
-    didParseCell: function (data) {
-        if (data.row.section === 'body') {
-            let rowText = data.row.raw.join(" "); // Combine row text to check
-            
-            // ✅ Only highlight TOTAL SALES rows & make them bold
-            if (rowText.includes("TOTAL WEEKLY SALES") || rowText.includes("TOTAL MONTHLY SALES")) {
-                Object.values(data.row.cells).forEach(cell => {
-                    cell.styles.fillColor = [255, 240, 178]; // Apply soft yellow
-                    cell.styles.fontStyle = "bold"; // Bold text
-                });
-            }
-
-            // ✅ REMOVE yellow rows that have no values (only apply to product rows)
-            if (
-                !rowText.includes("TOTAL WEEKLY SALES") &&
-                !rowText.includes("TOTAL MONTHLY SALES") &&
-                rowText.includes("-") // If the row contains only "-" (empty values)
-            ) {
-                data.row.hidden = true; // Hide empty yellow rows
-            }
+        didParseCell: function (dataCell) {
+          if (dataCell.row.section === "body" && dataCell.row.raw.join(" ").includes("TOTAL")) {
+            dataCell.cell.styles.fillColor = [255, 240, 178];
+            dataCell.cell.styles.fontStyle = "bold";
+          }
         }
+      });
     }
-    });
-
-
-    // ✅ Save PDF
+  
+    // Save the PDF
     doc.save(`sales_report_${reportType.replace(/\s+/g, "_").toLowerCase()}.pdf`);
-}
+  }
+  
+
+  
+  
+  
 
 // SET DEFAULT DATE TO JANUARY 1ST 2025
 document.addEventListener("DOMContentLoaded", function () {
