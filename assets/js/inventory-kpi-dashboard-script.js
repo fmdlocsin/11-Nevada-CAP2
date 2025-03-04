@@ -147,10 +147,6 @@ $("#report-week-range").text(`Reports for ${weekDates.monday} to ${weekDates.sun
             // ✅ Update Graphs
             updateGraphs(data.high_turnover, data.low_turnover);
             updateSellThroughGraph(data.sell_through_rate);
-            if (!data.low_stock_items || !data.low_stock_items.labels || data.low_stock_items.labels.length === 0) {
-                console.warn("⚠ No low stock items to display.");
-                return;
-            }
             updateLowStockChart(data.low_stock_items);
         },
         error: function(xhr, status, error) {
@@ -197,7 +193,9 @@ function updateSellThroughGraph(sellThroughRate) {
     // ✅ Ensure it's an array
     if (!sellThroughRate || !sellThroughRate.data || !Array.isArray(sellThroughRate.data) || sellThroughRate.data.length === 0) {
         console.warn("⚠ No data available for Sell-Through Rate.");
-        sellThroughChart.destroy();
+        if (sellThroughChart instanceof Chart) {
+            sellThroughChart.destroy();
+        }
         return;
     }
 
@@ -256,22 +254,25 @@ function updateSellThroughGraph(sellThroughRate) {
 function updateLowStockChart(lowStockData) {
     console.log("Updating Low Stock Items Chart...", lowStockData);
 
+            // ✅ If data is empty, hide the charts
+            if (!lowStockData || !lowStockData.labels || lowStockData.labels.length === 0) {
+                console.warn("⚠ No data for graphs.");
+                document.getElementById("lowStockChart").style.display = "none";
+                return;
+            } else {
+                document.getElementById("lowStockChart").style.display = "block";
+            }
+        
+            // ✅ Destroy previous instances before creating new charts
+            if (lowStockChart instanceof Chart) lowStockChart.destroy();
+    
+    
+
     if (!lowStockData || !lowStockData.labels || lowStockData.labels.length === 0) {
         console.warn("⚠ No low stock items to display.");
+        if (lowStockChart instanceof Chart) lowStockChart.destroy();
         return;
     }
-
-        // ✅ If data is empty, hide the charts
-        if (!lowStockData || !lowStockData.labels || lowStockData.labels.length === 0) {
-            console.warn("⚠ No data for graphs.");
-            document.getElementById("lowStockChart").style.display = "none";
-            return;
-        } else {
-            document.getElementById("lowStockChart").style.display = "block";
-        }
-    
-        // ✅ Destroy previous instances before creating new charts
-        if (lowStockChart instanceof Chart) lowStockChart.destroy();
 
 
     
