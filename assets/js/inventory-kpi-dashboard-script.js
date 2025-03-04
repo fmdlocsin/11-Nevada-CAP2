@@ -188,16 +188,18 @@ let sellThroughChart, highTurnoverChart, lowTurnoverChart; // ✅ Store chart in
 function updateSellThroughGraph(sellThroughRate) {
     console.log("Updating Sell-Through Rate Graph...", sellThroughRate);
 
+    // ✅ Destroy previous chart instance if exists
+    if (sellThroughChart instanceof Chart) {
+        sellThroughChart.destroy();
+    }
+
+
     // ✅ Ensure it's an array
     if (!sellThroughRate || !sellThroughRate.data || !Array.isArray(sellThroughRate.data) || sellThroughRate.data.length === 0) {
         console.warn("⚠ No data available for Sell-Through Rate.");
         return;
     }
 
-    // ✅ Destroy previous chart instance if exists
-    if (sellThroughChart instanceof Chart) {
-        sellThroughChart.destroy();
-    }
 
     const ctx = document.getElementById("sellThroughChart").getContext("2d");
 
@@ -258,11 +260,20 @@ function updateLowStockChart(lowStockData) {
         return;
     }
 
-    // ✅ Destroy previous chart instance if exists
-    if (window.lowStockChart instanceof Chart) {
-        window.lowStockChart.destroy();
-    }
+        // ✅ If data is empty, hide the charts
+        if (!lowStockData || !lowStockData.labels || lowStockData.labels.length === 0) {
+            console.warn("⚠ No data for graphs.");
+            document.getElementById("lowStockChart").style.display = "none";
+            return;
+        } else {
+            document.getElementById("lowStockChart").style.display = "block";
+        }
+    
+        // ✅ Destroy previous instances before creating new charts
+        if (lowStockChart instanceof Chart) lowStockChart.destroy();
 
+
+    
     const ctx = document.getElementById("lowStockChart").getContext("2d");
 
     // ✅ Assign unique colors per branch dynamically

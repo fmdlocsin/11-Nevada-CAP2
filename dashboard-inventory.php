@@ -346,8 +346,8 @@ $lowTurnoverResult = $stmtLow->get_result();
     }
 
     // ✅ Fetch Sell-Through Rate Data for multiple branches
-    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("-30 days"));
-    $endDate = $_POST["endDate"] ?? date("Y-m-d");
+    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
+    $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
 
     $sellThroughQuery = "SELECT branch, DATE(datetime_added) AS sale_date, 
                     (SUM(sold) / NULLIF(SUM(beginning) + SUM(delivery), 0)) * 100 AS sell_through_rate
@@ -382,20 +382,19 @@ $lowTurnoverResult = $stmtLow->get_result();
         ];
     }
     
+    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
+    $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
     
-    // ✅ Fetch Low Stock Items (Stock < 15)
+    // ✅ Fetch Low Stock Items (Stock < 15) within the specified date range
     $lowStockQuery = "SELECT i.item_name, ii.branch, 
-                    (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock
-                    FROM item_inventory ii
-                    INNER JOIN items i ON ii.item_id = i.item_id
-                    WHERE ii.branch IN ($placeholders) 
-                    AND ii.datetime_added = (SELECT MAX(datetime_added) 
-                                            FROM item_inventory 
-                                            WHERE branch = ii.branch AND item_id = ii.item_id)
-                    AND (ii.beginning + ii.delivery - ii.sold - ii.waste) < 15
-                    ORDER BY current_stock ASC";
-
-
+                        (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock
+                      FROM item_inventory ii
+                      INNER JOIN items i ON ii.item_id = i.item_id
+                      WHERE ii.branch IN ($placeholders) 
+                      AND DATE(ii.datetime_added) BETWEEN ? AND ?
+                      AND (ii.beginning + ii.delivery - ii.sold - ii.waste) < 15
+                      ORDER BY current_stock ASC";
+    
     $stmtLowStock = $con->prepare($lowStockQuery);
     if (!$stmtLowStock) {
         error_log("SQL Prepare Failed: " . $con->error);
@@ -403,22 +402,25 @@ $lowTurnoverResult = $stmtLow->get_result();
         exit;
     }
     
-        $types = str_repeat("s", count($branches)); // Correctly matches the placeholders
-        $params = [...$branches]; // Only pass branch values
-
-        $stmtLowStock->bind_param($types, ...$params);
-
-        $stmtLowStock->execute();
-        $lowStockResult = $stmtLowStock->get_result();
-
-        $lowStockData = ["labels" => [], "branches" => [], "values" => []];
-        while ($row = $lowStockResult->fetch_assoc()) {
-            $lowStockData["labels"][] = $row["item_name"];
-            $lowStockData["branches"][] = $row["branch"];
-            $lowStockData["values"][] = intval($row["current_stock"]);
-        }
-
-
+    // Generate binding string (one "s" for each branch + 2 extra for startDate & endDate)
+    $types = str_repeat("s", count($branches)) . "ss"; // Add "ss" for the date range
+    
+    // Merge branches with startDate and endDate
+    $params = [...$branches, $startDate, $endDate];
+    
+    // Correctly bind all parameters
+    $stmtLowStock->bind_param($types, ...$params);
+    
+    $stmtLowStock->execute();
+    $lowStockResult = $stmtLowStock->get_result();
+    
+    $lowStockData = ["labels" => [], "branches" => [], "values" => []];
+    while ($row = $lowStockResult->fetch_assoc()) {
+        $lowStockData["labels"][] = $row["item_name"];
+        $lowStockData["branches"][] = $row["branch"];
+        $lowStockData["values"][] = intval($row["current_stock"]);
+    }
+    
 
     // ✅ Send JSON Response
     echo json_encode([
