@@ -197,6 +197,7 @@ function updateSellThroughGraph(sellThroughRate) {
     // ✅ Ensure it's an array
     if (!sellThroughRate || !sellThroughRate.data || !Array.isArray(sellThroughRate.data) || sellThroughRate.data.length === 0) {
         console.warn("⚠ No data available for Sell-Through Rate.");
+        sellThroughChart.destroy();
         return;
     }
 
