@@ -194,3 +194,5 @@ Stack trace:
             GROUP...' at line 10
 [02-Mar-2025 16:14:08 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
 [03-Mar-2025 07:17:27 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[04-Mar-2025 07:00:56 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[04-Mar-2025 07:02:09 Europe/Berlin] 📌 Exception Report Rows Fetched: 0
