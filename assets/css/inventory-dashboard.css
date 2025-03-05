@@ -81,12 +81,12 @@ h2 {
     justify-content: center;
     gap: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-
     border-radius: 6px;
     border: 1px solid #ddd; /* Light gray border */
     background-color: white;
     color: #333; /* Dark text for readability */
     transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 20px;
 }
 
 /* Button Hover */
@@ -107,7 +107,7 @@ h2 {
     background-color: #4b4b4b !important; /* Dark Blue */
     color: white !important;
     border-color: #333 !important;
-    transform: scale(1.05);
+    /* transform: scale(0.9); */
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
@@ -366,6 +366,54 @@ h2 {
     margin-bottom: 20px;
 }
 
+/* Top-level container that lays out franchise columns horizontally */
+.branch-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
+    gap: 15px; /* Space between columns */
+  }
+  
+  /* Each column for a single franchise */
+  .franchise-column {
+    min-width: 200px;       /* A bit of width so columns are consistent */
+    text-align: center;     /* Center the heading + buttons if desired */
+  }
+  
+  /* Franchise heading styles */
+  .franchise-title {
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-transform: capitalize; /* e.g. "auntie-anne" -> "Auntie-anne" */
+  }
+  
+  /* Branch buttons layout */
+.branch-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+/* Branch buttons */
+.branch-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 5px;
+    min-width: 100px;
+    text-align: center;
+}
+  
+ /* Adjust branch section */
+#branchButtons {
+    padding: 10px;
+    /* background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #ddd; */
+    max-width: 100%;
+    margin-top: 10px;
+}
 
 /* Responsive Layout */
 @media screen and (max-width: 992px) {

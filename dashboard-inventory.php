@@ -205,7 +205,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
 
     // ✅ Dynamic Query for Multiple Franchises
     $placeholders = implode(",", array_fill(0, count($dbFranchises), "?"));
-    $query = "SELECT DISTINCT branch FROM item_inventory WHERE franchisee IN ($placeholders)";
+    // In the "Fetch branches" section:
+    $query = "SELECT DISTINCT franchisee, branch
+    FROM item_inventory
+    WHERE franchisee IN ($placeholders)";
+
 
     $stmt = $con->prepare($query);
     if (!$stmt) {
@@ -220,9 +224,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
 
     $branches = [];
     while ($row = $result->fetch_assoc()) {
-        $branches[] = $row['branch'];
-    }
-
+    $branches[] = [
+        "franchise" => $row["franchisee"],  // e.g. 'auntie-anne'
+        "branch"    => $row["branch"]       // e.g. 'SM Mall of Asia'
+    ];
+}
     echo json_encode(["branches" => $branches], JSON_UNESCAPED_UNICODE);
     exit;
 }
@@ -439,10 +445,6 @@ $lowTurnoverResult = $stmtLow->get_result();
 }
 
 
-
-
-
-
 ?>
 
 <!DOCTYPE html>
@@ -451,7 +453,7 @@ $lowTurnoverResult = $stmtLow->get_result();
 <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Inventory Dashboard</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <!-- Bootstrap JS (Ensure it's the bundle version) -->
@@ -460,7 +462,6 @@ $lowTurnoverResult = $stmtLow->get_result();
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/navbar.css">
-    <link rel="stylesheet" href="assets/css/dashboard2.css">
     
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="assets/css/inventory-dashboard.css">

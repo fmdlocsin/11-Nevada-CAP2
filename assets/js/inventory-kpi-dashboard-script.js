@@ -1,6 +1,3 @@
-
-
-
 $(document).ready(function() {
     let selectedBranch = "";
 
@@ -24,6 +21,7 @@ function getCurrentWeekDates() {
         sunday: formatDate(lastDay)
     };
 }
+
 
 // ✅ Display the Current Week Range
 let weekDates = getCurrentWeekDates();
@@ -56,36 +54,78 @@ $("#report-week-range").text(`Reports for ${weekDates.monday} to ${weekDates.sun
             }
         });
     
-        // ✅ Function to Fetch & Update Branches
+        const franchiseDisplayMap = {
+            "auntie-anne": "Auntie Anne's",
+            "macao-imperial": "Macao Imperial",
+            "potato-corner": "Potato Corner"
+        };
+        
+        // Define the fixed order of franchises
+        const fixedFranchiseOrder = ["auntie-anne", "macao-imperial", "potato-corner"];
+        
         function updateBranches(franchises) {
             $("#branch-buttons").empty().hide();
-            selectedBranches = []; // Reset selected branches when a new franchise filter is applied
-
-    
+            selectedBranches = [];
+        
             $.ajax({
                 url: "dashboard-inventory.php",
                 type: "POST",
-                data: { franchise: JSON.stringify(franchises) }, // Send as JSON array
+                data: { franchise: JSON.stringify(franchises) },
                 dataType: "json",
                 success: function (data) {
-                    console.log("✅ Branches received:", data);
-    
-                    if (data.branches && data.branches.length > 0) {
-                        $("#branch-buttons").show(); // Show container
-                        data.branches.forEach(branch => {
-                            $("#branch-buttons").append(
-                                `<button class="btn btn-outline-secondary branch-btn" data-branch="${branch}">${branch}</button>`
-                            );                            
-                        });
-                    } else {
-                        console.warn("⚠ No branches found.");
-                    }
+                    console.log("✅ Branches received:", data.branches);
+        
+                    // Clear and show the main container
+                    $("#branch-buttons").empty().show();
+        
+                    // Group branches by franchise
+                    let grouped = {};
+                    data.branches.forEach(function (item) {
+                        let fr = item.franchise;
+                        if (!grouped[fr]) grouped[fr] = [];
+                        grouped[fr].push(item.branch);
+                    });
+        
+                    // Create a single container for the entire grid
+                    let $gridContainer = $('<div class="branch-grid"></div>');
+        
+                    // Render franchises in the correct fixed order
+                    fixedFranchiseOrder.forEach(function (franchiseName) {
+                        if (grouped[franchiseName]) { // Only display if it has branches
+                            let displayName = franchiseDisplayMap[franchiseName] || franchiseName;
+                            let $franchiseColumn = $(`
+                                <div class="franchise-column">
+                                    <h5 class="franchise-title">${displayName}</h5>
+                                    <div class="branch-container"></div>
+                                </div>
+                            `);
+        
+                            // Append each branch button into this column
+                            grouped[franchiseName].forEach(function (branch) {
+                                let $button = $(`
+                                    <button class="btn btn-outline-secondary branch-btn" data-branch="${branch}">
+                                        ${branch}
+                                    </button>
+                                `);
+                                $franchiseColumn.find(".branch-container").append($button);
+                            });
+        
+                            // Add this column to the grid container
+                            $gridContainer.append($franchiseColumn);
+                        }
+                    });
+        
+                    // Finally, add the grid container to #branch-buttons
+                    $("#branch-buttons").append($gridContainer);
                 },
                 error: function (xhr) {
                     console.error("❌ AJAX Error:", xhr.responseText);
                 }
             });
         }
+        
+          
+        
     });
     
 
