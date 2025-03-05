@@ -4,6 +4,8 @@ session_start();
 include ("../../phpscripts/database-connection.php");
 include ("../../phpscripts/check-login.php");
 
+$username = $_SESSION['user_name'] ?? "Unknown User";
+
 $query = "
     SELECT
         COALESCE(SUM(CASE WHEN ui.employee_status = 'assigned' THEN 1 ELSE 0 END), 0) AS assigned_count,
@@ -48,6 +50,13 @@ if ($result) {
 
     <!-- ===== Boxicons CSS ===== -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+
+    <script>
+        var loggedInUser = <?php echo json_encode($username); ?>;
+    </script>
+
+    
 </head>
 
 <body>

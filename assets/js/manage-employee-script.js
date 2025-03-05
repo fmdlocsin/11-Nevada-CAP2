@@ -552,93 +552,125 @@ function exportManpowerToCSV(type) {
 function exportManpowerToPDF(type) {
     const { jsPDF } = window.jspdf;
     let doc = new jsPDF({
-        orientation: "portrait",  // ✅ Ensuring portrait mode
-        unit: "pt",
-        format: "A4"
+      orientation: "portrait",
+      unit: "pt",
+      format: "A4"
     });
-
-    // ✅ Add Report Title
-    let reportTitle = type === "fully_staffed" ? "Fully Staffed Branches Report" : "Understaffed Branches Report";
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    let pageWidth = doc.internal.pageSize.getWidth();
-    doc.text(reportTitle, pageWidth / 2, 50, { align: "center" });
-
-    // ✅ Add Date of Report Generation
-    let currentDate = new Date().toLocaleDateString();
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Date Generated: ${currentDate}`, 50, 80);
-
-    let startY = 120;
-
-    // ✅ Restrict table selection to the modal only
-    let tables = document.querySelectorAll("#reportModal .franchise-section .report-table");
-
-    if (!tables.length) {
+  
+    // Load the two background images
+    let img1 = new Image();
+    let img2 = new Image();
+    img1.src = "../../assets/images/formDesign.png";    // First page background
+    img2.src = "../../assets/images/formDesign2.png";     // Background for pages 2+
+  
+    // Start PDF generation once the first background image loads
+    img1.onload = function () {
+      // Draw the first page background
+      doc.addImage(img1, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+  
+      // Override addPage so every new page gets the alternate background
+      const originalAddPage = doc.addPage.bind(doc);
+      doc.addPage = function () {
+        originalAddPage();
+        doc.addImage(img2, "PNG", 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+      };
+  
+      // -------------------- Begin Report Content --------------------
+      // Use titleY = 140 so the header design from image1 is visible
+      let titleY = 140;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      let pageWidth = doc.internal.pageSize.getWidth();
+      doc.text(
+        type === "fully_staffed" ? "Fully Staffed Branches Report" : "Understaffed Branches Report",
+        pageWidth / 2,
+        titleY,
+        { align: "center" }
+      );
+  
+      // Add date at titleY + 40 (i.e., 180)
+      let dateY = titleY + 40;
+      let currentDate = new Date().toLocaleDateString();
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Date Generated: ${currentDate}`, 50, dateY);
+  
+      // If needed, you can add exported by info right after (optional)
+      let userY = dateY + 12;
+      let exportedBy = typeof loggedInUser !== "undefined" ? loggedInUser : "Unknown User";
+      doc.text(`Exported by: ${exportedBy}`, 50, userY);
+  
+      // Begin the main content below the header info
+      let startY = userY + 35;
+  
+      // Retrieve tables from the report modal (manpower report)
+      let tables = document.querySelectorAll("#reportModal .franchise-section .report-table");
+  
+      if (!tables.length) {
         console.error("❌ Error: No tables found!");
         alert("Error: No report table data found.");
         return;
-    }
-
-    tables.forEach((table) => {
+      }
+  
+      tables.forEach((table) => {
         let franchiseSection = table.closest(".franchise-section");
         let franchiseTitle = franchiseSection.querySelector(".franchise-title-report")?.innerText || "Unknown Franchise";
-
-        // ✅ Add Franchise Title
+  
+        // Add franchise title
         doc.setFont("helvetica", "bold");
         doc.setFontSize(14);
         doc.text(franchiseTitle, 50, startY);
         startY += 20;
-
-        // ✅ Extract Franchise Summary (Total Employees)
+  
+        // Add franchise summary if available
         let summaryBadge = franchiseSection.querySelector(".total-employee-badge");
         if (summaryBadge) {
-            let summaryText = summaryBadge.innerText;
-            doc.setFont("helvetica", "italic");
-            doc.setFontSize(10);
-            doc.text(summaryText, 50, startY);
-            startY += 20;
+          let summaryText = summaryBadge.innerText;
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(10);
+          doc.text(summaryText, 50, startY);
+          startY += 20;
         }
-
-        // ✅ Extract Table Data
+  
+        // Extract table data: headers and rows
         let headers = [];
         let data = [];
         let rows = table.querySelectorAll("tr");
-
         rows.forEach((row, rowIndex) => {
-            let rowData = [];
-            let cols = row.querySelectorAll("th, td");
-
-            cols.forEach((col) => {
-                rowData.push(col.innerText);
-            });
-
-            if (rowIndex === 0) {
-                headers = rowData; // ✅ Store headers
-            } else {
-                data.push(rowData); // ✅ Store table row data
-            }
+          let rowData = [];
+          let cols = row.querySelectorAll("th, td");
+          cols.forEach((col) => {
+            rowData.push(col.innerText);
+          });
+          if (rowIndex === 0) {
+            headers = rowData;
+          } else {
+            data.push(rowData);
+          }
         });
-
-        // ✅ Generate Table in PDF
+  
+        // Generate table using autoTable plugin
         doc.autoTable({
-            head: [headers],
-            body: data,
-            startY: startY,
-            theme: "grid",
-            styles: { fontSize: 9, cellPadding: 3 },
-            headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-            alternateRowStyles: { fillColor: [245, 245, 245] },
-            margin: { left: 40, right: 40 },
-            tableWidth: "auto",
-            columnStyles: { 0: { cellWidth: "auto" } }
+          head: [headers],
+          body: data,
+          startY: startY,
+          theme: "grid",
+          styles: { fontSize: 9, cellPadding: 3 },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+          alternateRowStyles: { fillColor: [245, 245, 245] },
+          margin: { left: 40, right: 40 },
+          tableWidth: "auto",
+          columnStyles: { 0: { cellWidth: "auto" } }
         });
-
-        startY = doc.lastAutoTable.finalY + 40; // Space between franchise tables
-    });
-
-    // ✅ Save PDF
-    doc.save(`${type}_report_${new Date().toISOString().split("T")[0]}.pdf`);
-}
+  
+        // Update startY for the next table, adding spacing
+        startY = doc.lastAutoTable.finalY + 40;
+      });
+      // -------------------- End Report Content --------------------
+      doc.save(`${type}_report_${new Date().toISOString().split("T")[0]}.pdf`);
+    };
+  }
+  
+  
+  
 
