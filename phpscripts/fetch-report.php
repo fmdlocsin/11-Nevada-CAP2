@@ -60,17 +60,19 @@ $query = "SELECT
             ac.location, 
             sr.product_name,
             SUM(sr.grand_total) AS total_sales,
-            COALESCE(expenses_table.total_expenses, 0) AS total_expenses, -- ✅ Fetch expenses the same way as KPI
+            COALESCE(expenses_table.total_expenses, 0) AS total_expenses,
             (SUM(sr.grand_total) - COALESCE(expenses_table.total_expenses, 0)) AS profit
           FROM sales_report sr
           JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
           LEFT JOIN (
-            SELECT e.location, SUM(e.expense_amount) AS total_expenses
+            SELECT e.location, DATE_FORMAT(e.date_added, '%M %Y') AS expense_month, 
+                   SUM(e.expense_amount) AS total_expenses
             FROM expenses e
-            JOIN agreement_contract ac ON e.location = ac.ac_id  -- ✅ Match KPI's way of fetching expenses
             WHERE e.date_added BETWEEN '$startDate' AND '$endDate'
-            GROUP BY e.location
-        ) expenses_table ON ac.ac_id = expenses_table.location";
+            GROUP BY e.location, expense_month
+          ) expenses_table 
+            ON ac.ac_id = expenses_table.location 
+            AND DATE_FORMAT(sr.date_added, '%M %Y') = expenses_table.expense_month";
 
 // **Add WHERE Clause if Conditions Exist**
 if (!empty($whereClauses)) {
@@ -84,8 +86,13 @@ if (!empty($groupBy)) {
     die(json_encode(["error" => "Invalid GROUP BY clause"]));
 }
 
-// **Add ORDER BY**
-$query .= " ORDER BY date_label DESC, ac.franchisee, ac.location, sr.product_name";
+// Append ORDER BY clause
+if ($type === "monthly") {
+    // For monthly, order by year and month ascending (oldest to latest)
+    $query .= " ORDER BY YEAR(sr.date_added) ASC, MONTH(sr.date_added) ASC, ac.franchisee, ac.location, sr.product_name";
+} else {
+    $query .= " ORDER BY date_label DESC, ac.franchisee, ac.location, sr.product_name";
+}
 
 
 

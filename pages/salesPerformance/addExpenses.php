@@ -72,7 +72,7 @@ $dateToday = date("Y-m-d");
                             <option disabled selected>Select Expense Category</option>
                             <option value="controllable-expenses">Franchisor Expenses</option>
                             <option value="non-controllable-expenses">Leasor Expenses</option>
-                            <option value="other-expenses">Other Expenses</option>
+                            <!-- <option value="other-expenses">Other Expenses</option> -->
                     </select>
                     </div>
                 </div>
@@ -94,11 +94,11 @@ $dateToday = date("Y-m-d");
                             <option value="franchiseFees">Franchise Fees</option>
                             <option value="royaltyFees">Royalty Fees</option>
                             <option value="agencyFees">Agency Fees</option>
-                            <option value="others">Others</option>
+                            <!-- <option value="others">Others</option> -->
                         </select>
-                        <div class="input-field transactions">
+                        <!-- <div class="input-field transactions">
                             <input type="text" class="otherExpenses" placeholder="Others:">
-                        </div>
+                        </div> -->
                     </div>
                 </div>
                 <div class="fields">
@@ -122,11 +122,11 @@ $dateToday = date("Y-m-d");
                             <option value="rentalsFees">Rentals</option>
                             <option value="utilitiesFees">Utilities</option>
                             <option value="maintenanceFees">Maintenance</option>
-                            <option value="others">Others</option>
+                            <!-- <option value="others">Others</option> -->
                         </select>
-                        <div class="input-field transactions">
+                        <!-- <div class="input-field transactions">
                             <input type="text" class="otherExpenses" placeholder="Others:">
-                        </div>
+                        </div> -->
                     </div>
                 </div>
                 <div class="fields">
