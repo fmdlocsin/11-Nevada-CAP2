@@ -1,0 +1,208 @@
+[02-Mar-2025 11:01:34 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:01:34 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:01:34 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:01:34 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:01:34 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getStockStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:76
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 76
+[02-Mar-2025 11:02:01 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:02:01 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:02:01 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:02:01 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:02:01 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getStockStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:77
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 77
+[02-Mar-2025 11:03:27 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:03:27 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:03:27 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:03:27 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:03:27 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getWasteStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:78
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 78
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:04:32 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 Received Exception Report Request:
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 Branches: ["Glorietta Mall"]
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 Date Range: 2025-03-02 to 2025-03-08
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 SQL Query: SELECT 
+                i.item_name, ii.branch,
+                (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
+                (SUM(ii.waste) / NULLIF(SUM(ii.delivery), 0)) * 100 AS waste_percentage,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
+            FROM item_inventory ii
+            INNER JOIN items i ON ii.item_id = i.item_id
+            WHERE ii.branch IN (?)
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP BY i.item_name, ii.branch
+            ORDER BY waste_percentage DESC
+[02-Mar-2025 11:04:51 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:06:56 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:08:23 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getStockStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:65
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 65
+[02-Mar-2025 11:09:05 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:10:38 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:11:33 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getStockStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:73
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 73
+[02-Mar-2025 11:11:42 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:11:59 Europe/Berlin] PHP Fatal error:  Uncaught Error: Call to undefined function getWasteStatus() in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:79
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 79
+[02-Mar-2025 11:12:11 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:12:23 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 8
+[02-Mar-2025 11:12:27 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:13:33 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:13:57 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:18:25 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 8
+[02-Mar-2025 11:18:28 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:18:42 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:19:35 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:19:41 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:24:47 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:25:18 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:165
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(165): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 165
+[02-Mar-2025 11:27:23 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:43:12 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:43:21 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:43:40 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:44:08 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:44:57 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:45:04 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:45:35 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 11:45:49 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:46:23 Europe/Berlin] ❌ SQL Prepare Failed: Unknown column 'ii.ending' in 'field list'
+[02-Mar-2025 11:48:02 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 14:29:00 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 14:31:51 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[02-Mar-2025 14:38:30 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 14:38:42 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[02-Mar-2025 14:39:03 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[02-Mar-2025 14:44:36 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 14:45:30 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 14:49:42 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 14:49:51 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[02-Mar-2025 14:50:55 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 14:51:01 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[02-Mar-2025 14:51:31 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[02-Mar-2025 14:56:03 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 14:56:09 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[02-Mar-2025 14:56:30 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:169
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(169): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 169
+[02-Mar-2025 15:00:42 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 10
+[02-Mar-2025 15:00:52 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 15:03:09 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:169
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(169): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 169
+[02-Mar-2025 15:03:17 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 15:03:21 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:169
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(169): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 169
+[02-Mar-2025 15:03:23 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 15:06:54 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 10
+[02-Mar-2025 15:06:58 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 15:08:26 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 15:08:40 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[02-Mar-2025 15:10:02 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:169
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(169): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 169
+[02-Mar-2025 15:10:26 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:169
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(169): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 169
+[02-Mar-2025 15:11:45 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: trim(): Argument #1 ($string) must be of type string, array given in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:169
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(169): trim(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 169
+[02-Mar-2025 15:42:24 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 10
+[02-Mar-2025 15:47:48 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[02-Mar-2025 16:14:06 Europe/Berlin] ❌ SQL Prepare Failed: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ')
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?
+            GROUP...' at line 10
+[02-Mar-2025 16:14:08 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[03-Mar-2025 07:17:27 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[04-Mar-2025 07:00:56 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[04-Mar-2025 07:02:09 Europe/Berlin] 📌 Exception Report Rows Fetched: 0
+[04-Mar-2025 07:18:45 Europe/Berlin] PHP Fatal error:  Uncaught ArgumentCountError: The number of variables must match the number of parameters in the prepared statement in D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:410
+Stack trace:
+#0 D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(410): mysqli_stmt->bind_param('s', 'Glorietta Mall')
+#1 {main}
+  thrown in D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 410
+[04-Mar-2025 07:21:04 Europe/Berlin] PHP Fatal error:  Uncaught ArgumentCountError: The number of variables must match the number of parameters in the prepared statement in D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:408
+Stack trace:
+#0 D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(408): mysqli_stmt->bind_param('s', 'Glorietta Mall')
+#1 {main}
+  thrown in D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 408
