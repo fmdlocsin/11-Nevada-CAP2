@@ -644,7 +644,17 @@ function fetchReport(reportType, selectedFranchisees, selectedBranches, startDat
             }
 
             let data = response.data;
-            console.log("📌 Processed Report Data:", data);
+            console.log("Processed Report Data:", data);
+
+            // <-- Insert debug logging here:
+            data.forEach(item => {
+                console.log("Franchisee value:", item.franchisee);
+                // If needed, adjust the value (e.g., trim and lowercase)
+                let key = item.franchisee.trim().toLowerCase();
+                let formattedFranchise = franchiseDisplayMap[key] || item.franchisee;
+                console.log("Formatted Franchise:", formattedFranchise);
+            });
+            // <-- End debug logging
 
             if (!data || data.length === 0) {
                 console.warn("⚠ No report data available.");
@@ -658,8 +668,7 @@ function fetchReport(reportType, selectedFranchisees, selectedBranches, startDat
             // ✅ Group data by franchise & branch
             let groupedData = {};
             data.forEach(item => {
-                let formattedFranchise = franchiseDisplayMap[item.franchisee] || item.franchisee;
-                let key = `${formattedFranchise} - ${item.branch}`;
+                let key = `${(franchiseDisplayMap[item.franchisee.trim().toLowerCase()] || item.franchisee)} - ${item.branch}`;
                 if (!groupedData[key]) {
                     groupedData[key] = [];
                 }
@@ -670,36 +679,38 @@ function fetchReport(reportType, selectedFranchisees, selectedBranches, startDat
             Object.keys(groupedData).forEach(group => {
                 let items = groupedData[group];
 
+                // Wrap the heading and table in a container with "franchise-section"
                 let tableHtml = `
-                    <h4 class="mt-4 text-center">${group}</h4> 
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th>Sell-Through Rate</th>
-                                    <th>Days Until Stockout</th>
-                                    <th>Average Sales</th>
-                                    <th>Stock Waste</th>
-                                    <th>Current Stock</th>
-                                    <th>Stock Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                    <div class="franchise-section">
+                        <h4 class="mt-4 text-center franchise-title">${group}</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Item Name</th>
+                                        <th>Sell-Through Rate</th>
+                                        <th>Days Until Stockout</th>
+                                        <th>Average Sales</th>
+                                        <th>Stock Waste</th>
+                                        <th>Current Stock</th>
+                                        <th>Stock Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                 `;
 
                 items.forEach(item => {
                     let stockStatus = getStockStatus1(item.current_stock);
                     tableHtml += `
-                        <tr>
-                            <td>${item.item_name}</td>
-                            <td>${item.sell_through_rate}</td>
-                            <td>${item.days_until_stockout}</td>
-                            <td>${item.average_sales}</td>
-                            <td>${item.stock_waste}</td>
-                            <td>${item.current_stock}</td>
-                            <td>${stockStatus}</td>
-                        </tr>
+                                    <tr>
+                                        <td>${item.item_name}</td>
+                                        <td>${item.sell_through_rate}</td>
+                                        <td>${item.days_until_stockout}</td>
+                                        <td>${item.average_sales}</td>
+                                        <td>${item.stock_waste}</td>
+                                        <td>${item.current_stock}</td>
+                                        <td>${stockStatus}</td>
+                                    </tr>
                     `;
                 });
 
@@ -707,6 +718,7 @@ function fetchReport(reportType, selectedFranchisees, selectedBranches, startDat
                             </tbody>
                         </table>
                     </div>
+                </div>
                 `;
 
                 $("#reportTablesContainer").append(tableHtml);
@@ -720,6 +732,7 @@ function fetchReport(reportType, selectedFranchisees, selectedBranches, startDat
         }
     });
 }
+
 
 function generateMonthlyReport() {
     // Get selected franchises & branches
@@ -801,42 +814,44 @@ function fetchMonthlyReport(reportType, selectedFranchisees, selectedBranches, s
                 let items = groupedData[group];
 
                 let tableHtml = `
-                    <h3 class="mt-4 text-center">Summary Report for the Month: ${monthYear}</h3>
-                    <h4 class="mt-2 text-center">${group}</h4> 
-                    <div class="table-responsive">
-                        <table class="table table-bordered">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th>Sell-Through Rate</th>
-                                    <th>Days Until Stockout</th>
-                                    <th>Average Sales</th>
-                                    <th>Stock Waste</th>
-                                    <th>Current Stock</th>
-                                    <th>Stock Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                    <div class="franchise-section">
+                        <h3 class="mt-4 text-center">Summary Report for the Month: ${monthYear}</h3>
+                        <h4 class="mt-2 text-center franchise-title">${group}</h4>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Item Name</th>
+                                        <th>Sell-Through Rate</th>
+                                        <th>Days Until Stockout</th>
+                                        <th>Average Sales</th>
+                                        <th>Stock Waste</th>
+                                        <th>Current Stock</th>
+                                        <th>Stock Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                 `;
 
                 items.forEach(item => {
                     let stockStatus = getStockStatus1(item.current_stock);
                     tableHtml += `
-                        <tr>
-                            <td>${item.item_name}</td>
-                            <td>${item.sell_through_rate}</td>
-                            <td>${item.days_until_stockout}</td>
-                            <td>${item.average_sales}</td>
-                            <td>${item.stock_waste}</td>
-                            <td>${item.current_stock}</td>
-                            <td>${stockStatus}</td>
-                        </tr>
+                                    <tr>
+                                        <td>${item.item_name}</td>
+                                        <td>${item.sell_through_rate}</td>
+                                        <td>${item.days_until_stockout}</td>
+                                        <td>${item.average_sales}</td>
+                                        <td>${item.stock_waste}</td>
+                                        <td>${item.current_stock}</td>
+                                        <td>${stockStatus}</td>
+                                    </tr>
                     `;
                 });
 
                 tableHtml += `
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 `;
 
@@ -907,69 +922,165 @@ function exportReportToCSV(reportType) {
     document.body.removeChild(downloadLink);
 }
 
-function exportReportToPDF(reportType) {
-    let { jsPDF } = window.jspdf;
-    let doc = new jsPDF("p", "mm", "a4");
-
-    let dateRange, containerId, franchisees, branches;
-
-    if (reportType === "exception") {
-        dateRange = document.getElementById("exceptionSelectedDateRange").innerText;
-        franchisees = document.getElementById("exceptionSelectedFranchisees").innerText.split(", ");
-        branches = document.getElementById("exceptionSelectedBranches").innerText.split(", ");
-        containerId = "exceptionReportTablesContainer";
+// Helper function to determine header text for non-exception reports
+function getHeaderText(reportType) {
+    let normalizedType = reportType.trim().toLowerCase();
+    if (normalizedType.includes("detailed")) {
+      return "DETAILED Report";
+    } else if (normalizedType.includes("monthly")) {
+      return "MONTHLY Report";
+    } else if (normalizedType === "exception") {
+      return "EXCEPTION Report";
     } else {
-        dateRange = document.getElementById("selectedDateRange").innerText;
-        franchisees = document.getElementById("selectedFranchisees").innerText.split(", ");
-        branches = document.getElementById("selectedBranches").innerText.split(", ");
-        containerId = "reportTablesContainer";
+      return reportType.toUpperCase() + " Report";
     }
-
-    doc.setFontSize(14);
-    doc.text(`${reportType.toUpperCase()} Report`, 10, 10);
-    doc.setFontSize(10);
-    doc.text(`Date Range: ${dateRange}`, 10, 20);
-
-    let tables = document.querySelectorAll(`#${containerId} table`);
-    let startY = 30; // Initial Y position for table placement
-
-    tables.forEach((table, index) => {
-        // ✅ Get the correct franchise and branch based on index
-        let franchise = franchisees[index] || "Unknown Franchise";
-        let branch = branches[index] || "Unknown Branch";
-        let headerText = `${franchise} - ${branch}`;
-
-        doc.setFontSize(12);
-        doc.text(headerText, 10, startY); // ✅ Add Franchise-Branch header before each table
-        startY += 6;
-
-        let rows = [];
-        let headers = [];
-
-        table.querySelectorAll("thead tr th").forEach((th) => {
-            headers.push(th.innerText);
-        });
-
-        table.querySelectorAll("tbody tr").forEach((tr) => {
-            let rowData = [];
-            tr.querySelectorAll("td").forEach((td) => {
-                rowData.push(td.innerText);
-            });
-            rows.push(rowData);
-        });
-
-        doc.autoTable({
-            head: [headers],
-            body: rows,
-            startY: startY,
-            theme: "grid",
-        });
-
-        startY = doc.autoTable.previous.finalY + 10; // Adjust Y position for next table
+  }
+  
+  function exportReportToPDF(reportType) {
+    const { jsPDF } = window.jspdf;
+    let doc = new jsPDF({
+      orientation: "portrait",
+      unit: "pt",
+      format: "A4"
     });
-
-    doc.save(`${reportType}_Report_${new Date().toISOString().split("T")[0]}.pdf`);
-}
+    let pageWidth = doc.internal.pageSize.getWidth();
+    let pageHeight = doc.internal.pageSize.getHeight();
+    
+    // Set up variables based on reportType
+    let dateRange, containerId, franchisees, branches;
+    if (reportType === "exception") {
+      dateRange = document.getElementById("exceptionSelectedDateRange").innerText;
+      franchisees = document.getElementById("exceptionSelectedFranchisees").innerText.split(", ");
+      branches = document.getElementById("exceptionSelectedBranches").innerText.split(", ");
+      containerId = "exceptionReportTablesContainer";
+    } else {
+      dateRange = document.getElementById("selectedDateRange").innerText;
+      franchisees = document.getElementById("selectedFranchisees").innerText.split(", ");
+      branches = document.getElementById("selectedBranches").innerText.split(", ");
+      containerId = "reportTablesContainer";
+    }
+    
+    // Preload background images (for all report types)
+    let imgFirst = new Image();
+    let imgOther = new Image();
+    imgFirst.src = "assets/images/formDesign.png";    // First page background image
+    imgOther.src = "assets/images/formDesign2.png";     // Subsequent pages background image
+    
+    imgFirst.onload = function () {
+      // Apply background image for first page
+      doc.addImage(imgFirst, "PNG", 0, 0, pageWidth, pageHeight);
+    
+      // Override addPage so that new pages get the secondary background image
+      const originalAddPage = doc.addPage.bind(doc);
+      doc.addPage = function () {
+        originalAddPage();
+        doc.addImage(imgOther, "PNG", 0, 0, pageWidth, pageHeight);
+      };
+    
+      // Header section (same for all reports)
+      let titleY = 140;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      // For exception report, header text is "EXCEPTION Report", otherwise "DETAILED/MONTHLY Report"
+      let headerText = (reportType === "exception") ? "EXCEPTION Report" : "DETAILED/MONTHLY Report";
+      doc.text(headerText, pageWidth / 2, titleY, { align: "center" });
+    
+      // Display date range and other details
+      let dateY = titleY + 40;
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Date Range: ${dateRange}`, 50, dateY);
+      let currentDate = new Date().toLocaleDateString();
+      doc.text(`Date Generated: ${currentDate}`, 50, dateY + 12);
+      let exportedBy = typeof loggedInUser !== "undefined" ? loggedInUser : "Unknown User";
+      doc.text(`Exported by: ${exportedBy}`, 50, dateY + 24);
+    
+      // Add extra spacing between "Exported by:" and the first franchise title
+      let startY = dateY + 50; // Increase spacing as needed
+    
+      // Get all tables from the container
+      let tables = document.querySelectorAll(`#${containerId} table`);
+      if (!tables.length) {
+        console.error("❌ Error: No tables found!");
+        alert("Error: Report table not found.");
+        return;
+      }
+    
+      // Process each table
+      tables.forEach((table, index) => {
+        let franchiseTitle = "Unknown Franchise";
+        if (reportType === "exception") {
+          // For exception reports, use the franchise and branch arrays (by index)
+          // This assumes the order of tables corresponds to the order of selections
+          let f = franchisees[index] || "Unknown Franchise";
+          let b = branches[index] || "Unknown Branch";
+          franchiseTitle = `${f} - ${b}`;
+        } else {
+          // For detailed/monthly reports, try to read from the DOM (similar to your original logic)
+          let franchiseSection = table.closest(".franchise-section");
+          if (franchiseSection) {
+            franchiseTitle = franchiseSection.querySelector(".franchise-title")?.innerText || "Unknown Franchise";
+          } else {
+            let prevElem = table.previousElementSibling;
+            if (prevElem && prevElem.tagName.toLowerCase() === "h4") {
+              franchiseTitle = prevElem.innerText;
+            }
+          }
+        }
+    
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 0);
+        doc.text(franchiseTitle, 50, startY);
+        startY += 20;
+    
+        // Extract table headers and rows
+        let headers = [];
+        let data = [];
+        let rows = table.querySelectorAll("tr");
+        rows.forEach((row, rowIndex) => {
+          let rowData = [];
+          let cols = row.querySelectorAll("th, td");
+          cols.forEach(col => {
+            rowData.push(col.innerText);
+          });
+          if (rowIndex === 0) {
+            headers = rowData;
+          } else {
+            data.push(rowData);
+          }
+        });
+    
+        // Generate table using autoTable
+        doc.autoTable({
+          head: [headers],
+          body: data,
+          startY: startY,
+          theme: "grid",
+          styles: { fontSize: 10, cellPadding: 4 },
+          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+          alternateRowStyles: { fillColor: [245, 245, 245] },
+          margin: { left: 40, right: 40 },
+          tableWidth: "auto",
+          columnStyles: { 0: { cellWidth: "auto" } }
+        });
+    
+        startY = doc.lastAutoTable.finalY + 50;
+      });
+    
+      let filenamePrefix = (reportType === "exception") ? "exception_report" : "inventory_report";
+      doc.save(`${filenamePrefix}_${new Date().toISOString().split("T")[0]}.pdf`);
+    };
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
 function getCurrentWeekDates() {
     let today = new Date();

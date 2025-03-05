@@ -12,6 +12,8 @@ ini_set('display_errors', 1); // Temporarily enable error display for debugging
 ini_set('error_log', __DIR__ . '/error_log.txt'); // Save errors to a file
 error_reporting(E_ALL);
 
+$username = $_SESSION['user_name'] ?? "Unknown User";
+
 // ✅ Define getStockStatus() FIRST
 function getStockStatus($currentStock, $turnoverRate) {
     if ($currentStock === 0) return "Stockout";
@@ -466,6 +468,10 @@ $lowTurnoverResult = $stmtLow->get_result();
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        var loggedInUser = <?php echo json_encode($username); ?>;
+    </script>
 
 
     <title>Inventory Analytics</title>

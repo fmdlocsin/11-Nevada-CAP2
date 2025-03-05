@@ -206,3 +206,13 @@ Stack trace:
 #0 D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(408): mysqli_stmt->bind_param('s', 'Glorietta Mall')
 #1 {main}
   thrown in D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 408
+[05-Mar-2025 19:30:19 Europe/Berlin] 📌 Exception Report Rows Fetched: 46
+[05-Mar-2025 19:31:05 Europe/Berlin] 📌 Exception Report Rows Fetched: 46
+[05-Mar-2025 19:43:48 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[05-Mar-2025 19:46:07 Europe/Berlin] 📌 Exception Report Rows Fetched: 54
+[05-Mar-2025 19:47:19 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[05-Mar-2025 19:52:12 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[05-Mar-2025 19:55:37 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[05-Mar-2025 19:56:04 Europe/Berlin] 📌 Exception Report Rows Fetched: 43
+[05-Mar-2025 20:01:04 Europe/Berlin] 📌 Exception Report Rows Fetched: 43
+[05-Mar-2025 20:04:44 Europe/Berlin] 📌 Exception Report Rows Fetched: 43
