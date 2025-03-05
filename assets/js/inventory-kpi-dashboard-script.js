@@ -184,30 +184,30 @@ let sellThroughChart, highTurnoverChart, lowTurnoverChart; // ✅ Store chart in
 function updateSellThroughGraph(sellThroughRate) {
     console.log("Updating Sell-Through Rate Graph...", sellThroughRate);
 
-    // ✅ Destroy previous chart instance if exists
     if (sellThroughChart instanceof Chart) {
         sellThroughChart.destroy();
     }
 
-
-    // ✅ Ensure it's an array
     if (!sellThroughRate || !sellThroughRate.data || !Array.isArray(sellThroughRate.data) || sellThroughRate.data.length === 0) {
         console.warn("⚠ No data available for Sell-Through Rate.");
-        if (sellThroughChart instanceof Chart) {
-            sellThroughChart.destroy();
-        }
         return;
     }
-
 
     const ctx = document.getElementById("sellThroughChart").getContext("2d");
 
     let datasets = [];
-    let branchColors = ["blue", "red", "green", "orange", "purple", "brown"]; // ✅ Assign different colors per branch
+    let branchColors = [
+        "rgba(54, 162, 235, 0.8)",  // Soft Blue
+        "rgba(255, 99, 132, 0.8)",  // Soft Red
+        "rgba(75, 192, 192, 0.8)",  // Teal Green
+        "rgba(255, 159, 64, 0.8)",  // Warm Orange
+        "rgba(153, 102, 255, 0.8)", // Lavender
+        "rgba(255, 206, 86, 0.8)"   // Soft Yellow
+    ];
+    
     let branchIndex = 0;
-
-    // ✅ Organize data by branch
     let branchData = {};
+
     sellThroughRate.data.forEach(entry => {
         if (!branchData[entry.branch]) {
             branchData[entry.branch] = { dates: [], values: [] };
@@ -216,13 +216,15 @@ function updateSellThroughGraph(sellThroughRate) {
         branchData[entry.branch].values.push(entry.sell_through_rate);
     });
 
-    // ✅ Prepare dataset for each branch
     Object.keys(branchData).forEach(branch => {
         datasets.push({
             label: `${branch} Sell-Through Rate (%)`,
-            data: branchData[branch].values, // ✅ Y-axis (percentage)
-            borderColor: branchColors[branchIndex % branchColors.length], // ✅ Assign unique color
-            backgroundColor: branchColors[branchIndex % branchColors.length] + "33", // ✅ Lighter color for fill
+            data: branchData[branch].values,
+            borderColor: branchColors[branchIndex % branchColors.length],
+            backgroundColor: branchColors[branchIndex % branchColors.length].replace("0.8", "0.3"), // Soft fill
+            borderWidth: 2,
+            pointRadius: 5,
+            tension: 0.4, // Smooth line effect
             fill: true
         });
         branchIndex++;
@@ -231,7 +233,7 @@ function updateSellThroughGraph(sellThroughRate) {
     sellThroughChart = new Chart(ctx, {
         type: "line",
         data: {
-            labels: branchData[Object.keys(branchData)[0]].dates || [], // ✅ Use dates from the first branch as x-axis
+            labels: branchData[Object.keys(branchData)[0]].dates || [],
             datasets: datasets
         },
         options: {
@@ -242,6 +244,25 @@ function updateSellThroughGraph(sellThroughRate) {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) { return value + "%"; }
+                    },
+                    grid: {
+                        color: "rgba(200, 200, 200, 0.3)", // Light grey
+                        borderDash: [5, 5] // Dashed grid lines
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false // Hide x-axis grid for cleaner design
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: "black",
+                        font: {
+                            size: 12
+                        }
                     }
                 }
             }
