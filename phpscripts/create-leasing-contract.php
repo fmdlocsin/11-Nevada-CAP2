@@ -28,9 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $lessorAddress = isset($_POST['lessorAddress']) ? $_POST['lessorAddress'] : '';
     $lesseeAddress = isset($_POST['lesseeAddress']) ? $_POST['lesseeAddress'] : '';
     $extraNoteLeasing = isset($_POST['extraNoteLeasing']) ? $_POST['extraNoteLeasing'] : '';
-    $notarySealLeasing = '';
+    
+    // Set default value for the notary seal file name
+    $uploadFileName = "";
 
-    // Validate required fields
+    // Validate required fields (excluding the notary seal)
     $requiredFields = [
         $franchise,
         $leaseStartDate,
@@ -59,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         }
     }
 
-    // Handle file upload for notary seal
+    // Handle file upload for notary seal if provided; otherwise, use an empty string.
     if (isset($_FILES['notarySealLeasing']) && $_FILES['notarySealLeasing']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = '../assets/images/notarySeals/';
         $originalFileName = $_FILES['notarySealLeasing']['name'];
@@ -67,14 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $uploadFileName = 'notarySeal-' . date('YmdHis') . '.' . $fileExtension;
         $uploadFile = $uploadDir . $uploadFileName;
 
-        if (move_uploaded_file($_FILES['notarySealLeasing']['tmp_name'], $uploadFile)) {
-            $notarySealLeasing = $uploadFile;
-        } else {
-            $data['status'] = "error";
-            $data['message'] = "Failed to upload notary seal file";
-            echo json_encode($data);
-            exit();
-        }
+        // Attempt file upload; if it fails, $uploadFileName remains an empty string.
+        move_uploaded_file($_FILES['notarySealLeasing']['tmp_name'], $uploadFile);
     }
 
     // SQL insertion query

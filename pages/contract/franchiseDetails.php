@@ -181,11 +181,11 @@ function formatFranchiseeName($name)
                     </div>
                 </div>
 
-                <div class="notary-seal">
+                <!-- <div class="notary-seal">
                     <div class="contract-subtitle">
                         <span>Notary Public's Seal:</span>
                     </div>
-        <img src="../../assets/images/notarySeals/<?php echo $data['notary_public_seal']; ?>" alt="Notary Seal">
+        <img src="../../assets/images/notarySeals/<?php echo $data['notary_public_seal']; ?>" alt="Notary Seal"> -->
     </div>
 </div>
 

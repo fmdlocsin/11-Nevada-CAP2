@@ -186,7 +186,7 @@ include("../../phpscripts/check-login.php");
                 <!-- Notarization Details -->
                 <div class="form-group-1">
                     <div class="form-group notarization-details">
-                        <label for="notary-seal-leasing">Notary Public's Seal: <span class="text-danger">*</span></label>
+                        <label for="notary-seal-leasing">Notary Public's Seal: <span class="text-danger"></span></label>
                         <input type="file" id="notary-seal-leasing" name="notarySealLeasing">
                         <p class="hint">Upload Notary Public's Seal</p>
                     </div>

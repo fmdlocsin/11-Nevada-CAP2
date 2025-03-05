@@ -30,85 +30,84 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $franchiseeRep = isset($_POST['franchiseeRep']) ? $_POST['franchiseeRep'] : '';
     $ac_id = random_int(100000, 999999);
 
-    // Check for required fields
+    // Validate required fields (excluding the notary seal)
     if (empty($franchise) || empty($classification) || empty($agreementStart) || empty($agreementDate) || empty($location) || empty($areaCode)) {
         $data['status'] = "error";
         $data['message'] = "Please fill in all required fields.";
-    } elseif (!isset($_FILES['notarySealFranchise']) || $_FILES['notarySealFranchise']['error'] != 0) {
-        // Check if the file is uploaded
-        $data['status'] = "error";
-        $data['message'] = "Please upload the Notary Seal for the Franchise.";
     } else {
-        // Process the file upload
-        $uploadDir = '../assets/images/notarySeals/';
-        $originalFileName = $_FILES['notarySealFranchise']['name'];
-        $fileExtension = pathinfo($originalFileName, PATHINFO_EXTENSION);
-        $uploadFileName = 'notarySealAgreement-' . date('YmdHis') . '.' . $fileExtension;
-        $uploadFile = $uploadDir . $uploadFileName;
+        // Process the file upload if provided; otherwise, set default empty value.
+        $uploadFileName = "";
+        if (isset($_FILES['notarySealFranchise']) && $_FILES['notarySealFranchise']['error'] == 0) {
+            $uploadDir = '../assets/images/notarySeals/';
+            $originalFileName = $_FILES['notarySealFranchise']['name'];
+            $fileExtension = pathinfo($originalFileName, PATHINFO_EXTENSION);
+            $uploadFileName = 'notarySealAgreement-' . date('YmdHis') . '.' . $fileExtension;
+            $uploadFile = $uploadDir . $uploadFileName;
+            move_uploaded_file($_FILES['notarySealFranchise']['tmp_name'], $uploadFile);
+        }
+        
+        // Convert rightsGranted array into a comma-separated string
+        $rightsGrantedStr = is_array($rightsGranted) ? implode(',', $rightsGranted) : $rightsGranted;
+        
+        // Prepare the INSERT query
+        $insert_query = "INSERT INTO agreement_contract (
+                            ac_id,
+                            franchisee,
+                            classification,
+                            rights_granted,
+                            franchise_term,
+                            agreement_date,
+                            location,
+                            area_code,
+                            franchise_fee,
+                            ff_note,
+                            franchise_package,
+                            fp_note,
+                            bond,
+                            b_note,
+                            extra_note,
+                            notarization_fr,
+                            notarization_fr_rb,
+                            notarization_fe,
+                            notarization_fe_rb,
+                            notary_public_seal,
+                            status,
+                            datetime_added
+                        ) VALUES (
+                            '$ac_id',
+                            '$franchise',
+                            '$classification',
+                            '$rightsGrantedStr',
+                            '$agreementStart',
+                            '$agreementDate',
+                            '$location',
+                            '$areaCode',
+                            '$franchiseFee',
+                            '$franchiseFeeNote',
+                            '$franchisePackage',
+                            '$franchisePackageNote',
+                            '$bond',
+                            '$bondNote',
+                            '$extraNoteFranchise',
+                            '$franchisor',
+                            '$franchisorRep',
+                            '$franchisee',
+                            '$franchiseeRep',
+                            '$uploadFileName',
+                            '$docStatus',
+                            NOW()
+                        )";
 
-        if (move_uploaded_file($_FILES['notarySealFranchise']['tmp_name'], $uploadFile)) {
-            // File upload successful, proceed with database insertion
-            $insert_query = "INSERT INTO agreement_contract (
-                                ac_id,
-                                franchisee,
-                                classification,
-                                rights_granted,
-                                franchise_term,
-                                agreement_date,
-                                location,
-                                area_code,
-                                franchise_fee,
-                                ff_note,
-                                franchise_package,
-                                fp_note,
-                                bond,
-                                b_note,
-                                extra_note,
-                                notarization_fr,
-                                notarization_fr_rb,
-                                notarization_fe,
-                                notarization_fe_rb,
-                                notary_public_seal,
-                                status,
-                                datetime_added
-                            ) VALUES (
-                                '$ac_id',
-                                '$franchise',
-                                '$classification',
-                                '$rightsGranted',
-                                '$agreementStart',
-                                '$agreementDate',
-                                '$location',
-                                '$areaCode',
-                                '$franchiseFee',
-                                '$franchiseFeeNote',
-                                '$franchisePackage',
-                                '$franchisePackageNote',
-                                '$bond',
-                                '$bondNote',
-                                '$extraNoteFranchise',
-                                '$franchisor',
-                                '$franchisorRep',
-                                '$franchisee',
-                                '$franchiseeRep',
-                                '$uploadFileName',
-                                '$docStatus',
-                                NOW()
-                            )";
+        // Prepare the notification query
+        $notif_query = "INSERT INTO notifications(user_id, activity_type, datetime) VALUES ('$ac_id','new_agreement_contract',NOW())";
+        $notif_result = mysqli_query($con, $notif_query);
 
-            $notif_query = "INSERT INTO notifications(user_id, activity_type, datetime) VALUES ('$ac_id','new_agreement_contract',NOW())";
-            $notif_result = mysqli_query($con, $notif_query);
-
-            if (mysqli_query($con, $insert_query) && $notif_result) {
-                $data['status'] = "success";
-                $data['message'] = "Agreement contract saved successfully";
-            } else {
-                $data['status'] = "error";
-                $data['message'] = "Database error: " . mysqli_error($con);
-            }
+        if (mysqli_query($con, $insert_query) && $notif_result) {
+            $data['status'] = "success";
+            $data['message'] = "Agreement contract saved successfully";
         } else {
             $data['status'] = "error";
-            $data['message'] = "File upload failed.";
+            $data['message'] = "Database error: " . mysqli_error($con);
         }
     }
 } else {

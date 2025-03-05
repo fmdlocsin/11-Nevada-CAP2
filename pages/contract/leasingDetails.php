@@ -140,7 +140,7 @@ function formatFranchiseeName($name)
                 </div>
 
 
-                <div class="contract-subtitle">
+                <!-- <div class="contract-subtitle">
                     <span>Notary Public's Seal:</span>
                 </div>
                 <div class="detail-item">
@@ -150,7 +150,7 @@ function formatFranchiseeName($name)
             <div class="button-group">
                 <button class="myButton">Edit Details</button>
                 <button class="myButton">Print Contract</button>
-            </div>
+            </div> -->
         </div>
 
     </section>
