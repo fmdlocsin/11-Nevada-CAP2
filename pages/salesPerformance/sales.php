@@ -4,7 +4,11 @@ session_start();
 include ("../../phpscripts/database-connection.php");
 include ("../../phpscripts/check-login.php");
 
-$query = "SELECT * FROM sales_report ORDER BY date_added DESC, report_id DESC LIMIT 5";
+$query = "SELECT sr.*, ac.location 
+          FROM sales_report sr
+          LEFT JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
+          ORDER BY sr.date_added DESC, sr.report_id DESC LIMIT 10";
+
 $result = mysqli_query($con, $query);
 
 if ($result) {
@@ -56,13 +60,12 @@ if ($result) {
                     <option value="auntie-anne">Auntie Anne's</option>
                     <option value="macao-imperial">Macao Imperial</option>
                 </select>
-                <!-- <label for="filter-status">Location:</label>
-                <select id="filter-status">
-                    <option value="">All</option>
-                    <option value="approved">location 1</option>
-                    <option value="pending">Pending</option>
-                    <option value="leasing">Leasing</option>
-                </select> -->
+
+                <label for="filter-location">Location:</label>
+                    <select id="filter-location" disabled>
+                        <option value="">Select Location</option>
+                    </select>
+                    
                 <label for="start-date">Start Date:</label>
                 <input type="date" id="start-date">
                 <label for="end-date">End Date:</label>
@@ -102,12 +105,13 @@ if ($result) {
                     <thead>
                         <tr>
                             <th>Franchisee</th>
+                            <th>Location</th>
                             <th>Transaction Type</th>
                             <th>Total Sales</th>
                             <th>Date</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="salesTableBody">
                         <?php if (!empty($data) && !isset($data['error'])) {
                             foreach ($data as $row) {
                                 $transactions = explode(',', $row['grand_total']);
@@ -133,6 +137,7 @@ if ($result) {
                                         <img class="franchise-logo" src="../../assets/images/<?php echo $franchise_image; ?>"
                                             alt="Franchise Image">
                                     </td>
+                                    <td><?php echo $row['location']; ?></td>
                                     <td><?php echo ucwords($row['services']); ?></td>
                                     <td>₱ <?php echo number_format(end($transactions), 2, '.', ','); ?></td>
                                     <td><?php echo $row['date_added']; ?></td>
@@ -169,6 +174,87 @@ if ($result) {
                 window.location.href = "salesReport.php?id=" + id;
             });
         });
+
+        $(document).ready(function () {
+
+// When the franchise dropdown changes, fetch its locations
+$("#filter-franchise").on("change", function(){
+    var selectedFranchise = $(this).val();
+    var locationDropdown = $("#filter-location");
+
+    // If no franchise is selected or "all" is selected, disable location dropdown
+    if (!selectedFranchise || selectedFranchise === 'all') {
+        locationDropdown.prop("disabled", true).html('<option value="">-- Select Location --</option>');
+        return;
+    }
+
+    // AJAX call to fetch locations dynamically
+    $.ajax({
+        url: "../../phpscripts/getSalesLocation.php", // Adjust path if needed
+        method: "GET",
+        data: { franchise: selectedFranchise },
+        success: function(response) {
+            try {
+                var locations = JSON.parse(response);
+                locationDropdown.empty();
+
+                if (locations.length > 0) {
+                    locationDropdown.append('<option value="all">All</option>');
+                    $.each(locations, function(index, loc) {
+                        locationDropdown.append('<option value="' + loc + '">' + loc + '</option>');
+                    });
+                    locationDropdown.prop("disabled", false);
+                } else {
+                    locationDropdown.append('<option value="">No locations found</option>');
+                    locationDropdown.prop("disabled", true);
+                }
+            } catch(e) {
+                console.error("Error parsing JSON:", e);
+                locationDropdown.empty().append('<option value="">Error loading locations</option>');
+                locationDropdown.prop("disabled", true);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching locations:", error);
+        }
+    });
+});
+
+// Your existing Generate button click event
+$("#btn-generate").on("click", function(){
+    var franchise = $("#filter-franchise").val();
+    var location = $("#filter-location").val();
+    var startDate = $("#start-date").val();
+    var endDate = $("#end-date").val();
+    
+    $.ajax({
+        url: "../../phpscripts/filterSales.php",
+        method: "GET",
+        data: { 
+            franchise: franchise, 
+            location: location, // Now include location
+            start: startDate, 
+            end: endDate 
+        },
+        success: function(response) {
+            $("#salesTableBody").html(response);
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching filtered data: ", error);
+        }
+    });
+});
+
+// Your existing click event for table rows
+$(document).on("click", ".btn-si-data", function () {
+    var id = $(this).data("rid");
+    window.location.href = "salesReport.php?id=" + id;
+});
+});
+
+
+        
+
     </script>
 </body>
 

@@ -12,8 +12,6 @@ $franchise = isset($queryParams['franchise']) ? mysqli_real_escape_string($con, 
 $location = isset($queryParams['location']) ? mysqli_real_escape_string($con, $queryParams['location']) : '';
 
 
-
-
 $franchiseFormattedMap = [
     "PotatoCorner" => "Potato Corner",
     "MacaoImperial" => "Macao Imperial",
@@ -38,7 +36,7 @@ $eatTypeFormatted = isset($eatTypeFormattedMap[$eatType]) ? $eatTypeFormattedMap
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Dine-In Sales</title>
+    <title>Sales Reports</title>
 
     <!-- ========= CSS ========= -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -63,13 +61,13 @@ $eatTypeFormatted = isset($eatTypeFormattedMap[$eatType]) ? $eatTypeFormattedMap
         <div class="filter-container">
             <!-- Filters -->
             <div class="filters">
-                <label for="filter-franchise">Franchisee:</label>
+                <!-- <label for="filter-franchise">Franchisee:</label>
                 <select id="filter-franchise">
                     <option value="">All</option>
                     <option value="potato-corner">Potato Corner</option>
                     <option value="auntie-anne">Auntie Anne's</option>
                     <option value="macao-imperial">Macao Imperial</option>
-                </select>
+                </select> -->
 
                 <!-- <label for="filter-status">Location:</label>
                 <select id="filter-status">
@@ -116,7 +114,8 @@ $eatTypeFormatted = isset($eatTypeFormattedMap[$eatType]) ? $eatTypeFormattedMap
                     <thead>
                         <tr>
                             <th>Franchisee</th>
-                            <th>Net Sales</th>
+                            <th>Location</th>
+                            <th>Total Sales</th>
                             <th>Transaction Type</th>
                             <th>Date</th>
                         </tr>
