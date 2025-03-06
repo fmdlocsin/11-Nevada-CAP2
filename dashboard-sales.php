@@ -422,7 +422,7 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
     <section class="home">
         <header class="contractheader">
             <div class="container-header">
-                <h1 class="title">Dashboard</h1>
+                <h1 class="title">Sales Dashboard</h1>
             </div>
         </header>
 
