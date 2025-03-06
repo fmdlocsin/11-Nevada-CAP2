@@ -269,7 +269,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
 
     // ✅ Fetch inventory KPIs
     $query = "SELECT 
-            SUM(beginning - sold - waste) AS stock_level,
+            SUM(beginning + delivery - sold - waste) AS stock_level,   
             COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
             SUM(waste) AS total_wastage
             FROM item_inventory 
