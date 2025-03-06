@@ -1,6 +1,5 @@
 <?php
 session_start();
-
 include ("../../phpscripts/database-connection.php");
 include ("../../phpscripts/check-login.php");
 ?>
@@ -41,8 +40,10 @@ include ("../../phpscripts/check-login.php");
                     <div class="boxes-container">
                         <div class="box-group">
                             <h3 class="box-group-title">Employee List</h3>
-                            <input type="text" class="search-box1" placeholder="Search...">
+                            <!-- Search Bar -->
+                            <input type="text" class="search-box1" placeholder="Search employee...">
                             <div class="employee-list" id="employeeList">
+                                <!-- Employee buttons will be appended here dynamically -->
                                 <button type="button" class="box box1 check-employee border-0">
                                     <i class='bx bx-user'></i>
                                     <span class="text emp-name">Employee Name</span>
@@ -58,7 +59,6 @@ include ("../../phpscripts/check-login.php");
                 </div>
             </div>
         </div>
-
 
         <!-- Unassign Employee Modal -->
         <div class="modal fade" id="unassignModal" tabindex="-1" aria-labelledby="unassignModalLabel" aria-hidden="true">
@@ -101,8 +101,6 @@ include ("../../phpscripts/check-login.php");
             </div>
         </div>
 
-
-
         <!-- Error Modal -->
         <div class="modal-overlay" id="modalOverlay">
             <div class="modal-box" id="modalBox">
@@ -112,10 +110,7 @@ include ("../../phpscripts/check-login.php");
             </div>
         </div>
 
-
     </section>
-
-    
 
     <!-- JS -->
     <script src="https://code.jquery.com/jquery-3.7.1.js"
@@ -128,6 +123,25 @@ include ("../../phpscripts/check-login.php");
         crossorigin="anonymous"></script>
     <script src="../../assets/js/navbar.js"></script>
     <script src="../../assets/js/manage-employee-script.js"></script>
-</body>
 
+    <!-- Inline Search Functionality Script -->
+    <script>
+        $(document).ready(function () {
+            // Listen for input on the search box and filter employee buttons
+            $('.search-box1').on('keyup', function () {
+                var query = $(this).val().toLowerCase();
+                $('#employeeList .check-employee').each(function () {
+                    // Get the employee name from the .emp-name span
+                    var empName = $(this).find('.emp-name').text().toLowerCase();
+                    // Show the button if it contains the query; otherwise hide it
+                    if(empName.indexOf(query) > -1) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
 </html>
