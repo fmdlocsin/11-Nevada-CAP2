@@ -37,7 +37,7 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
             <ul class="menu-links">
 
                 <!-- Conditional Dashboard Link -->
-                <li class="nav-link <?php echo ($currentPage === 'dashboard' || $currentPage === 'dashboard-inventory' || $currentPage === 'dashboard-contract' || $currentPage === 'dashboard-sales' || $currentPage === 'dashboard-manpower') ? 'active' : ''; ?>" id="dashboard-link">
+                <li class="nav-link <?php echo ($currentPage === 'dashboard' || $currentPage === 'dashboard-inventory' || $currentPage === 'dashboard-contract' || $currentPage === 'dashboard-sales' || $currentPage === 'dashboard-manpower' || $currentPage === 'dashboard-area') ? 'active' : ''; ?>" id="dashboard-link">
                     <a href="<?php 
                         echo ($userRole == 'admin') 
                             ? '../../dashboard' 
@@ -45,11 +45,13 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
                                 ? '../../dashboard-inventory' 
                                 : (($userRole == 'business_development') 
                                     ? '../../dashboard-contract' 
-                                    : (($userRole == 'sales' || $userRole == 'area_manager' || $userRole == 'branch_manager') 
+                                    : (($userRole == 'sales' || $userRole == 'branch-manager') 
                                         ? '../../dashboard-sales' 
                                         : (($userRole == 'manpower') 
                                             ? '../../dashboard-manpower' 
-                                            : '../../dashboard'))));
+                                            : (($userRole == 'area-manager')  // Added condition for area-manager
+                                                ? '../../dashboard-area' 
+                                                : '../../dashboard')))));
                     ?>">
                         <i class='bx bx-home-alt icon'></i>
                         <span class="text nav-text">Dashboard</span>
@@ -67,7 +69,7 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
                 <?php endif; ?>
 
                 <!-- Sales Performance Link -->
-                <?php if ($userRole == 'admin' || $userRole == 'sales' || $userRole == 'area_manager' || $userRole == 'branch_manager') : ?>
+                <?php if ($userRole == 'admin' || $userRole == 'sales' || $userRole == 'area-manager' || $userRole == 'branch-manager') : ?>
                 <li class="nav-link <?php echo ($currentPage === 'sales.php') ? 'active' : ''; ?>" id="sales-link">
                     <a href="../../pages/salesPerformance/sales">
                         <i class='bx bx-bar-chart-alt-2 icon'></i>
@@ -77,7 +79,7 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
                 <?php endif; ?>
 
                 <!-- Expenses Link -->
-                <?php if ($userRole == 'admin' || $userRole == 'sales' || $userRole == 'area_manager' || $userRole == 'branch_manager') : ?>
+                <?php if ($userRole == 'admin' || $userRole == 'sales' || $userRole == 'area-manager' || $userRole == 'branch-manager') : ?>
                 <li class="nav-link <?php echo ($currentPage === 'expenses.php') ? 'active' : ''; ?>" id="expenses-link">
                     <a href="../../pages/salesPerformance/totalExpenses">
                         <i class='bx bx-wallet icon'></i>
@@ -87,7 +89,7 @@ echo "<script>console.log('Current Page: $currentPage');</script>";
                 <?php endif; ?>
 
                 <!-- Inventory Link -->
-                <?php if ($userRole == 'admin' || $userRole == 'inventory' || $userRole == 'area_manager' || $userRole == 'branch_manager') : ?>
+                <?php if ($userRole == 'admin' || $userRole == 'inventory' || $userRole == 'area-manager' || $userRole == 'branch-manager') : ?>
                 <li class="nav-link <?php echo ($currentPage === 'inventory2.php') ? 'active' : ''; ?>" id="inventory-link">
                     <a href="../../pages/inventory/inventory2">
                         <i class='bx bx-store-alt icon'></i>

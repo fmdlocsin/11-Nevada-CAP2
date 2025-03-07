@@ -36,7 +36,7 @@ include("../../phpscripts/check-login.php");
         </header>
         <div class="filter-container">
             <div class="filters">
-                <input type="text" placeholder="Search" id="search">
+                <input type="text" placeholder="Search Branch Location" id="search">
                 <input type="date" id="date">
                 <select id="franchise">
                     <option value="all" selected>All</option> <!-- Show all franchises -->

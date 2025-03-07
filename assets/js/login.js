@@ -55,7 +55,10 @@ function userLogin() {
                                 break;
                             case "manpower":
                                 window.location.href = "dashboard-manpower";
-                                break;    
+                                break;  
+                            case "area-manager":  
+                                window.location.href = "dashboard-area";
+                                break;  
                             default:
                                 window.location.href = "dashboard"; // Default redirect
                                 break;
