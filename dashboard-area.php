@@ -3,6 +3,10 @@ session_start();
 
 include ("phpscripts/database-connection.php");
 include ("phpscripts/check-login.php");
+
+// Ensure the session variable is set, otherwise provide a default value
+$username = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Guest";
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,6 +24,9 @@ include ("phpscripts/check-login.php");
     <!-- ===== Boxicons CSS ===== -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
+    <script>
+        var loggedInUser = <?php echo json_encode($username); ?>;
+    </script>
 
 </head>
 
@@ -90,11 +97,15 @@ include ("phpscripts/check-login.php");
     </nav>
 
     <section class="home">
-    <header class="contractheader">
-        <div class="container-header">
-            <h1 class="title">Dashboard</h1>
-        </div>
-    </header>
+    <header class="contractheader d-flex align-items-center justify-content-between">
+    <div class="container-header">
+        <h1 class="title">Dashboard</h1>
+    </div>
+            <div class="user-badge">
+                <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
+                <span class="user-role">Area Manager</span>
+            </div>
+        </header>
         
 
         <div class="content" id="content-area">
