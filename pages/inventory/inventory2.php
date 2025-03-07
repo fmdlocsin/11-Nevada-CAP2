@@ -39,7 +39,7 @@ include("../../phpscripts/check-login.php");
                 <input type="text" placeholder="Search" id="search">
                 <input type="date" id="date">
                 <select id="franchise">
-                    <option disabled selected>Select Franchise</option>
+                    <option value="all" selected>All</option> <!-- Show all franchises -->
                     <option value="potato-corner">Potato Corner</option>
                     <option value="auntie-anne">Auntie Anne's</option>
                     <option value="macao-imperial">Macao Imperial Tea</option>

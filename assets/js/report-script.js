@@ -1,6 +1,42 @@
 $(document).ready(function () {
     displayLocation();
 
+
+
+    function filterInventoryTable() {
+        var franchiseFilter = $('#franchise').val().toLowerCase(); // Get selected franchise
+        var searchQuery = $('#search').val().toLowerCase(); // Get search input
+
+        console.log("Filtering: Franchise =", franchiseFilter, "Search =", searchQuery);
+
+        // Loop through each row in the inventory table
+        $('.inventory-table tbody tr').each(function () {
+            var row = $(this);
+            var franchiseImgAlt = row.find('td img').attr('alt') || ""; // Get franchise from img alt
+            franchiseImgAlt = franchiseImgAlt.toLowerCase().trim(); // Normalize text
+            
+            var locationText = row.find('td').eq(1).text().toLowerCase(); // Get location text
+            
+            console.log("Row Franchise:", franchiseImgAlt, "Location:", locationText);
+
+            var franchiseMatch = (franchiseFilter === '' || franchiseFilter === 'all' || franchiseImgAlt === franchiseFilter);
+            var searchMatch = (searchQuery === '' || locationText.includes(searchQuery));
+
+            // Show row if both conditions match, otherwise hide
+            if (franchiseMatch && searchMatch) {
+                row.show();
+            } else {
+                row.hide();
+            }
+        });
+    }
+
+    $('#franchise, #search').on('input change', function () {
+        filterInventoryTable();
+    });
+    // Ensure filtering is applied when reports are loaded
+    displayReports();
+    
     // Reset modal content when hidden
     $("#modalReport").on("hidden.bs.modal", function () {
         var defaultContent = `
@@ -365,6 +401,7 @@ function displayReports() {
 
                     var franchiseeName = "";
                     var franchiseeImg = "";
+                    var franchiseeAlt = report.franchisee; // Store the franchisee DB value
 
                     if (report.franchisee == "potato-corner") {
                         franchiseeName = "Potato Corner";
@@ -378,14 +415,17 @@ function displayReports() {
                     }
 
                     var row = `
-                        <tr class="check-report-details" data-franchisee="${report.franchisee}" data-location="${report.location}" data-date-added="${report.datetime_added}">
-                            <td><img src="../../assets/images/${franchiseeImg}" alt="img"> ${franchiseeName}</td>
+                        <tr class="check-report-details" data-franchisee="${franchiseeAlt}" data-location="${report.location}" data-date-added="${report.datetime_added}">
+                            <td><img src="../../assets/images/${franchiseeImg}" alt="${franchiseeAlt}"> ${franchiseeName}</td>
                             <td>${report.location}</td>
                             <td>${formattedDate}</td>
                         </tr>
                     `;
                     tableBody.append(row);
                 });
+
+                // Call filter function after populating the table
+                filterInventoryTable();
             } else {
                 console.error("Error:", response.message);
             }
