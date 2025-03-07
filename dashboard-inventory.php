@@ -535,7 +535,7 @@ $lowTurnoverResult = $stmtLow->get_result();
     </div>
             <div class="user-badge">
                 <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
-                <span class="user-role">Branch Manager</span>
+                <span class="user-role">Inventory Manager</span>
             </div>
         </header>
         <div class="container">

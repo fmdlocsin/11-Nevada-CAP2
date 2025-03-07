@@ -30,7 +30,7 @@ if ($filter['clause'] !== "") {
 // Group results by franchisee so that each franchisee appears once with all its locations
 $groupedBranches = [];
 foreach ($branches as $branch) {
-    $franchisee = $branch['franchisee'];
+    $franchisee = strtolower(str_replace(" ", "-", trim($branch['franchisee']))); // Normalize key
     $location = $branch['location'];
     if (!isset($groupedBranches[$franchisee])) {
         $groupedBranches[$franchisee] = [];
@@ -137,42 +137,50 @@ $imageMapping = [
             <div class="container">
                 <div class="dash-content">
                     <div class="overview">
-                        <div class="greeting">
+                        <!-- <div class="greeting">
                             <h2>Hi, <strong>Area</strong>!</h2>
-                        </div>
+                        </div> -->
                         <div class="boxes-container">
                             <!-- Assigned Branches Section -->
                             <div class="box-group">
-                                <h3 class="box-group-title">Assigned Branches</h3>
+                                <h3 class="box-group-title2">Assigned Branches</h3>
                                 <?php if (!empty($groupedBranches)): ?>
-                                    <?php foreach ($groupedBranches as $franchisee => $locations): ?>
-                                        <div class="box-row">
-                                            <!-- Box2: Franchisee Logo and Name -->
-                                            <a href="#" class="box box2">
-                                                <?php
-                                                $imgFile = isset($imageMapping[$franchisee]) ? $imageMapping[$franchisee] : 'default.png';
-                                                ?>
-                                                <img src="assets/images/<?php echo $imgFile; ?>" alt="<?php echo htmlspecialchars($franchisee); ?> Logo" class="franchise-logo">
-                                                <span class="text"><?php echo htmlspecialchars($franchisee); ?></span>
-                                            </a>
-                                            <!-- Box3: List of Locations -->
-                                            <a href="#" class="box box3">
-                                                <?php if (count($locations) > 1): ?>
-                                                    <ul>
-                                                        <?php foreach ($locations as $loc): ?>
-                                                            <li><?php echo htmlspecialchars($loc); ?></li>
-                                                        <?php endforeach; ?>
-                                                    </ul>
-                                                <?php else: ?>
-                                                    <span class="text"><?php echo htmlspecialchars($locations[0]); ?></span>
-                                                <?php endif; ?>
-                                            </a>
-                                        </div>
+                                    <?php foreach ($groupedBranches as $franchiseeKey => $locations): ?>
+                                        <div class="franchise-group">
+                                            <div class="box-row">
+                                                <!-- Franchisee Box -->
+                                                <div class="box box2">
+                                                    <?php
+                                                    $imgFile = isset($imageMapping[$franchiseeKey]) ? $imageMapping[$franchiseeKey] : 'default.png';
+
+                                                    // Fix franchisee name formatting
+                                                    $franchiseeDisplayName = str_replace(
+                                                        ["potato-corner", "auntie-anne", "macao-imperial"],
+                                                        ["Potato Corner", "Auntie Anne's", "Macao Imperial"],
+                                                        $franchiseeKey
+                                                    );
+                                                    ?>
+                                                    <img src="assets/images/<?php echo $imgFile; ?>" alt="<?php echo htmlspecialchars($franchiseeDisplayName); ?> Logo" class="franchise-logo">
+                                                    <span class="text"><?php echo htmlspecialchars($franchiseeDisplayName); ?></span>
+                                                </div>
+
+                                                <!-- Branches Container -->
+                                                <div class="branches-container">
+                                                    <?php foreach ($locations as $loc): ?>
+                                                        <div class="branch-box">
+                                                            <span class="branch-text"><?php echo htmlspecialchars($loc); ?></span>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            </div>
+                                        </div> <!-- End of franchise-group -->
                                     <?php endforeach; ?>
                                 <?php else: ?>
                                     <p>No branches assigned.</p>
                                 <?php endif; ?>
                             </div>
+
+
                             <!-- Sales Performance Section -->
                             <div class="box-group">
                                 <h3 class="box-group-title">Sales Performance</h3>
