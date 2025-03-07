@@ -24,12 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         $fetch_users = $result->fetch_assoc();
 
         if ($result && $result->num_rows > 0) {
-            // Password comparison using base64_encode()
+            // Compare password using base64_encode as before
             if (base64_encode($user_password) === $fetch_users['user_password']) {
-                // Successful login
+                // Store common user details in the session
                 $_SESSION['user_email'] = $fetch_users['user_email'];
-                $_SESSION['user_type'] = $fetch_users['user_type']; // Critical for role handling
+                $_SESSION['user_type'] = $fetch_users['user_type'];
                 $_SESSION['user_name'] = $fetch_users['user_name'];
+                
+                if ($fetch_users['user_type'] == 'area-manager') {
+                    // Since area_code is stored in agreement_contract, assign a default or lookup value here.
+                    $_SESSION['area_code'] = '1014'; // Default value for demonstration
+                }                
 
                 $data = [
                     'status' => "success",
