@@ -2,8 +2,8 @@
 
 session_start();
 
-include ("../phpscripts/database-connection.php");
-include ("../phpscripts/check-login.php");
+include ("phpscripts/database-connection.php");
+include ("phpscripts/check-login.php");
 
 // Validate connection
 if (!isset($con) || !$con) {
@@ -33,6 +33,7 @@ if (!isset($_SESSION['username'])) {
 // Assign session username to variable for JavaScript
 $username = $_SESSION['username'] ?? "Unknown User";
     echo "<script>var loggedInUser = " . json_encode($username) . ";</script>";
+
 
 
 // Fetch Active Agreement Contracts (Dynamically calculated)
@@ -236,13 +237,13 @@ echo "<script>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Contracts Dashboard</title>
     <!-- ========= CSS ========= -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="../assets/css/navbar.css">
-    <link rel="stylesheet" href="../assets/css/dashboard2.css">
-    <link rel="stylesheet" href="../assets/css/contract-dashboard.css">
+    <link rel="stylesheet" href="assets/css/navbar.css">
+    <link rel="stylesheet" href="assets/css/dashboard2.css">
+    <link rel="stylesheet" href="assets/css/contract-dashboard.css">
     <!-- ===== Boxicons CSS ===== -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
@@ -272,11 +273,11 @@ echo "<script>
 
 <body>
 
-<nav class="sidebar close">
+    <nav class="sidebar close">
         <header>
             <div class="image-text">
                 <span class="image">
-                    <img src="../assets/images/BoxLogo.png" alt="logo">
+                    <img src="assets/images/BoxLogo.png" alt="logo">
                 </span>
 
                 <div class="text header-text">
@@ -295,37 +296,37 @@ echo "<script>
                 </li>
                 <ul class="menu-links">
                     <li class="nav-link active" id="dashboard-link">
-                        <a href="../dashboard.php">
+                        <a href="dashboard.php">
                             <i class='bx bx-home-alt icon'></i>
                             <span class="text nav-text">Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-link" id="franchising-link">
-                        <a href="../pages/contract/franchiseeAgreement">
+                        <a href="pages/contract/franchiseeAgreement">
                             <i class='bx bx-file icon'></i>
                             <span class="text nav-text">Franchising Agreement</span>
                         </a>
                     </li>
                     <li class="nav-link" id="sales-link">
-                        <a href="../pages/salesPerformance/sales">
+                        <a href="pages/salesPerformance/sales">
                             <i class='bx bx-bar-chart-alt-2 icon'></i>
                             <span class="text nav-text">Sales Performance</span>
                         </a>
                     </li>
                     <li class="nav-link" id="expenses-link">
-                        <a href="../pages/salesPerformance/totalExpenses">
+                        <a href="pages/salesPerformance/totalExpenses">
                             <i class='bx bx-wallet icon'></i>
                             <span class="text nav-text">Expenses</span>
                         </a>
                     </li>
                     <li class="nav-link" id="inventory-link">
-                        <a href="../pages/inventory/inventory2">
+                        <a href="pages/inventory/inventory2">
                             <i class='bx bx-store-alt icon'></i>
                             <span class="text nav-text">Inventory</span>
                         </a>
                     </li>
                     <li class="nav-link" id="manpower-link">
-                        <a href="../pages/manpower/manpower_dashboard">
+                        <a href="pages/manpower/manpower_dashboard">
                             <i class='bx bx-group icon'></i>
                             <span class="text nav-text">Manpower Deployment</span>
                         </a>
@@ -341,7 +342,6 @@ echo "<script>
                     </a>
                 </li>
             </div>
-
         </div>
     </nav>
 
@@ -365,7 +365,7 @@ echo "<script>
                         </div> -->
                         <div class="title">
                         <i class='bx bx-time-five'></i>
-                        <span class="text">Analytics</span>
+                        <span class="text">Contracts Analytics</span>
                         </div>
                         <div class="container">
                         
@@ -445,7 +445,7 @@ echo "<script>
                                 <!-- Pie Chart Column -->
                                 <div class="col-md-6 d-flex justify-content-center">
                                     <div class="chart-container pie-chart-container">
-                                        <h5 class="text-center">Total Agreement Contracts Distribution</h5>
+                                        <h5 class="text-center">Total Franchisee Contracts Distribution</h5>
                                         <canvas id="activeContractsChart"></canvas>
                                     </div>
                                 </div>
@@ -511,7 +511,7 @@ echo "<script>
 
 
                             <div class="d-inline-flex align-items-center gap-3">
-                                <h3 class="table-title mb-0">Total Contracts Breakdown</h3>
+                                <h3 class="table-title mb-0">Leasing Agreement Contracts Breakdown</h3>
                                 <button id="generateLeasingReport" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#leasingReportModal">
                                     Generate Report
                                 </button>
@@ -630,7 +630,8 @@ echo "<script>
                                     </div>
                                 </div>
 
-                               <!-- Franchise Agreement Report Modal -->
+                <!-- ----------------------------------- REPORT MODAL PART ----------------------------------- -->
+
                                <!-- Franchise Agreement Report Modal -->
                                 <div class="modal fade" id="franchiseReportModal" tabindex="-1" aria-labelledby="franchiseReportLabel" aria-hidden="true">
                                     <div class="modal-dialog modal-xl">
@@ -647,17 +648,31 @@ echo "<script>
                                                 <!-- Franchisee Filter -->
                                                 <div class="mb-3">
                                                     <label for="franchiseeFilter" class="form-label"><strong>Filter by Franchisee:</strong></label>
+                                                    
+                                                    <!-- Franchise Agreement Filter -->
                                                     <select id="franchiseeFilter" class="form-select">
                                                         <option value="">All Franchisees</option>
                                                         <?php
+                                                        // Franchise name mapping
+                                                        $franchiseNameMap = [
+                                                            "auntie-anne" => "Auntie Anne's",
+                                                            "macao-imperial" => "Macao Imperial",
+                                                            "potato-corner" => "Potato Corner"
+                                                        ];
+
                                                         // Fetch distinct franchisee names
                                                         $franchiseeQuery = "SELECT DISTINCT franchisee FROM agreement_contract";
                                                         $franchiseeResult = mysqli_query($con, $franchiseeQuery);
+                                                        
                                                         while ($row = mysqli_fetch_assoc($franchiseeResult)) {
-                                                            echo "<option value='{$row['franchisee']}'>{$row['franchisee']}</option>";
+                                                            $rawFranchisee = strtolower(trim($row['franchisee']));
+                                                            $formattedFranchisee = isset($franchiseNameMap[$rawFranchisee]) ? $franchiseNameMap[$rawFranchisee] : ucfirst(str_replace("-", " ", $rawFranchisee));
+                                                            
+                                                            echo "<option value='{$row['franchisee']}'>{$formattedFranchisee}</option>";
                                                         }
                                                         ?>
                                                     </select>
+
                                                 </div>
 
                                                 <!-- Summary Section -->
@@ -681,8 +696,6 @@ echo "<script>
 
 
 
-
-                                <!-- Leasing Contracts Report Modal -->
                                 <!-- Leasing Contracts Report Modal -->
                                 <div class="modal fade" id="leasingReportModal" tabindex="-1" aria-labelledby="leasingReportLabel" aria-hidden="true">
                                     <div class="modal-dialog modal-xl">
@@ -699,17 +712,25 @@ echo "<script>
                                                 <!-- Franchisee Filter -->
                                                 <div class="mb-3">
                                                     <label for="leasingFranchiseeFilter" class="form-label"><strong>Filter by Franchisee:</strong></label>
+                                                    
+                                                    
+                                                    <!-- Leasing Agreement Filter -->
                                                     <select id="leasingFranchiseeFilter" class="form-select">
                                                         <option value="">All Franchisees</option>
                                                         <?php
                                                         // Fetch distinct franchisee names from lease_contract table
                                                         $leasingFranchiseeQuery = "SELECT DISTINCT franchisee FROM lease_contract";
                                                         $leasingFranchiseeResult = mysqli_query($con, $leasingFranchiseeQuery);
+
                                                         while ($row = mysqli_fetch_assoc($leasingFranchiseeResult)) {
-                                                            echo "<option value='{$row['franchisee']}'>{$row['franchisee']}</option>";
+                                                            $rawFranchisee = strtolower(trim($row['franchisee']));
+                                                            $formattedFranchisee = isset($franchiseNameMap[$rawFranchisee]) ? $franchiseNameMap[$rawFranchisee] : ucfirst(str_replace("-", " ", $rawFranchisee));
+
+                                                            echo "<option value='{$row['franchisee']}'>{$formattedFranchisee}</option>";
                                                         }
                                                         ?>
                                                     </select>
+
                                                 </div>
 
                                                 <!-- Summary Section -->
@@ -749,8 +770,8 @@ echo "<script>
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../assets/js/dashboard-contract-script.js"></script>
-    <script src="../assets/js/navbar.js"></script>
+    <script src="assets/js/dashboard-contract-script.js"></script>
+    <script src="assets/js/navbar.js"></script>
     <!-- <script src="assets/js/content.js"></script> -->
 
     <!-- Close the connection at the very end -->
