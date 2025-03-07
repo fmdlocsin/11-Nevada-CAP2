@@ -422,7 +422,7 @@ echo "<script>
                                 <!-- Pie Chart Column -->
                                 <div class="col-md-6 d-flex justify-content-center">
                                     <div class="chart-container pie-chart-container">
-                                        <h5 class="text-center">Total Agreement Contracts Distribution</h5>
+                                        <h5 class="text-center">Total Franchisee Contracts Distribution</h5>
                                         <canvas id="activeContractsChart"></canvas>
                                     </div>
                                 </div>

@@ -127,7 +127,7 @@ $username = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Guest";
                             
                             <div class="box-group">
                                 <h3 class="box-group-title">Franchising Agreement</h3>
-                                <a href="dashboard2/dashboard-contract2.php" class="box box1">
+                                <a href="admin-dashboard-brian.php" class="box box1">
                                     <i class='bx bx-chart'></i>
                                     <span class="text">Analytics</span>
                                 </a>
@@ -152,6 +152,12 @@ $username = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Guest";
                             <div class="box-group">
                                 <h3 class="box-group-title">Sales Performance</h3>
                                 
+                                <!-- analytics -->
+                                <a href="admin-dashboard-julia.php" class="box box1">
+                                    <i class='bx bx-pie-chart'></i>
+                                    <span class="text">Analytics</span>
+                                </a>
+
                                 <!-- View Sales -->
                                 <a href="pages/salesPerformance/sales" class="box box4">
                                     <i class='bx bx-bar-chart'></i>
@@ -186,6 +192,13 @@ $username = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Guest";
 
                             <div class="box-group">
                                 <h3 class="box-group-title">Inventory</h3>
+
+                                <!-- analytics -->
+                                <a href="admin-dashboard-matthew.php" class="box box1">
+                                    <i class='bx bx-bar-chart-square'></i>
+                                    <span class="text">Analytics</span>
+                                </a>
+
                                 <a href="pages/inventory/inventory2" class="box box7">
                                     <i class='bx bx-spreadsheet'></i>
                                     <span class="text">View Inventory</span>
