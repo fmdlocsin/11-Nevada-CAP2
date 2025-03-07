@@ -10,6 +10,30 @@ if (!isset($con) || !$con) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
+// Ensure user is logged in and set username
+if (!isset($_SESSION['username']) && isset($_SESSION['user_email'])) {
+    // Retrieve username from DB if session is missing it
+    $query = "SELECT user_name FROM users_accounts WHERE user_email = ?";
+    $stmt = $con->prepare($query);
+    $stmt->bind_param("s", $_SESSION['user_email']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result && $row = $result->fetch_assoc()) {
+        $_SESSION['username'] = $row['user_name'];
+    }
+}
+
+// Debugging - Check if username is being stored
+if (!isset($_SESSION['username'])) {
+    echo "<script>console.log('❌ Username session is NOT set!');</script>";
+} else {
+    echo "<script>console.log('✅ Username session is set:', " . json_encode($_SESSION['username']) . ");</script>";
+}
+
+// Assign session username to variable for JavaScript
+$username = $_SESSION['username'] ?? "Unknown User";
+    echo "<script>var loggedInUser = " . json_encode($username) . ";</script>";
+
 
 // Fetch Active Agreement Contracts (Dynamically calculated)
 $activeAgreementContractsQuery = "
@@ -322,19 +346,23 @@ echo "<script>
     </nav>
 
     <section class="home">
-    <header class="contractheader">
-        <div class="container-header">
-            <h1 class="title">Dashboard</h1>
-        </div>
-    </header>
+    <header class="contractheader d-flex align-items-center justify-content-between">
+    <div class="container-header">
+        <h1 class="title">Dashboard</h1>
+    </div>
+            <div class="user-badge">
+                <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
+                <span class="user-role">Administrator</span>
+            </div>
+        </header>
 
         <div class="content" id="content-area">
             <div class="container">
                 <div class="dash-content">
                     <div class="overview">
-                        <div class="greeting">
+                        <!-- <div class="greeting">
                             <h2>Hi, <strong>Business Development Officer</strong>!</h2>
-                        </div>
+                        </div> -->
                         <div class="title">
                         <i class='bx bx-time-five'></i>
                         <span class="text">Analytics</span>

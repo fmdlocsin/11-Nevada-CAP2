@@ -323,22 +323,26 @@ echo "<script>
     </nav>
 
     <section class="home">
-    <header class="contractheader">
-        <div class="container-header">
-            <h1 class="title">Dashboard</h1>
-        </div>
-    </header>
+    <header class="contractheader d-flex align-items-center justify-content-between">
+    <div class="container-header">
+        <h1 class="title">Dashboard</h1>
+    </div>
+            <div class="user-badge">
+                <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
+                <span class="user-role">Business Development Officer</span>
+            </div>
+        </header>
 
         <div class="content" id="content-area">
             <div class="container">
                 <div class="dash-content">
                     <div class="overview">
-                        <div class="greeting">
+                        <!-- <div class="greeting">
                             <h2>Hi, <strong>Business Development Officer</strong>!</h2>
-                        </div>
+                        </div> -->
                         <div class="title">
                         <i class='bx bx-time-five'></i>
-                        <span class="text">Analytics</span>
+                        <span class="text">Contracts Analytics</span>
                         </div>
                         <div class="container">
                         

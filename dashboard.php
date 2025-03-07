@@ -3,6 +3,10 @@ session_start();
 
 include ("phpscripts/database-connection.php");
 include ("phpscripts/check-login.php");
+
+// Ensure the session variable is set, otherwise provide a default value
+$username = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Guest";
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -99,11 +103,15 @@ include ("phpscripts/check-login.php");
     </nav>
 
     <section class="home">
-    <header class="contractheader">
-        <div class="container-header">
-            <h1 class="title">Dashboard</h1>
-        </div>
-    </header>
+    <header class="contractheader d-flex align-items-center justify-content-between">
+    <div class="container-header">
+        <h1 class="title">Dashboard</h1>
+    </div>
+            <div class="user-badge">
+                <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
+                <span class="user-role">Administrator</span>
+            </div>
+        </header>
         
 
         <div class="content" id="content-area">
@@ -111,9 +119,9 @@ include ("phpscripts/check-login.php");
                 <div class="dash-content">
                     <div class="overview">
 
-                    <div class="greeting">
+                    <!-- <div class="greeting">
                     <h2>Hi, <strong>Administrator</strong>!</h2>
-                    </div>
+                    </div> -->
 
                         <div class="boxes-container">
                             

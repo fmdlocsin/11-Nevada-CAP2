@@ -420,22 +420,29 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
     </nav>
 
     <section class="home">
-        <header class="contractheader">
-            <div class="container-header">
-                <h1 class="title">Dashboard</h1>
+    <header class="contractheader d-flex align-items-center justify-content-between">
+    <div class="container-header">
+        <h1 class="title">Dashboard</h1>
+    </div>
+            <div class="user-badge">
+                <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
+                <span class="user-role">Branch Manager</span>
             </div>
         </header>
+
 
     <div class="content" id="content-area">
         <div class="container">
             <div class="dash-content">
                 <div class="overview">
-                <div class="greeting">
-                            <h2>Hi, <strong>Group/Branch Manager</strong>!</h2>
-                        </div>
+                <!-- <div class="greeting">
+                        <h2>Hi, <strong><?php echo htmlspecialchars($username); ?></strong>!</h2>
+                        <p>Group/Branch Manager</p>
+                    </div> -->
+
                     <div class="title">
                         <i class='bx bx-time-five'></i>
-                        <span class="text">Analytics</span>
+                        <span class="text">Sales Analytics</span>
                     </div>
 
                     <span class="filter-label">Filter:</span>

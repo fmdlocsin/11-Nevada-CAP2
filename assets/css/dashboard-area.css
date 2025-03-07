@@ -279,6 +279,34 @@
 }
 
 
+.user-badge {
+    display: flex;
+    flex-direction: column;
+    background-color: #dee2e6; /* Light gray background */
+    color: #343a40; /* Dark gray text for contrast */
+    padding: 12px 24px;
+    border-radius: 10px; /* Softer rounded corners */
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1); /* Softer shadow */
+    margin-right: 25px; /* More spacing from the right */
+    transition: all 0.3s ease-in-out;
+}
+
+.user-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #212529; /* Slightly darker for readability */
+}
+
+.user-role {
+    font-size: 14px;
+    font-weight: 400;
+    color: #495057; /* Muted dark gray */
+    opacity: 0.9;
+}
+
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
