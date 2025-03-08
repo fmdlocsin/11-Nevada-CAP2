@@ -82,7 +82,7 @@ include("../../phpscripts/check-login.php");
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0 text-light fw-bold" style="background-color: #1f375d">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">New Inventory Report</h1>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">New Daily Inventory</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
