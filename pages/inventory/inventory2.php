@@ -44,7 +44,7 @@ include("../../phpscripts/check-login.php");
                     <option value="auntie-anne">Auntie Anne's</option>
                     <option value="macao-imperial">Macao Imperial Tea</option>
                 </select>
-                <button id="new-report" data-bs-toggle="modal" data-bs-target="#modalReport">New Report</button>
+                <button id="new-report" data-bs-toggle="modal" data-bs-target="#modalReport">New Input</button>
             </div>
         </div>
         <div class="container">
