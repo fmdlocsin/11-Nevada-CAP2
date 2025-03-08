@@ -54,8 +54,8 @@ include("../../phpscripts/check-login.php");
         <a href="documentTypeSelection" class="myButton">New Document</a>
 
         <!-- Upload File Button -->
-        <label for="file-upload" class="myButton">Upload File</label>
-        <input type="file" id="file-upload" style="display: none;">
+        <!-- <label for="file-upload" class="myButton">Upload File</label>
+        <input type="file" id="file-upload" style="display: none;"> -->
       </div>
     </div>
 
