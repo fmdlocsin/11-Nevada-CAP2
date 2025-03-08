@@ -1,120 +1,118 @@
 <?php
 session_start();
-include ("phpscripts/database-connection.php");
-include ("phpscripts/check-login.php");
+include("phpscripts/database-connection.php");
+include("phpscripts/check-login.php");
+include("phpscripts/role_filter.php");
 
-$yearlySalesData = []; // ✅ Ensure variable is always set
-
-// Validate database connection
-if (!isset($con) || !$con) {
-    die("Database connection failed: " . mysqli_connect_error());
-}
-
-$username = $_SESSION['user_name'] ?? "Unknown User";
-
-// Get filters from GET request
-$franchisees = isset($_GET['franchisees']) ? explode(",", $_GET['franchisees']) : [];
-$branches = isset($_GET['branches']) ? explode(",", $_GET['branches']) : [];
-$startDate = isset($_GET['start_date']) ? $_GET['start_date'] : null;
-$endDate = isset($_GET['end_date']) ? $_GET['end_date'] : null;
-
-// Build dynamic WHERE clause
-$whereClauses = [];
-if (!empty($franchisees)) {
-    $franchiseeList = "'" . implode("','", array_map(fn($f) => mysqli_real_escape_string($con, $f), $franchisees)) . "'";
-    $whereClauses[] = "ac.franchisee IN ($franchiseeList)";
-}
-if (!empty($branches)) {
-    $branchList = "'" . implode("','", array_map(fn($b) => mysqli_real_escape_string($con, $b), $branches)) . "'";
-    $whereClauses[] = "ac.location IN ($branchList)";
-}
-
-// Apply date range filter
-if (!empty($startDate) && !empty($endDate)) {
-    $whereClauses[] = "sr.date_added BETWEEN '$startDate' AND '$endDate'";
-}
-
-// Only add WHERE clause if filters exist
-$whereSQL = "";
-if (!empty($whereClauses)) {
-    $whereSQL = "WHERE " . implode(" AND ", $whereClauses);
-}
-
-
-// Update Sales Query with Date Filter
-$salesQuery = "SELECT SUM(sr.grand_total) AS total_sales FROM sales_report sr 
-               JOIN agreement_contract ac ON sr.ac_id = ac.ac_id $whereSQL";
-$salesResult = mysqli_query($con, $salesQuery);
-$totalSales = ($salesResult) ? mysqli_fetch_assoc($salesResult)['total_sales'] : 0;
-
-
-// Only show debugging output when NOT in JSON mode
-// if (!isset($_GET['json']) || $_GET['json'] !== "true") {
-//     echo "<pre>Branch List Debug: "; print_r($branches); echo "</pre>";
-// }
-
-// Construct query for total expenses with date filter
-$expensesQuery = "SELECT SUM(e.expense_amount) AS total_expenses 
-                  FROM expenses e 
-                  JOIN agreement_contract ac ON e.location = ac.ac_id";
-
-// Prepare WHERE conditions
-$expenseWhereClauses = [];
-
-if (!empty($franchisees)) {
-    $expenseFranchiseeList = "'" . implode("','", array_map(fn($f) => mysqli_real_escape_string($con, $f), $franchisees)) . "'";
-    $expenseWhereClauses[] = "ac.franchisee IN ($expenseFranchiseeList)";
-}
-
-if (!empty($branches)) {
-    // Convert branch names to ac_id before filtering
-    $branchIdQuery = "SELECT ac_id FROM agreement_contract WHERE location IN ('" . implode("','", $branches) . "')";
-    $branchIdResult = mysqli_query($con, $branchIdQuery);
-
-    $branchIds = [];
-    while ($row = mysqli_fetch_assoc($branchIdResult)) {
-        $branchIds[] = $row['ac_id'];
-    }
-
-    if (!empty($branchIds)) {
-        $expenseWhereClauses[] = "e.location IN ('" . implode("','", $branchIds) . "')";
-    }
-}
-
-// Apply date range filter to expenses
-if (!empty($startDate) && !empty($endDate)) {
-    $expenseWhereClauses[] = "e.date_added BETWEEN '$startDate' AND '$endDate'";  // ✅ Added date filter here
-}
-
-if (!empty($expenseWhereClauses)) {
-    $expensesQuery .= " WHERE " . implode(" AND ", $expenseWhereClauses);
-}
-
-// Execute query
-$expensesResult = mysqli_query($con, $expensesQuery);
-$totalExpenses = ($expensesResult) ? mysqli_fetch_assoc($expensesResult)['total_expenses'] : 0;
-
-
-// Franchise Name Mapping
+// Define franchise name mapping and formatting function
 $franchise_name_map = [
-    "auntie-anne" => "Auntie Anne's",
-    "macao-imperial" => "Macao Imperial",
-    "potato-corner" => "Potato Corner"
+    "auntie-anne"    => "Auntie Anne's",
+    "macao-imperial"  => "Macao Imperial",
+    "potato-corner"   => "Potato Corner"
 ];
 
-// Function to Format Franchise Name
 function formatFranchiseName($franchise) {
     global $franchise_name_map;
     return $franchise_name_map[$franchise] ?? ucwords(str_replace("-", " ", $franchise));
 }
 
-// Sales Performance per Franchise (Pie Chart)
+$username = $_SESSION['user_name'] ?? "Unknown User";
+$filter = getAreaManagerFilter();
+
+// Get filters from GET request
+$franchisees = isset($_GET['franchisees']) ? explode(",", $_GET['franchisees']) : [];
+$branches   = isset($_GET['branches']) ? explode(",", $_GET['branches']) : [];
+$startDate  = isset($_GET['start_date']) ? $_GET['start_date'] : null;
+$endDate    = isset($_GET['end_date']) ? $_GET['end_date'] : null;
+
+// Build filter conditions for universal dynamic queries
+if (!empty($franchisees)) {
+    $franchiseeList = "'" . implode("','", array_map(function($f) use ($con) {
+        return mysqli_real_escape_string($con, $f);
+    }, $franchisees)) . "'";
+    $franchiseeCondition = "ac.franchisee IN ($franchiseeList)";
+} else {
+    $franchiseeCondition = "1=1";
+}
+
+if (!empty($branches)) {
+    $branchList = "'" . implode("','", array_map(function($b) use ($con) {
+        return mysqli_real_escape_string($con, $b);
+    }, $branches)) . "'";
+    $branchCondition = "ac.location IN ($branchList)";
+} else {
+    $branchCondition = "1=1";
+}
+
+// Build universal WHERE clause for sales, expenses, and most charts
+$whereClauses = [];
+$whereClauses[] = $franchiseeCondition;
+$whereClauses[] = $branchCondition;
+if (!empty($startDate) && !empty($endDate)) {
+    $whereClauses[] = "sr.date_added BETWEEN '$startDate' AND '$endDate'";
+}
+if ($filter['clause'] != "") {
+    $area_code = mysqli_real_escape_string($con, $filter['param']);
+    $whereClauses[] = "ac.area_code = '$area_code'";
+}
+$whereSQL = "";
+if (!empty($whereClauses)) {
+    $whereSQL = "WHERE " . implode(" AND ", $whereClauses);
+}
+
+// ----------------------
+// SALES QUERY
+// ----------------------
+$salesQuery = "SELECT SUM(sr.grand_total) AS total_sales 
+               FROM sales_report sr 
+               JOIN agreement_contract ac ON sr.ac_id = ac.ac_id 
+               $whereSQL";
+$salesResult = mysqli_query($con, $salesQuery);
+$totalSales = ($salesResult) ? mysqli_fetch_assoc($salesResult)['total_sales'] : 0;
+
+// ----------------------
+// EXPENSES QUERY
+// ----------------------
+$expenseWhereClauses = [];
+$expenseWhereClauses[] = $franchiseeCondition;
+$expenseWhereClauses[] = $branchCondition;
+if (!empty($startDate) && !empty($endDate)) {
+    $expenseWhereClauses[] = "e.date_added BETWEEN '$startDate' AND '$endDate'";
+}
+if ($filter['clause'] != "") {
+    $area_code = mysqli_real_escape_string($con, $filter['param']);
+    $expenseWhereClauses[] = "ac.area_code = '$area_code'";
+}
+$expensesQuery = "SELECT SUM(e.expense_amount) AS total_expenses 
+                  FROM expenses e 
+                  JOIN agreement_contract ac ON e.location = ac.ac_id";
+if (!empty($expenseWhereClauses)) {
+    $expensesQuery .= " WHERE " . implode(" AND ", $expenseWhereClauses);
+}
+$expensesResult = mysqli_query($con, $expensesQuery);
+$totalExpenses = ($expensesResult) ? mysqli_fetch_assoc($expensesResult)['total_expenses'] : 0;
+
+// ----------------------
+// SALES PER FRANCHISE (Pie Chart)
+// ----------------------
+$whereClausesFranchise = [];
+$whereClausesFranchise[] = $franchiseeCondition;
+if (!empty($startDate) && !empty($endDate)) {
+    $whereClausesFranchise[] = "sr.date_added BETWEEN '$startDate' AND '$endDate'";
+}
+if ($filter['clause'] != "") {
+    $area_code = mysqli_real_escape_string($con, $filter['param']);
+    $whereClausesFranchise[] = "ac.area_code = '$area_code'";
+}
+$whereSQLFranchise = "";
+if (!empty($whereClausesFranchise)) {
+    $whereSQLFranchise = "WHERE " . implode(" AND ", $whereClausesFranchise);
+}
 $sales_per_franchise_query = "SELECT ac.franchisee, SUM(sr.grand_total) AS total_sales 
                               FROM sales_report sr 
                               JOIN agreement_contract ac ON sr.ac_id = ac.ac_id 
-                              $whereSQL GROUP BY ac.franchisee";
+                              $whereSQLFranchise GROUP BY ac.franchisee";
 $sales_per_franchise_result = mysqli_query($con, $sales_per_franchise_query);
-
 $franchise_sales_data = [];
 if ($sales_per_franchise_result) {
     while ($row = mysqli_fetch_assoc($sales_per_franchise_result)) {
@@ -126,14 +124,29 @@ if ($sales_per_franchise_result) {
 }
 $franchise_sales_json = json_encode($franchise_sales_data);
 
-// Sales Performance per Branch (Pie Chart)
+// ----------------------
+// SALES PER BRANCH (Pie Chart)
+// ----------------------
+$whereClausesBranch = [];
+$whereClausesBranch[] = $franchiseeCondition;
+$whereClausesBranch[] = $branchCondition;
+if (!empty($startDate) && !empty($endDate)) {
+    $whereClausesBranch[] = "sr.date_added BETWEEN '$startDate' AND '$endDate'";
+}
+if ($filter['clause'] != "") {
+    $area_code = mysqli_real_escape_string($con, $filter['param']);
+    $whereClausesBranch[] = "ac.area_code = '$area_code'";
+}
+$whereSQLBranch = "";
+if (!empty($whereClausesBranch)) {
+    $whereSQLBranch = "WHERE " . implode(" AND ", $whereClausesBranch);
+}
 $sales_per_franchise_branch_query = "SELECT ac.franchisee, ac.location, SUM(sr.grand_total) AS total_sales
                                      FROM sales_report sr
                                      JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
-                                     $whereSQL GROUP BY ac.franchisee, ac.location
+                                     $whereSQLBranch GROUP BY ac.franchisee, ac.location
                                      ORDER BY ac.franchisee, total_sales DESC";
 $sales_per_franchise_branch_result = mysqli_query($con, $sales_per_franchise_branch_query);
-
 $franchise_branch_sales_data = [];
 if ($sales_per_franchise_branch_result) {
     while ($row = mysqli_fetch_assoc($sales_per_franchise_branch_result)) {
@@ -146,33 +159,28 @@ if ($sales_per_franchise_branch_result) {
 }
 $franchise_branch_sales_json = json_encode($franchise_branch_sales_data);
 
+// ----------------------
+// BEST SELLING PRODUCTS QUERY
+// ----------------------
 $best_selling_query = "SELECT sr.product_name, ac.franchisee, ac.location, SUM(sr.grand_total) AS total_sales
                        FROM sales_report sr
                        JOIN agreement_contract ac ON sr.ac_id = ac.ac_id";
-
 $best_selling_whereClauses = [];
-
-if (!empty($franchisees)) {
-    $best_selling_whereClauses[] = "ac.franchisee IN ($franchiseeList)";
-}
-
-if (!empty($branches)) {
-    $best_selling_whereClauses[] = "ac.location IN ($branchList)";
-}
-
+$best_selling_whereClauses[] = $franchiseeCondition;
+$best_selling_whereClauses[] = $branchCondition;
 if (!empty($startDate) && !empty($endDate)) {
     $best_selling_whereClauses[] = "sr.date_added BETWEEN '$startDate' AND '$endDate'";
 }
-
+if ($filter['clause'] != "") {
+    $area_code = mysqli_real_escape_string($con, $filter['param']);
+    $best_selling_whereClauses[] = "ac.area_code = '$area_code'";
+}
 if (!empty($best_selling_whereClauses)) {
     $best_selling_query .= " WHERE " . implode(" AND ", $best_selling_whereClauses);
 }
-
 $best_selling_query .= " GROUP BY sr.product_name, ac.franchisee, ac.location
                         ORDER BY total_sales DESC LIMIT 5";
-
 $best_selling_result = mysqli_query($con, $best_selling_query);
-
 $best_selling_data = [];
 if ($best_selling_result) {
     while ($row = mysqli_fetch_assoc($best_selling_result)) {
@@ -186,35 +194,28 @@ if ($best_selling_result) {
 }
 $best_selling_json = json_encode($best_selling_data);
 
-
-// Fetch Worst-Selling Products (Bottom 5)
+// ----------------------
+// WORST SELLING PRODUCTS QUERY
+// ----------------------
 $worst_selling_query = "SELECT sr.product_name, ac.franchisee, ac.location, SUM(sr.grand_total) AS total_sales
                         FROM sales_report sr
                         JOIN agreement_contract ac ON sr.ac_id = ac.ac_id";
-
 $worst_selling_whereClauses = [];
-
-if (!empty($franchisees)) {
-    $worst_selling_whereClauses[] = "ac.franchisee IN ($franchiseeList)";
-}
-
-if (!empty($branches)) {
-    $worst_selling_whereClauses[] = "ac.location IN ($branchList)";
-}
-
+$worst_selling_whereClauses[] = $franchiseeCondition;
+$worst_selling_whereClauses[] = $branchCondition;
 if (!empty($startDate) && !empty($endDate)) {
     $worst_selling_whereClauses[] = "sr.date_added BETWEEN '$startDate' AND '$endDate'";
 }
-
+if ($filter['clause'] != "") {
+    $area_code = mysqli_real_escape_string($con, $filter['param']);
+    $worst_selling_whereClauses[] = "ac.area_code = '$area_code'";
+}
 if (!empty($worst_selling_whereClauses)) {
     $worst_selling_query .= " WHERE " . implode(" AND ", $worst_selling_whereClauses);
 }
-
 $worst_selling_query .= " GROUP BY sr.product_name, ac.franchisee, ac.location
                          ORDER BY total_sales ASC LIMIT 5";
-
 $worst_selling_result = mysqli_query($con, $worst_selling_query);
-
 $worst_selling_data = [];
 if ($worst_selling_result) {
     while ($row = mysqli_fetch_assoc($worst_selling_result)) {
@@ -228,44 +229,45 @@ if ($worst_selling_result) {
 }
 $worst_selling_json = json_encode($worst_selling_data);
 
-
-// Fetch all franchisees
+// ----------------------
+// FETCH ALL FRANCHISEES
+// ----------------------
 $franchiseeQuery = "SELECT DISTINCT franchisee FROM agreement_contract";
 $franchiseeResult = mysqli_query($con, $franchiseeQuery);
 $franchisees = mysqli_fetch_all($franchiseeResult, MYSQLI_ASSOC);
 
-// Fetch all branches (filtered by franchise if selected)
+// ----------------------
+// FETCH ALL BRANCHES (FILTERED BY FRANCHISE IF SELECTED)
+// ----------------------
 $branches = [];
-
-if (!empty($franchiseeList)) {
+if (!empty($franchisees)) {
+    $franchiseeConditionForBranch = (!empty($franchiseeList)) ? "ac.franchisee IN ($franchiseeList)" : "1=1";
+    $areaFilter = "";
+    if ($filter['clause'] != "") {
+        $area_code = mysqli_real_escape_string($con, $filter['param']);
+        $areaFilter = " AND ac.area_code = '$area_code' ";
+    }
     $branchQuery = "
         SELECT DISTINCT ac.location AS branch_id, ac.location AS branch_name
         FROM agreement_contract ac
-        WHERE ac.franchisee IN ($franchiseeList)
-
+        WHERE $franchiseeConditionForBranch $areaFilter
         UNION
-
         SELECT DISTINCT ac.location AS branch_id, ac.location AS branch_name
         FROM sales_report sr
         JOIN agreement_contract ac ON sr.ac_id = ac.ac_id
-        WHERE ac.franchisee IN ($franchiseeList)
-
+        WHERE $franchiseeConditionForBranch $areaFilter
         UNION
-
         SELECT DISTINCT 
             COALESCE(ac.location, e.location) AS branch_id, 
             COALESCE(ac.location, e.location) AS branch_name
         FROM expenses e
         LEFT JOIN agreement_contract ac ON e.location = ac.ac_id
-        WHERE e.franchisee IN ($franchiseeList);
+        WHERE $franchiseeConditionForBranch $areaFilter;
     ";
-
     $branchResult = mysqli_query($con, $branchQuery);
-
     if (!$branchResult) {
         die("Branch Query Failed: " . mysqli_error($con));
     }
-
     while ($row = mysqli_fetch_assoc($branchResult)) {
         $branches[] = [
             "branch" => $row['branch_name'],
@@ -274,60 +276,49 @@ if (!empty($franchiseeList)) {
     }
 }
 
-// ✅ Start building the Yearly Sales Trend query
+// ----------------------
+// YEARLY SALES TREND QUERY (DO NOT APPLY DATE FILTER)
+// ----------------------
+$yearlyWhereClauses = [];
+$yearlyWhereClauses[] = $franchiseeCondition;
+$yearlyWhereClauses[] = $branchCondition;
+// Do NOT add the date filter here!
+if ($filter['clause'] != "") {
+    $area_code = mysqli_real_escape_string($con, $filter['param']);
+    $yearlyWhereClauses[] = "ac.area_code = '$area_code'";
+}
 $yearlySalesQuery = "SELECT YEAR(sr.date_added) AS sales_year, SUM(sr.grand_total) AS total_sales
                      FROM sales_report sr
                      JOIN agreement_contract ac ON sr.ac_id = ac.ac_id";
-
-// ✅ Add filtering
-$yearlyWhereClauses = [];
-
-if (!empty($franchiseeList)) {
-    $yearlyWhereClauses[] = "ac.franchisee IN ($franchiseeList)";
-}
-
-if (!empty($branchList)) {
-    $yearlyWhereClauses[] = "ac.location IN ($branchList)";
-}
-
-// ✅ Only add WHERE clause if there are filters
 if (!empty($yearlyWhereClauses)) {
     $yearlySalesQuery .= " WHERE " . implode(" AND ", $yearlyWhereClauses);
 }
-
 $yearlySalesQuery .= " GROUP BY sales_year ORDER BY sales_year ASC";
-
-// ✅ Now execute the final query **after** filters have been applied
 $yearlySalesResult = mysqli_query($con, $yearlySalesQuery);
-
-// ✅ Debug: Check if the query executed successfully
+$yearlySalesData = [];
 if (!$yearlySalesResult) {
     die(json_encode(["error" => "Yearly Sales Query Failed: " . mysqli_error($con)]));
 }
-
-// ✅ Fetch results and store in array
-$yearlySalesData = [];
 while ($row = mysqli_fetch_assoc($yearlySalesResult)) {
     $yearlySalesData[] = [
-        'year' => (int) $row['sales_year'],
-        'sales' => (float) $row['total_sales']
+        'year' => (int)$row['sales_year'],
+        'sales' => (float)$row['total_sales']
     ];
 }
-
 
 // Return JSON if requested
 if (isset($_GET['json']) && $_GET['json'] == "true") {
     header("Content-Type: application/json");
     echo json_encode([
-        "totalSales" => floatval($totalSales) ?: 0,  // ✅ Ensures number format
-        "totalExpenses" => floatval($totalExpenses) ?: 0,  // ✅ Ensures number format
-        "profit" => $totalSales - $totalExpenses,
-        "franchisees" => $franchisees,
-        "branches" => $branches,
-        "franchiseSales" => $franchise_sales_data,
-        "branchSales" => $franchise_branch_sales_data,
-        "bestSelling" => $best_selling_data,
-        "worstSelling" => $worst_selling_data,
+        "totalSales"       => floatval($totalSales) ?: 0,
+        "totalExpenses"    => floatval($totalExpenses) ?: 0,
+        "profit"           => floatval($totalSales) - floatval($totalExpenses),
+        "franchisees"      => $franchisees,
+        "branches"         => $branches,
+        "franchiseSales"   => $franchise_sales_data,
+        "branchSales"      => $franchise_branch_sales_data,
+        "bestSelling"      => $best_selling_data,
+        "worstSelling"     => $worst_selling_data,
         "yearlySalesTrend" => $yearlySalesData
     ]);
     exit();

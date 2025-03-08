@@ -184,7 +184,7 @@ $imageMapping = [
                             <!-- Sales Performance Section -->
                             <div class="box-group">
                                 <h3 class="box-group-title">Sales Performance</h3>
-                                <a href="dashboard2/dashboard-contract2.php" class="box box1">
+                                <a href="area-dashboard-julia.php" class="box box1">
                                     <i class='bx bx-chart'></i>
                                     <span class="text">Analytics</span>
                                 </a>
