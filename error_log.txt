@@ -218,3 +218,114 @@ Stack trace:
 [05-Mar-2025 20:04:44 Europe/Berlin] 📌 Exception Report Rows Fetched: 43
 [06-Mar-2025 04:22:45 Europe/Berlin] 📌 Exception Report Rows Fetched: 15
 [06-Mar-2025 06:11:45 Europe/Berlin] 📌 Exception Report Rows Fetched: 15
+[08-Mar-2025 15:52:57 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:00 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:02 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:03 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:04 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:18 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:24 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:26 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:28 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:30 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:30 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:31 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:31 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:34 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:53:37 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:57:09 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:57:12 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:57:14 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:57:15 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:57:15 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:57:16 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 15:57:18 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'datetime_added' in where clause is ambiguous in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:296
+Stack trace:
+#0 C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(296): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
+[08-Mar-2025 16:22:54 Europe/Berlin] 📌 Exception Report Rows Fetched: 15

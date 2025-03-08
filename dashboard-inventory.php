@@ -1,40 +1,40 @@
 <?php
 session_start();
-include ("phpscripts/database-connection.php");
-include ("phpscripts/check-login.php");
+include("phpscripts/database-connection.php");
+include("phpscripts/check-login.php");
+include("phpscripts/role_filter.php");
 
-
-
-
-// ✅ Prevent PHP errors from displaying in the AJAX response
+// Enable error reporting for debugging (temporarily)
 ini_set('log_errors', 1);
-ini_set('display_errors', 1); // Temporarily enable error display for debugging
-ini_set('error_log', __DIR__ . '/error_log.txt'); // Save errors to a file
+ini_set('display_errors', 1);
+ini_set('error_log', __DIR__ . '/error_log.txt');
 error_reporting(E_ALL);
 
 $username = $_SESSION['user_name'] ?? "Unknown User";
+$filter = getAreaManagerFilter(); // Returns array with ['clause'] and ['param']
 
-// ✅ Define getStockStatus() FIRST
+// ------------------------------
+// Utility Functions
+// ------------------------------
 function getStockStatus($currentStock, $turnoverRate) {
     if ($currentStock === 0) return "Stockout";
     if ($turnoverRate === 0) return "Unknown"; // No sales data available
-
-    $stockDays = $currentStock; // Estimate how long stock will last
-
-    if ($stockDays > 25) return "High";
-    if ($stockDays >= 14) return "Moderate";
-    if ($stockDays > 0) return "Low";
+    // Estimate stock days using current stock (this can be adjusted)
+    if ($currentStock > 25) return "High";
+    if ($currentStock >= 14) return "Moderate";
+    if ($currentStock > 0) return "Low";
     return "Stockout";
 }
 
-// ✅ Define getWasteStatus() SECOND // WASTE DATA DETERMINE STATUS CHANGE IF REAL DATA IS WRONG
 function getWasteStatus($wastePercentage, $turnoverRate) {
     if ($wastePercentage > 20 && $turnoverRate < 40) return "High Waste";
     if ($wastePercentage > 10) return "Moderate Waste";
     return "Low Waste";
 }
 
-// ✅ Now, the Exception Report Query can use the functions
+// ------------------------------
+// Exception Report Query
+// ------------------------------
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
     header('Content-Type: application/json; charset=utf-8');
 
@@ -48,10 +48,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
         exit;
     }
 
-
-    // ✅ Exception Report Query
+    // Note: Joining with agreement_contract using ac.location instead of ac.ac_id
     $query = "SELECT 
-                ii.franchisee,  -- ✅ Include franchisee in SELECT
+                ac.franchisee, 
                 i.item_name, 
                 ii.branch,
                 (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock,
@@ -59,11 +58,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
             FROM item_inventory ii
             INNER JOIN items i ON ii.item_id = i.item_id
+            INNER JOIN agreement_contract ac ON ii.branch = ac.location
             WHERE ii.branch IN (" . implode(",", array_fill(0, count($branches), "?")) . ")
-            AND DATE(ii.datetime_added) BETWEEN ? AND ?
-            GROUP BY ii.franchisee, i.item_name, ii.branch  -- ✅ Now grouping by both franchisee & branch
-            ORDER BY waste_percentage DESC";
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?";
 
+    if ($filter['clause'] != "") {
+        $area_code = mysqli_real_escape_string($con, $filter['param']);
+        $query .= " AND ac.area_code = '$area_code'";
+    }
+
+    $query .= " GROUP BY ac.franchisee, i.item_name, ii.branch ORDER BY waste_percentage DESC";
 
     $stmt = $con->prepare($query);
     if (!$stmt) {
@@ -97,12 +101,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
     exit;
 }
 
-// the thingy for detailed generation
+// ------------------------------
+// Detailed Report Generation Query
+// ------------------------------
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reportType'])) {
     header('Content-Type: application/json; charset=utf-8');
 
     $franchisees = isset($_POST["franchisees"]) ? $_POST["franchisees"] : [];
-    $branches = json_decode($_POST["branches"], true);  // ✅ Fix: Decode JSON array properly
+    $branches = json_decode($_POST["branches"], true);
     $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
     $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
 
@@ -116,22 +122,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reportType'])) {
         exit;
     }
 
-    // ✅ Query to Fetch Detailed Report Data
+    // Join with agreement_contract on location for area filtering
     $query = "SELECT 
-                ii.franchisee,
+                ac.franchisee,
                 ii.branch,
                 i.item_name,
-                (SUM(ii.sold) / NULLIF(SUM(ii.beginning) + SUM(ii.delivery), 0)) * 100 AS sell_through_rate,
+                (SUM(ii.sold) / NULLIF(SUM(ii.beginning) + SUM(ii.delivery) - SUM(ii.waste), 0)) * 100 AS sell_through_rate,
                 (SUM(ii.beginning + ii.delivery - ii.sold - ii.waste) / NULLIF(AVG(ii.sold), 0)) AS days_until_stockout,
                 AVG(ii.sold) AS average_sales,
                 SUM(ii.waste) AS stock_waste,
-                (SUM(ii.beginning) + SUM(ii.delivery) - SUM(ii.sold) - SUM(ii.waste)) AS current_stock  -- ✅ Added current stock
+                (SUM(ii.beginning) + SUM(ii.delivery) - SUM(ii.sold) - SUM(ii.waste)) AS current_stock
             FROM item_inventory ii
             INNER JOIN items i ON ii.item_id = i.item_id
+            INNER JOIN agreement_contract ac ON ii.branch = ac.location
             WHERE ii.branch IN (" . implode(",", array_fill(0, count($branches), "?")) . ")
-            AND DATE(ii.datetime_added) BETWEEN ? AND ?
-            GROUP BY ii.franchisee, ii.branch, i.item_name
-            ORDER BY ii.franchisee, ii.branch, sell_through_rate DESC";
+            AND DATE(ii.datetime_added) BETWEEN ? AND ?";
+
+    if ($filter['clause'] != "") {
+        $area_code = mysqli_real_escape_string($con, $filter['param']);
+        $query .= " AND ac.area_code = '$area_code'";
+    }
+
+    $query .= " GROUP BY ac.franchisee, ii.branch, i.item_name
+                ORDER BY ac.franchisee, ii.branch, sell_through_rate DESC";
 
     $stmt = $con->prepare($query);
     if (!$stmt) {
@@ -139,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reportType'])) {
         exit;
     }
 
-    $types = str_repeat("s", count($branches)) . "ss"; // Bind branches + start/end date
+    $types = str_repeat("s", count($branches)) . "ss";
     $params = array_merge($branches, [$startDate, $endDate]);
     $stmt->bind_param($types, ...$params);
 
@@ -160,7 +173,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reportType'])) {
             "days_until_stockout" => round($row["days_until_stockout"], 1),
             "average_sales" => round($row["average_sales"], 2),
             "stock_waste" => round($row["stock_waste"], 2),
-            "current_stock" => intval($row["current_stock"]) // ✅ Ensure integer format
+            "current_stock" => intval($row["current_stock"])
         ];
     }
 
@@ -168,86 +181,85 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reportType'])) {
     exit;
 }
 
-
-// ✅ Franchise selection: Fetch branches
+// ------------------------------
+// Franchise Selection: Fetch Branches (For Inventory)
+// ------------------------------
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['franchise'])) {
-    header('Content-Type: application/json; charset=utf-8'); // ✅ Ensure JSON response
+    header('Content-Type: application/json; charset=utf-8');
 
     if (!isset($con) || !$con) {
         echo json_encode(["error" => "Database connection failed: " . mysqli_connect_error()]);
         exit;
     }
 
-    // ✅ Decode JSON Array of Franchises
     $franchises = json_decode($_POST['franchise'], true);
 
     if (!is_array($franchises) || empty($franchises)) {
-        echo json_encode(["branches" => [], "clear" => true]); // ✅ Include clear flag
+        echo json_encode(["branches" => [], "clear" => true]);
         exit;
     }
-    
 
-    // ✅ Franchise Name Mapping
+    // Franchise mapping (from display names to database format)
     $franchiseMap = [
         "Potato Corner" => "potato-corner",
         "Auntie Anne's" => "auntie-anne",
         "Macao Imperial Tea" => "macao-imperial"
     ];
 
-    // ✅ Convert to Database Format
     $dbFranchises = array_map(fn($f) => $franchiseMap[$f] ?? null, $franchises);
-    $dbFranchises = array_filter($dbFranchises); // Remove any nulls
+    $dbFranchises = array_filter($dbFranchises);
 
     if (empty($dbFranchises)) {
         echo json_encode(["branches" => []]);
         exit;
     }
 
-    // ✅ Dynamic Query for Multiple Franchises
-    $placeholders = implode(",", array_fill(0, count($dbFranchises), "?"));
-    // In the "Fetch branches" section:
-    $query = "SELECT DISTINCT franchisee, branch
-    FROM item_inventory
-    WHERE franchisee IN ($placeholders)";
+    // Build area filter for branch selection
+    $areaFilter = "";
+    if ($filter['clause'] != "") {
+        $area_code = mysqli_real_escape_string($con, $filter['param']);
+        $areaFilter = " AND ac.area_code = '$area_code' ";
+    }
 
+    // Dynamic query to fetch branches using agreement_contract table
+    $placeholders = implode(",", array_fill(0, count($dbFranchises), "?"));
+    $query = "SELECT DISTINCT ac.franchisee, ac.location AS branch
+              FROM agreement_contract ac
+              WHERE ac.franchisee IN ($placeholders) $areaFilter";
 
     $stmt = $con->prepare($query);
     if (!$stmt) {
         echo json_encode(["error" => "SQL Error: " . $con->error]);
         exit;
     }
-
-    // ✅ Bind Parameters Dynamically
     $stmt->bind_param(str_repeat("s", count($dbFranchises)), ...$dbFranchises);
     $stmt->execute();
     $result = $stmt->get_result();
 
     $branches = [];
     while ($row = $result->fetch_assoc()) {
-    $branches[] = [
-        "franchise" => $row["franchisee"],  // e.g. 'auntie-anne'
-        "branch"    => $row["branch"]       // e.g. 'SM Mall of Asia'
-    ];
-}
+        $branches[] = [
+            "franchise" => $row["franchisee"],
+            "branch" => $row["branch"]
+        ];
+    }
     echo json_encode(["branches" => $branches], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-
-// ✅ Branch selection: Fetch inventory data
-// ✅ Branch selection: Fetch inventory data
+// ------------------------------
+// Branch Selection: Fetch Inventory KPIs
+// ------------------------------
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
-    header('Content-Type: application/json; charset=utf-8'); // ✅ Ensure JSON response
+    header('Content-Type: application/json; charset=utf-8');
 
     if (!isset($con) || !$con) {
         echo json_encode(["error" => "Database connection failed: " . mysqli_connect_error()]);
         exit;
     }
 
-    // ✅ Decode JSON array from AJAX request
     $branches = json_decode(trim($_POST['branches']), true);
 
-    // ✅ Ensure it's a valid array and not empty
     if (!is_array($branches) || empty($branches)) {
         echo json_encode([
             "stock_level" => 0,
@@ -260,177 +272,158 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
         exit;
     }
     
-        // ✅ Default start and end date to the current week (Monday - Sunday)
     $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
     $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
 
-    // ✅ Dynamic query for multiple branches
+    // For inventory KPIs, join with agreement_contract on location for filtering
     $placeholders = implode(",", array_fill(0, count($branches), "?"));
-
-    // ✅ Fetch inventory KPIs
     $query = "SELECT 
-            SUM(beginning + delivery - sold - waste) AS stock_level,   
-            COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
-            SUM(waste) AS total_wastage
-            FROM item_inventory 
-            WHERE branch IN ($placeholders) 
-            AND DATE(datetime_added) BETWEEN ? AND ?";
+                SUM(beginning + delivery - sold - waste) AS stock_level,   
+                COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
+                SUM(waste) AS total_wastage
+              FROM item_inventory ii
+              INNER JOIN agreement_contract ac ON ii.branch = ac.location
+              WHERE ii.branch IN ($placeholders)
+              AND DATE(ii.datetime_added) BETWEEN ? AND ?";
 
-   
-   
-$stmt = $con->prepare($query);
-if (!$stmt) {
-    echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
-    exit;
-}
+    if ($filter['clause'] != "") {
+        $area_code = mysqli_real_escape_string($con, $filter['param']);
+        $query .= " AND ac.area_code = '$area_code'";
+    }
 
-$types = str_repeat("s", count($branches)) . "ss"; // ✅ Generate the correct types
-$params = array_merge($branches, [$startDate, $endDate]); // ✅ Merge all parameters
+    $stmt = $con->prepare($query);
+    if (!$stmt) {
+        echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+        exit;
+    }
+    $types = str_repeat("s", count($branches)) . "ss";
+    $params = array_merge($branches, [$startDate, $endDate]);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = $result->fetch_assoc();
 
-$stmt->bind_param($types, ...$params); // ✅ Fix: No positional arguments after unpacking
-$stmt->execute();
-$result = $stmt->get_result();
-$data = $result->fetch_assoc();
-
-    // ✅ Fetch top 5 high turnover items for selected branches
+    // ------------------------------
+    // High Turnover Items Query
+    // ------------------------------
     $highTurnoverQuery = "SELECT i.item_name, 
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) AS turnover_rate 
                 FROM item_inventory ii 
                 INNER JOIN items i ON ii.item_id = i.item_id 
-                WHERE ii.branch IN ($placeholders) 
+                INNER JOIN agreement_contract ac ON ii.branch = ac.location
+                WHERE ii.branch IN ($placeholders)
                 AND DATE(ii.datetime_added) BETWEEN ? AND ?
                 GROUP BY i.item_name 
                 ORDER BY turnover_rate DESC 
                 LIMIT 5";
-
-
-$stmtHigh = $con->prepare($highTurnoverQuery);
-if (!$stmtHigh) {
-    echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
-    exit;
-}
-
-$types = str_repeat("s", count($branches)) . "ss"; // ✅ Generate correct types string
-$params = array_merge($branches, [$startDate, $endDate]); // ✅ Merge branch values with date range
-
-$stmtHigh->bind_param($types, ...$params); // ✅ Fix: No positional arguments after unpacking
-$stmtHigh->execute();
-$highTurnoverResult = $stmtHigh->get_result();                                  
-
+    $stmtHigh = $con->prepare($highTurnoverQuery);
+    if (!$stmtHigh) {
+        echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+        exit;
+    }
+    $types = str_repeat("s", count($branches)) . "ss";
+    $params = array_merge($branches, [$startDate, $endDate]);
+    $stmtHigh->bind_param($types, ...$params);
+    $stmtHigh->execute();
+    $highTurnoverResult = $stmtHigh->get_result();                                  
     $highTurnover = ["labels" => [], "values" => []];
     while ($row = $highTurnoverResult->fetch_assoc()) {
         $highTurnover["labels"][] = $row["item_name"];
         $highTurnover["values"][] = floatval($row["turnover_rate"]);
     }
 
-    // ✅ Fetch top 5 low turnover items for selected branches
+    // ------------------------------
+    // Low Turnover Items Query
+    // ------------------------------
     $lowTurnoverQuery = "SELECT i.item_name, 
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) AS turnover_rate 
                 FROM item_inventory ii 
                 INNER JOIN items i ON ii.item_id = i.item_id 
-                WHERE ii.branch IN ($placeholders) 
+                INNER JOIN agreement_contract ac ON ii.branch = ac.location
+                WHERE ii.branch IN ($placeholders)
                 AND DATE(ii.datetime_added) BETWEEN ? AND ?
                 GROUP BY i.item_name 
                 ORDER BY turnover_rate ASC 
                 LIMIT 5";
-
-$stmtLow = $con->prepare($lowTurnoverQuery); // ✅ Correct variable name
-if (!$stmtLow) {
-    echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
-    exit;
-}
-
-$types = str_repeat("s", count($branches)) . "ss"; // ✅ Generate correct types string
-$params = array_merge($branches, [$startDate, $endDate]); // ✅ Merge branch values with date range
-
-$stmtLow->bind_param($types, ...$params); // ✅ Fix: No positional arguments after unpacking
-$stmtLow->execute();
-$lowTurnoverResult = $stmtLow->get_result();
-
+    $stmtLow = $con->prepare($lowTurnoverQuery);
+    if (!$stmtLow) {
+        echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
+        exit;
+    }
+    $types = str_repeat("s", count($branches)) . "ss";
+    $params = array_merge($branches, [$startDate, $endDate]);
+    $stmtLow->bind_param($types, ...$params);
+    $stmtLow->execute();
+    $lowTurnoverResult = $stmtLow->get_result();
     $lowTurnover = ["labels" => [], "values" => []];
     while ($row = $lowTurnoverResult->fetch_assoc()) {
         $lowTurnover["labels"][] = $row["item_name"];
         $lowTurnover["values"][] = floatval($row["turnover_rate"]);
     }
 
-    // ✅ Fetch Sell-Through Rate Data for multiple branches
-    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
-    $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
-
-    $sellThroughQuery = "SELECT branch, DATE(datetime_added) AS sale_date, 
-                    (SUM(sold) / NULLIF(SUM(beginning) + SUM(delivery), 0)) * 100 AS sell_through_rate
-                    FROM item_inventory 
-                    WHERE branch IN ($placeholders) 
-                    AND DATE(datetime_added) BETWEEN ? AND ?
-                    GROUP BY branch, DATE(datetime_added)
-                    ORDER BY branch, sale_date ASC";
-
-
+    // ------------------------------
+    // Sell-Through Rate Query
+    // ------------------------------
+    $sellThroughQuery = "SELECT ii.branch, DATE(ii.datetime_added) AS sale_date, 
+                    (SUM(sold) / NULLIF(SUM(beginning + delivery), 0)) * 100 AS sell_through_rate
+                    FROM item_inventory ii
+                    INNER JOIN agreement_contract ac ON ii.branch = ac.location
+                    WHERE ii.branch IN ($placeholders)
+                    AND DATE(ii.datetime_added) BETWEEN ? AND ?
+                    GROUP BY ii.branch, DATE(ii.datetime_added)
+                    ORDER BY ii.branch, sale_date ASC";
     $stmtSellThrough = $con->prepare($sellThroughQuery);
     if (!$stmtSellThrough) {
         echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
         exit;
     }
-
-    // ✅ Fix bind_param: Merge all parameters into a single array
-    $params = array_merge(array_fill(0, count($branches), "s"), ["s", "s"]); // Format string
-    $values = array_merge($branches, [$startDate, $endDate]); // Merge branch values with dates
-
-    // ✅ Dynamically bind all parameters
-    $stmtSellThrough->bind_param(implode("", $params), ...$values);
+    $types = str_repeat("s", count($branches)) . "ss";
+    $params = array_merge($branches, [$startDate, $endDate]);
+    $stmtSellThrough->bind_param($types, ...$params);
     $stmtSellThrough->execute();
     $sellThroughResult = $stmtSellThrough->get_result();
-
-    $sellThroughRate = ["data" => []]; // ✅ Fix structure
+    $sellThroughRate = ["data" => []];
     while ($row = $sellThroughResult->fetch_assoc()) {
         $sellThroughRate["data"][] = [
-            "branch" => $row["branch"], // ✅ Include branch name
+            "branch" => $row["branch"],
             "sale_date" => $row["sale_date"],
             "sell_through_rate" => floatval($row["sell_through_rate"])
         ];
     }
     
-    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
-    $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
-    
-    // ✅ Fetch Low Stock Items (Stock < 15) within the specified date range
+    // ------------------------------
+    // Low Stock Items Query
+    // ------------------------------
     $lowStockQuery = "SELECT i.item_name, ii.branch, 
                         (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock
                       FROM item_inventory ii
                       INNER JOIN items i ON ii.item_id = i.item_id
-                      WHERE ii.branch IN ($placeholders) 
+                      INNER JOIN agreement_contract ac ON ii.branch = ac.location
+                      WHERE ii.branch IN ($placeholders)
                       AND DATE(ii.datetime_added) BETWEEN ? AND ?
                       AND (ii.beginning + ii.delivery - ii.sold - ii.waste) < 15
                       ORDER BY current_stock ASC";
-    
     $stmtLowStock = $con->prepare($lowStockQuery);
     if (!$stmtLowStock) {
         error_log("SQL Prepare Failed: " . $con->error);
         echo json_encode(["error" => "SQL Prepare Failed: " . $con->error]);
         exit;
     }
-    
-    // Generate binding string (one "s" for each branch + 2 extra for startDate & endDate)
-    $types = str_repeat("s", count($branches)) . "ss"; // Add "ss" for the date range
-    
-    // Merge branches with startDate and endDate
-    $params = [...$branches, $startDate, $endDate];
-    
-    // Correctly bind all parameters
+    $types = str_repeat("s", count($branches)) . "ss";
+    $params = array_merge($branches, [$startDate, $endDate]);
     $stmtLowStock->bind_param($types, ...$params);
-    
     $stmtLowStock->execute();
     $lowStockResult = $stmtLowStock->get_result();
-    
     $lowStockData = ["labels" => [], "branches" => [], "values" => []];
     while ($row = $lowStockResult->fetch_assoc()) {
         $lowStockData["labels"][] = $row["item_name"];
         $lowStockData["branches"][] = $row["branch"];
         $lowStockData["values"][] = intval($row["current_stock"]);
     }
-    
 
-    // ✅ Send JSON Response
+    // ------------------------------
+    // Send JSON Response for Inventory KPIs
+    // ------------------------------
     echo json_encode([
         "stock_level" => $data["stock_level"] ?? 0,
         "stockout_count" => $data["stockout_count"] ?? 0,
@@ -440,12 +433,10 @@ $lowTurnoverResult = $stmtLow->get_result();
         "sell_through_rate" => $sellThroughRate,
         "low_stock_items" => $lowStockData,
     ], JSON_UNESCAPED_UNICODE);
-
     exit;
 }
-
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

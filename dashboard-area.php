@@ -185,7 +185,7 @@ $imageMapping = [
                             <div class="box-group">
                                 <h3 class="box-group-title">Sales Performance</h3>
                                 <a href="area-dashboard-julia.php" class="box box1">
-                                    <i class='bx bx-chart'></i>
+                                    <i class='bx bx-pie-chart'></i>
                                     <span class="text">Analytics</span>
                                 </a>
                                 <a href="pages/salesPerformance/sales" class="box box4">
@@ -215,8 +215,8 @@ $imageMapping = [
                             <!-- Inventory Section -->
                             <div class="box-group">
                                 <h3 class="box-group-title">Inventory</h3>
-                                <a href="dashboard2/dashboard-contract2.php" class="box box1">
-                                    <i class='bx bx-chart'></i>
+                                <a href="area-dashboard-matthew.php" class="box box1">
+                                    <i class='bx bx-bar-chart-square'></i>
                                     <span class="text">Analytics</span>
                                 </a>
                                 <a href="pages/inventory/inventory2" class="box box7">
