@@ -35,7 +35,6 @@ function getWasteStatus($wastePercentage, $turnoverRate) {
 // ------------------------------
 // Exception Report Query
 // ------------------------------
-// Note: We now join with agreement_contract (aliased as ac) to allow area filtering.
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
     header('Content-Type: application/json; charset=utf-8');
 
@@ -49,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
         exit;
     }
 
-    // Build the base query and join agreement_contract to obtain area_code
+    // Note: Joining with agreement_contract using ac.location instead of ac.ac_id
     $query = "SELECT 
                 ac.franchisee, 
                 i.item_name, 
@@ -59,11 +58,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['exceptionReport'])) {
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) * 100 AS turnover_rate
             FROM item_inventory ii
             INNER JOIN items i ON ii.item_id = i.item_id
-            INNER JOIN agreement_contract ac ON ii.branch = ac.ac_id
+            INNER JOIN agreement_contract ac ON ii.branch = ac.location
             WHERE ii.branch IN (" . implode(",", array_fill(0, count($branches), "?")) . ")
             AND DATE(ii.datetime_added) BETWEEN ? AND ?";
 
-    // Append area manager filter if set
     if ($filter['clause'] != "") {
         $area_code = mysqli_real_escape_string($con, $filter['param']);
         $query .= " AND ac.area_code = '$area_code'";
@@ -124,7 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reportType'])) {
         exit;
     }
 
-    // Now join with agreement_contract to get area_code for filtering
+    // Join with agreement_contract on location for area filtering
     $query = "SELECT 
                 ac.franchisee,
                 ii.branch,
@@ -136,7 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reportType'])) {
                 (SUM(ii.beginning) + SUM(ii.delivery) - SUM(ii.sold) - SUM(ii.waste)) AS current_stock
             FROM item_inventory ii
             INNER JOIN items i ON ii.item_id = i.item_id
-            INNER JOIN agreement_contract ac ON ii.branch = ac.ac_id
+            INNER JOIN agreement_contract ac ON ii.branch = ac.location
             WHERE ii.branch IN (" . implode(",", array_fill(0, count($branches), "?")) . ")
             AND DATE(ii.datetime_added) BETWEEN ? AND ?";
 
@@ -273,20 +271,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
-
+    
     $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
     $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
 
-    // For inventory KPIs, join with agreement_contract to filter by area
+    // For inventory KPIs, join with agreement_contract on location for filtering
     $placeholders = implode(",", array_fill(0, count($branches), "?"));
     $query = "SELECT 
                 SUM(beginning + delivery - sold - waste) AS stock_level,   
                 COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
                 SUM(waste) AS total_wastage
               FROM item_inventory ii
-              INNER JOIN agreement_contract ac ON ii.branch = ac.ac_id
+              INNER JOIN agreement_contract ac ON ii.branch = ac.location
               WHERE ii.branch IN ($placeholders)
-              AND DATE(datetime_added) BETWEEN ? AND ?";
+              AND DATE(ii.datetime_added) BETWEEN ? AND ?";
 
     if ($filter['clause'] != "") {
         $area_code = mysqli_real_escape_string($con, $filter['param']);
@@ -312,7 +310,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) AS turnover_rate 
                 FROM item_inventory ii 
                 INNER JOIN items i ON ii.item_id = i.item_id 
-                INNER JOIN agreement_contract ac ON ii.branch = ac.ac_id
+                INNER JOIN agreement_contract ac ON ii.branch = ac.location
                 WHERE ii.branch IN ($placeholders)
                 AND DATE(ii.datetime_added) BETWEEN ? AND ?
                 GROUP BY i.item_name 
@@ -327,7 +325,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
     $params = array_merge($branches, [$startDate, $endDate]);
     $stmtHigh->bind_param($types, ...$params);
     $stmtHigh->execute();
-    $highTurnoverResult = $stmtHigh->get_result();
+    $highTurnoverResult = $stmtHigh->get_result();                                  
     $highTurnover = ["labels" => [], "values" => []];
     while ($row = $highTurnoverResult->fetch_assoc()) {
         $highTurnover["labels"][] = $row["item_name"];
@@ -341,7 +339,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) AS turnover_rate 
                 FROM item_inventory ii 
                 INNER JOIN items i ON ii.item_id = i.item_id 
-                INNER JOIN agreement_contract ac ON ii.branch = ac.ac_id
+                INNER JOIN agreement_contract ac ON ii.branch = ac.location
                 WHERE ii.branch IN ($placeholders)
                 AND DATE(ii.datetime_added) BETWEEN ? AND ?
                 GROUP BY i.item_name 
@@ -369,7 +367,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
     $sellThroughQuery = "SELECT ii.branch, DATE(ii.datetime_added) AS sale_date, 
                     (SUM(sold) / NULLIF(SUM(beginning + delivery), 0)) * 100 AS sell_through_rate
                     FROM item_inventory ii
-                    INNER JOIN agreement_contract ac ON ii.branch = ac.ac_id
+                    INNER JOIN agreement_contract ac ON ii.branch = ac.location
                     WHERE ii.branch IN ($placeholders)
                     AND DATE(ii.datetime_added) BETWEEN ? AND ?
                     GROUP BY ii.branch, DATE(ii.datetime_added)
@@ -400,7 +398,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
                         (ii.beginning + ii.delivery - ii.sold - ii.waste) AS current_stock
                       FROM item_inventory ii
                       INNER JOIN items i ON ii.item_id = i.item_id
-                      INNER JOIN agreement_contract ac ON ii.branch = ac.ac_id
+                      INNER JOIN agreement_contract ac ON ii.branch = ac.location
                       WHERE ii.branch IN ($placeholders)
                       AND DATE(ii.datetime_added) BETWEEN ? AND ?
                       AND (ii.beginning + ii.delivery - ii.sold - ii.waste) < 15
