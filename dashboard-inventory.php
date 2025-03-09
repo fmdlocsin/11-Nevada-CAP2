@@ -130,8 +130,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['reportType'])) {
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning) + SUM(ii.delivery) - SUM(ii.waste), 0)) * 100 AS sell_through_rate,
                 (SUM(ii.beginning + ii.delivery - ii.sold - ii.waste) / NULLIF(AVG(ii.sold), 0)) AS days_until_stockout,
                 AVG(ii.sold) AS average_sales,
-                SUM(ii.waste) AS stock_waste,
-                (SUM(ii.beginning) + SUM(ii.delivery) - SUM(ii.sold) - SUM(ii.waste)) AS current_stock
+                SUM(ii.waste) AS stock_waste, 
+                ((ii.beginning) + (ii.delivery) - (ii.sold) - (ii.waste)) AS current_stock
             FROM item_inventory ii
             INNER JOIN items i ON ii.item_id = i.item_id
             INNER JOIN agreement_contract ac ON ii.branch = ac.location
@@ -279,7 +279,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
     $placeholders = implode(",", array_fill(0, count($branches), "?"));
     $query = "SELECT 
                 SUM(beginning + delivery - sold - waste) AS stock_level,   
-                COUNT(CASE WHEN (beginning - sold - waste) = 0 THEN 1 END) AS stockout_count,
+                COUNT(CASE WHEN (beginning + delivery - sold - waste) = 0 THEN 1 END) AS stockout_count,
                 SUM(waste) AS total_wastage
               FROM item_inventory ii
               INNER JOIN agreement_contract ac ON ii.branch = ac.location

@@ -329,3 +329,23 @@ Stack trace:
 #1 {main}
   thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
 [08-Mar-2025 16:22:54 Europe/Berlin] 📌 Exception Report Rows Fetched: 15
+[09-Mar-2025 15:42:23 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[09-Mar-2025 15:45:43 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'AS current_stock
+            FROM item_inventory ii
+            INNER JOIN ...' at line 9 in D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:149
+Stack trace:
+#0 D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(149): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 149
+[09-Mar-2025 15:45:46 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[09-Mar-2025 15:45:49 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'AS current_stock
+            FROM item_inventory ii
+            INNER JOIN ...' at line 9 in D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php:149
+Stack trace:
+#0 D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php(149): mysqli->prepare('SELECT \r\n      ...')
+#1 {main}
+  thrown in D:\Xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 149
+[09-Mar-2025 15:46:21 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[09-Mar-2025 15:46:31 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[09-Mar-2025 15:46:55 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
+[09-Mar-2025 15:49:13 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
