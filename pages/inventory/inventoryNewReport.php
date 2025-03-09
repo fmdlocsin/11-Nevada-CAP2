@@ -102,7 +102,7 @@ if (isset($_SERVER['REQUEST_URI'])) {
             <div id="confirmationModal" class="modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2 class="subheadertext">Save Report?</h2>
+                        <h2 class="subheadertext">Save?</h2>
                     </div>
                     <div class="modal-footer">
                         <button id="cancelButton" class="cancel">Cancel</button>
@@ -113,7 +113,7 @@ if (isset($_SERVER['REQUEST_URI'])) {
             <div id="successModal" class="modal">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h2 class="subheadertext">Save Report</h2>
+                        <h2 class="subheadertext">Save</h2>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" id="nextButton">Next</button>
