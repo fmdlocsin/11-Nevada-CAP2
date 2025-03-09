@@ -537,7 +537,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
     </div>
             <div class="user-badge">
                 <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
-                <span class="user-role">Inventory Manager</span>
+                <span class="user-role">Area Manager</span>
             </div>
         </header>
         <div class="container">

@@ -1,0 +1,46 @@
+Received POST Data: Array
+(
+    [franchiseId] => macao-imperial
+)
+
+Processed Franchise ID: macao-imperial
+Query Results: Array
+(
+    [0] => Array
+        (
+            [id] => 185572
+            [name] => Eastwood Mall
+        )
+
+    [1] => Array
+        (
+            [id] => 205472
+            [name] => SM City San Lazaro
+        )
+
+    [2] => Array
+        (
+            [id] => 249529
+            [name] => Robinsons Galleria
+        )
+
+    [3] => Array
+        (
+            [id] => 317242
+            [name] => test
+        )
+
+    [4] => Array
+        (
+            [id] => 928864
+            [name] => Greenbelt 3
+        )
+
+    [5] => Array
+        (
+            [id] => 972116
+            [name] => SM City North EDSA
+        )
+
+)
+

@@ -45,9 +45,9 @@ include ("../../phpscripts/check-login.php");
                 <div class="regularText"><strong>Date:</strong> <span id="date"></span></div>
 
             </div>
-                <div class="filters">
+                <!-- <div class="filters">
                     <button id="Download">Download</button>
-                </div>
+                </div> -->
                 <div class="content">
                     <table id="clickedInventory2Tbl">
                         <thead>

@@ -329,3 +329,4 @@ Stack trace:
 #1 {main}
   thrown in C:\xampp\htdocs\11-Nevada-CAP2\dashboard-inventory.php on line 296
 [08-Mar-2025 16:22:54 Europe/Berlin] 📌 Exception Report Rows Fetched: 15
+[09-Mar-2025 15:44:09 Europe/Berlin] 📌 Exception Report Rows Fetched: 10

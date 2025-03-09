@@ -441,7 +441,7 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
     </div>
             <div class="user-badge">
                 <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
-                <span class="user-role">Branch Manager</span>
+                <span class="user-role">Administrator</span>
             </div>
         </header>
 
