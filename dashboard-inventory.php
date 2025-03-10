@@ -335,6 +335,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
     // ------------------------------
     // Low Turnover Items Query
     // ------------------------------
+    $startDate = $_POST["startDate"] ?? date("Y-m-d", strtotime("monday this week"));
+    $endDate = $_POST["endDate"] ?? date("Y-m-d", strtotime("sunday this week"));
     $lowTurnoverQuery = "SELECT i.item_name, 
                 (SUM(ii.sold) / NULLIF(SUM(ii.beginning + ii.delivery - ii.waste), 0)) AS turnover_rate 
                 FROM item_inventory ii 
@@ -402,6 +404,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
                       WHERE ii.branch IN ($placeholders)
                       AND DATE(ii.datetime_added) BETWEEN ? AND ?
                       AND (ii.beginning + ii.delivery - ii.sold - ii.waste) < 15
+                      AND (ii.beginning + ii.delivery - ii.sold - ii.waste) >= 0
                       ORDER BY current_stock ASC";
     $stmtLowStock = $con->prepare($lowStockQuery);
     if (!$stmtLowStock) {
