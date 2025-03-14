@@ -642,7 +642,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['branches'])) {
                         <canvas id="lowTurnoverChart"></canvas>
                     </div>
                     <div class="chart-box">
-                        <h2>Sell Through Chart</h2>
+                        <h2>Inventory Usage Chart</h2>
                         <canvas id="sellThroughChart"></canvas>
                     </div>
                 </div>
