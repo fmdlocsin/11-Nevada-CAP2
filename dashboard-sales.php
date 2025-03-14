@@ -553,7 +553,7 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                                             <div id="bestSellingLegend" class="chart-legend"></div> <!-- ✅ Legend Added -->
                                         </div>
                                         <div class="chart-box small-chart">
-                                            <h2>Top 5 Worst-Selling Products</h2>
+                                            <h2>Top 5 Least-Selling Products</h2>
                                             <canvas id="worstSellingChart"></canvas>
                                             <div id="worstSellingLegend" class="chart-legend"></div> <!-- ✅ Legend Added -->
                                         </div>
