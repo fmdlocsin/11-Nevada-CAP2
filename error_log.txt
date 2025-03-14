@@ -350,3 +350,7 @@ Stack trace:
 [09-Mar-2025 15:46:55 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
 [09-Mar-2025 15:49:13 Europe/Berlin] 📌 Exception Report Rows Fetched: 18
 [09-Mar-2025 15:44:09 Europe/Berlin] 📌 Exception Report Rows Fetched: 10
+[10-Mar-2025 11:17:39 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[10-Mar-2025 11:18:02 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[10-Mar-2025 11:18:22 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
+[11-Mar-2025 13:33:42 Europe/Berlin] 📌 Exception Report Rows Fetched: 33
