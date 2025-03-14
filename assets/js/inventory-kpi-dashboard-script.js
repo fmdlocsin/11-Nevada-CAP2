@@ -237,7 +237,7 @@ function updateSellThroughGraph(sellThroughRate) {
 
     let datasets = [];
     let branchColors = [
-        "rgba(54, 162, 235, 0.8)",  // Soft Blue
+        "rgba(56, 162, 233, 0.8)",  // Soft Blue 
         "rgba(255, 99, 132, 0.8)",  // Soft Red
         "rgba(75, 192, 192, 0.8)",  // Teal Green
         "rgba(255, 159, 64, 0.8)",  // Warm Orange
@@ -258,7 +258,7 @@ function updateSellThroughGraph(sellThroughRate) {
 
     Object.keys(branchData).forEach(branch => {
         datasets.push({
-            label: `${branch} Sell-Through Rate (%)`,
+            label: `${branch} Inventory Usage Rate (%)`,
             data: branchData[branch].values,
             borderColor: branchColors[branchIndex % branchColors.length],
             backgroundColor: branchColors[branchIndex % branchColors.length].replace("0.8", "0.3"), // Soft fill
@@ -342,7 +342,7 @@ function updateLowStockChart(lowStockData) {
     // ✅ Assign unique colors per branch dynamically
     let uniqueBranches = [...new Set(lowStockData.branches)];
     let branchColors = {};
-    let availableColors = ["red", "blue", "green", "orange", "purple", "brown", "cyan", "magenta"];
+    let availableColors = ["rgba(91, 174, 183, 1)", "rgba(30, 128, 193, 1)", "rgba(65, 76, 107, 1)", "orange", "purple", "brown", "cyan", "magenta"];
     
     uniqueBranches.forEach((branch, index) => {
         branchColors[branch] = availableColors[index % availableColors.length]; // Cycle colors if more branches
@@ -412,7 +412,7 @@ function updateGraphs(highTurnover, lowTurnover) {
             datasets: [{
                 label: "High Turnover Rate",
                 data: highTurnover.values,
-                backgroundColor: "green"
+                backgroundColor: "rgba(91, 174, 183, 1)"
             }]
         },
         options: {
@@ -432,7 +432,7 @@ function updateGraphs(highTurnover, lowTurnover) {
             datasets: [{
                 label: "Low Turnover Rate",
                 data: lowTurnover.values,
-                backgroundColor: "red"
+                backgroundColor: "rgba(30, 128, 193, 1)"
             }]
         },
         options: {
@@ -728,7 +728,7 @@ function fetchReport(reportType, selectedFranchisees, selectedBranches, startDat
                                 <thead class="table-dark">
                                     <tr>
                                         <th>Item Name</th>
-                                        <th>Sell-Through Rate</th>
+                                        <th>Inventory Usage Rate</th>
                                         <th>Days Until Stockout</th>
                                         <th>Average Sales</th>
                                         <th>Stock Waste</th>
@@ -862,7 +862,7 @@ function fetchMonthlyReport(reportType, selectedFranchisees, selectedBranches, s
                                 <thead class="table-dark">
                                     <tr>
                                         <th>Item Name</th>
-                                        <th>Sell-Through Rate</th>
+                                        <th>Inventory Usage Rate</th>
                                         <th>Days Until Stockout</th>
                                         <th>Average Sales</th>
                                         <th>Stock Waste</th>
