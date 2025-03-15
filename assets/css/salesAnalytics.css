@@ -221,42 +221,6 @@ h2 {
 }
 
 
-/* Right Chart Container (Holds Pie + Stacked Bar Charts) */
-.right-chart-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    flex: 1;
-}
-
-/* Stacked Bar Charts (Best-Selling & Worst-Selling Products) */
-.stacked-bar-charts {
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Space between stacked bar charts */
-    align-items: center;
-}
-
-/* Stacked Bar Charts (Best-Selling & Worst-Selling) */
-.bar-charts-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Space between stacked bar charts */
-}
-
-/* Smaller Bar Charts */
-.small-chart {
-    width: 100%;
-    max-width: 350px;
-}
-
-
-/* Franchise & Branch Sales Pie Chart */
-#franchiseBranchChartContainer {
-    max-width: 500px; /* Adjusted width */
-    padding: 10px;
-}
-
 /* Canvas Size Reduction */
 .chart-box canvas {
     width: 100% !important;
@@ -302,30 +266,6 @@ h2 {
         max-width: 100%;
     }
 }
-/* Main Charts Container */
-.charts-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    max-width: 1700px;
-    margin: auto;
-    margin-top: 15px;
-    /* padding: 20px; */
-}
-
-.chart-box-yearly {
-    flex: 1;
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 500px; /* Reduced size */
-    width: 100%;
-    margin-bottom: 15px;
-}
 
 /* Left Section (Franchise Sales Chart) */
 .chart-box {
@@ -354,21 +294,6 @@ h2 {
 #franchiseBranchChartContainer {
     max-width: 500px;
     padding: 10px;
-}
-
-/* Bar Charts Container: Stacked Beside Pie Chart */
-.bar-charts-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* Space between stacked bar charts */
-    width: 100%;
-    max-width: 500px; /* Adjust width to fit in the right side */
-}
-
-/* Smaller Bar Charts */
-.small-chart {
-    width: 100%;
-    max-width: 300px; /* Adjust width to ensure it fits */
 }
 
 /* Pie Chart & Bar Chart Canvas */
@@ -429,16 +354,6 @@ h2 {
 #franchiseCheckboxesBar input[type="checkbox"] {
     transform: scale(1.2);
     margin-right: 9px;
-}
-
-
-/* Ensure charts remain centered and stacked */
-.bar-charts-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
 }
 
 
@@ -792,6 +707,84 @@ h2 {
     font-weight: 400;
     color: #495057; /* Muted dark gray */
     opacity: 0.9;
+}
+
+.charts-container {
+    /* If you still want some top spacing, keep margin-top, 
+       but remove the separate max-width and margin: auto */
+    /* max-width: 1700px;  <-- remove */
+    /* margin: auto;       <-- remove */
+    margin-top: 15px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    max-width: none !important;
+  width: 100% !important;
+}
+
+
+/* First row: Yearly Sales Trend & Sales Performance per Franchise */
+.chart-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 1500px;
+}
+
+.chart-box-yearly, .chart-box-franchise {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center !important;
+    width: 100%;
+    max-width: none;
+}
+
+
+/* Second row: Sales Performance by Franchise & Branch */
+.chart-row-center {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 1500px;
+}
+
+.chart-box-branch {
+    width: 100%;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Third row: Best and Worst Selling Products */
+.bar-charts-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 1500px;
+}
+
+.small-chart {
+    flex: 1;
+    max-width: 350px;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 

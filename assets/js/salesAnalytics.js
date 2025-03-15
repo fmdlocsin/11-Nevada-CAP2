@@ -357,7 +357,8 @@ function updateBestSellingChart(bestSellingData) {
         return;
     }
 
-    let productNames = bestSellingData.map(item => item.product);
+    let productNames = bestSellingData.map((item, index) => (index + 1).toString()); // Use ranking numbers instead of names
+
     let productSales = bestSellingData.map(item => item.sales);
 
     // Assign different shades per franchise
@@ -389,6 +390,19 @@ function updateBestSellingChart(bestSellingData) {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            let index = tooltipItems[0].dataIndex;
+                            return `#${index + 1}: ${bestSellingData[index].product}`; // Show full product name
+                        },
+                        label: function(tooltipItem) {
+                            let index = tooltipItem.dataIndex;
+                            let sales = tooltipItem.raw.toLocaleString();
+                            return `Sales: ${sales}`;
+                        }
+                    }
+                },
                 datalabels: {
                     color: "black",
                     font: { size: 12, weight: "bold" },
@@ -400,9 +414,7 @@ function updateBestSellingChart(bestSellingData) {
             scales: {
                 x: {
                     ticks: {
-                        autoSkip: false,
-                        maxRotation: 0,
-                        minRotation: 0
+                        font: { size: 14 }
                     }
                 },
                 y: {
@@ -411,21 +423,22 @@ function updateBestSellingChart(bestSellingData) {
                 }
             }
         },
+        
         plugins: [ChartDataLabels]
     });
 
-    // 🏆 Update Legend
-    let legendContainer = document.getElementById("bestSellingLegend");
-    legendContainer.innerHTML = ""; // Clear previous legend
+  // 🏆 Update Legend
+let legendContainer = document.getElementById("bestSellingLegend");
+legendContainer.innerHTML = ""; // Clear previous legend
 
-    bestSellingData.forEach((item, index) => {
-        let legendItem = document.createElement("div");
-        legendItem.innerHTML = `
-            <span style="background-color: ${productColors[index]}; width: 15px; height: 15px; display: inline-block; margin-right: 8px; border-radius: 3px;"></span> 
-            <strong>${item.product}</strong> - ${item.franchise} (${item.location})
-        `;
-        legendContainer.appendChild(legendItem);
-    });
+bestSellingData.forEach((item, index) => {
+    let legendItem = document.createElement("div");
+    legendItem.innerHTML = `
+        <span style="background-color: ${productColors[index]}; width: 15px; height: 15px; display: inline-block; margin-right: 8px; border-radius: 3px;"></span> 
+        <strong>#${index + 1}: ${item.product}</strong> - ${item.franchise} (${item.location})
+    `;
+    legendContainer.appendChild(legendItem);
+});
 }
 
 
@@ -438,7 +451,7 @@ function updateWorstSellingChart(worstSellingData) {
         return;
     }
 
-    let productNames = worstSellingData.map(item => item.product);
+    let productNames = worstSellingData.map((item, index) => (index + 1).toString());
     let productSales = worstSellingData.map(item => item.sales);
 
     // Assign different shades per franchise
@@ -470,6 +483,20 @@ function updateWorstSellingChart(worstSellingData) {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: false },
+                 // Add this tooltip block
+                tooltip: {
+                    callbacks: {
+                    title: function(tooltipItems) {
+                        let index = tooltipItems[0].dataIndex;
+                        return `#${index + 1}: ${worstSellingData[index].product}`; 
+                    },
+                    label: function(tooltipItem) {
+                        let index = tooltipItem.dataIndex;
+                        let sales = tooltipItem.raw.toLocaleString();
+                        return `Sales: ${sales}`;
+                    }
+                    }
+                },
                 datalabels: {
                     color: "black",
                     font: { size: 12, weight: "bold" },
@@ -502,9 +529,9 @@ function updateWorstSellingChart(worstSellingData) {
     worstSellingData.forEach((item, index) => {
         let legendItem = document.createElement("div");
         legendItem.innerHTML = `
-            <span style="background-color: ${productColors[index]}; width: 15px; height: 15px; display: inline-block; margin-right: 8px; border-radius: 3px;"></span> 
-            <strong>${item.product}</strong> - ${item.franchise} (${item.location})
-        `;
+        <span style="background-color: ${productColors[index]}; width: 15px; height: 15px; display: inline-block; margin-right: 8px; border-radius: 3px;"></span> 
+        <strong>#${index + 1}: ${item.product}</strong> - ${item.franchise} (${item.location})
+      `;
         legendContainer.appendChild(legendItem);
     });
 }
@@ -991,7 +1018,6 @@ function setActiveReportButton(type) {
 
 
 // EXPORT CSV
-// EXPORT CSV
 function exportTableToCSV() {
     let csvLines = [];
   
@@ -1419,13 +1445,6 @@ function exportTableToPDF() {
     };
   }
   
-  
-  
-  
-
-  
-  
-  
 
 // SET DEFAULT DATE TO JANUARY 1ST 2025
 document.addEventListener("DOMContentLoaded", function () {
@@ -1460,25 +1479,30 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function updateYearlySalesChart(data) {
     let yearlySalesData = data.yearlySalesTrend;
-
-    console.log("📊 Debugging Yearly Sales Data:", yearlySalesData); // ✅ Debugging Output
-
     if (!yearlySalesData || yearlySalesData.length === 0) {
         console.warn("⚠️ No yearly sales data available.");
         return;
     }
 
+    // Extract labels & values
     let years = yearlySalesData.map(entry => entry.year);
     let sales = yearlySalesData.map(entry => entry.sales);
 
-    let ctx = document.getElementById("yearlySalesChart").getContext("2d");
+    // Prepare the chart context
+    let canvas = document.getElementById("yearlySalesChart");
+    let ctx = canvas.getContext("2d");
 
-    // ✅ Destroy previous instance if it exists
+    // Destroy old chart instance if it exists
     if (window.yearlySalesChart && typeof window.yearlySalesChart.destroy === "function") {
         window.yearlySalesChart.destroy();
     }
 
-    // ✅ Initialize the new chart
+    // Create a nice gradient for the line fill
+    let gradientFill = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+    gradientFill.addColorStop(0, "rgba(0, 123, 255, 0.4)"); // Start color
+    gradientFill.addColorStop(1, "rgba(0, 123, 255, 0)");   // Fade to transparent
+
+    // Create the new chart
     window.yearlySalesChart = new Chart(ctx, {
         type: "line",
         data: {
@@ -1486,25 +1510,38 @@ function updateYearlySalesChart(data) {
             datasets: [{
                 label: "Total Sales Per Year",
                 data: sales,
-                backgroundColor: "rgba(54, 162, 235, 0.2)", // Light blue background fill
-                borderColor: "#007BFF", // Blue line color
-                borderWidth: 2, // Thicker line
-                tension: 0.3, // Smooth curves
-                pointRadius: 6, // Bigger data points
-                pointBackgroundColor: "#007BFF", // Point color
+                // Use the gradient fill
+                backgroundColor: gradientFill,
+                fill: true,
+                borderColor: "#007BFF",  // Line color
+                borderWidth: 3,          // Thicker line
+                tension: 0.3,            // Smooth curves
+                pointRadius: 5,          // Data point size
+                pointBackgroundColor: "#007BFF",
                 pointBorderColor: "#fff",
-                pointHoverRadius: 8 // Increase on hover
+                pointHoverRadius: 7      // Bigger on hover
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            // Keeps a certain ratio between width & height
+            maintainAspectRatio: true,
+            aspectRatio: 1,  // Adjust as you like (bigger = wider)
             scales: {
                 x: {
+                    // Soft grid lines
                     grid: {
-                        display: false // Hide vertical grid lines
+                        color: "rgba(0,0,0,0.05)",
+                        // If you want no vertical lines:
+                        // display: false
+                    },
+                    // Axis border
+                    border: {
+                        display: true,
+                        color: "rgba(0,0,0,0.2)"
                     },
                     ticks: {
+                        color: "#333",
                         font: {
                             size: 14,
                             weight: "bold"
@@ -1514,14 +1551,19 @@ function updateYearlySalesChart(data) {
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: "rgba(0, 0, 0, 0.1)" // Light grid lines
+                        color: "rgba(0,0,0,0.05)"
+                    },
+                    border: {
+                        display: true,
+                        color: "rgba(0,0,0,0.2)"
                     },
                     ticks: {
+                        color: "#333",
                         font: {
                             size: 12
                         },
                         callback: function(value) {
-                            return "₱" + value.toLocaleString(); // Format with currency
+                            return "₱" + value.toLocaleString();
                         }
                     }
                 }
@@ -1531,6 +1573,7 @@ function updateYearlySalesChart(data) {
                     display: true,
                     position: "top",
                     labels: {
+                        color: "#333",
                         font: {
                             size: 14,
                             weight: "bold"
