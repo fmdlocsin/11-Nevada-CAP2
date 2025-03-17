@@ -446,7 +446,7 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
         </header>
 
 
-    <div class="content" id="content-area">
+        <div class="content" id="content-area">
         <div class="container">
             <div class="dash-content">
                 <div class="overview">
@@ -535,54 +535,50 @@ if (isset($_GET['json']) && $_GET['json'] == "true") {
                             </div>
                         </div> -->
 
-                        <!-- NEW: Charts are now placed BELOW the summary boxes -->
                         <div class="charts-container">
-                            <!-- Left Column for Franchise Sales and Yearly Sales Trend -->
-                            <div class="charts-column">
-                                <!-- Yearly Sales Trend Chart -->
-                                <div class="chart-box-yearly">
-                                        <h2>Yearly Sales Trend</h2>
-                                        <div class="chart-container">
-                                            <canvas id="yearlySalesChart"></canvas>
-                                        </div>
+  
+                                <!-- First Row: Yearly Sales Trend + Sales Performance per Franchise -->
+                                <div class="chart-row">
+                                    <div class="chart-box-yearly">
+                                    <h2>Yearly Sales Trend</h2>
+                                    <div class="chart-container">
+                                        <canvas id="yearlySalesChart"></canvas>
                                     </div>
-                                    
-                                    <!-- Franchise Sales Chart -->
-                                    <div class="chart-box">
-                                        <h2>Sales Performance per Franchise</h2>
-                                        <div class="chart-container">
-                                            <canvas id="franchiseSalesChart"></canvas>
-                                        </div>
-                                        <div id="franchiseLegend" class="chart-legend"></div>
+                                    </div>
+                                    <div class="chart-box-franchise">
+                                    <h2>Sales Performance per Franchise</h2>
+                                    <div class="chart-container">
+                                        <canvas id="franchiseSalesChart"></canvas>
+                                    </div>
+                                    <div id="franchiseLegend" class="chart-legend"></div>
                                     </div>
                                 </div>
-
-                            <!-- Right Section: Franchise & Branch Sales + Best/Worst Selling Charts -->
-                            <div class="right-content">
-                                <div class="chart-box" id="franchiseBranchChartContainer">
+                                
+                                <!-- Second Row: Centered Sales Performance by Franchise & Branch -->
+                                <div class="chart-row-center">
+                                    <div class="chart-box-branch">
                                     <h2>Sales Performance by Franchise & Branch</h2>
                                     <div id="franchiseCheckboxes"></div>
                                     <canvas id="franchiseBranchChart"></canvas>
                                     <div id="branchLegend" class="chart-legend"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Third Row: Top 5 Best-Selling + Top 5 Least-Selling Side by Side -->
+                                <div class="bar-charts-container">
+                                    <div class="chart-box small-chart">
+                                    <h2>Top 5 Best-Selling Products</h2>
+                                    <canvas id="bestSellingChart"></canvas>
+                                    <div id="bestSellingLegend" class="chart-legend"></div>
+                                    </div>
+                                    <div class="chart-box small-chart">
+                                    <h2>Top 5 Least-Selling Products</h2>
+                                    <canvas id="worstSellingChart"></canvas>
+                                    <div id="worstSellingLegend" class="chart-legend"></div>
+                                    </div>
                                 </div>
 
-                                <!-- Bar Charts & Checkboxes Container -->
-                                <div class="bar-charts-wrapper">
-
-                                    <!-- Bar Charts Container -->
-                                    <div class="bar-charts-container">
-                                        <div class="chart-box small-chart">
-                                            <h2>Top 5 Best-Selling Products</h2>
-                                            <canvas id="bestSellingChart"></canvas>
-                                            <div id="bestSellingLegend" class="chart-legend"></div> <!-- ✅ Legend Added -->
-                                        </div>
-                                        <div class="chart-box small-chart">
-                                            <h2>Top 5 Worst-Selling Products</h2>
-                                            <canvas id="worstSellingChart"></canvas>
-                                            <div id="worstSellingLegend" class="chart-legend"></div> <!-- ✅ Legend Added -->
-                                        </div>
-                                    </div>
-                                
+                                </div>
 
                                 <!-- Report Modal -->
                                 <div id="reportModal" class="modal fade" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
