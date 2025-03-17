@@ -44,8 +44,8 @@
     width: 98%;
     margin: 50px auto;
     display: flex;
-    justify-content: center; /* Centers horizontally */
-    align-items: center; /* Centers vertically */
+    justify-content: center;
+    align-items: center;
 }
 
 .dash-content {
@@ -75,30 +75,41 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    align-items: flex-start; /* Align at the top but let groups expand */
+    align-items: flex-start;
 }
 
-
 .box-group {
+    flex: 0 0 calc(25% - 20px);  /* do not grow or shrink; enforce width */
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: calc(25% - 20px); /* Keep the four-per-row layout */
     background-color: var(--box-group-background);
+    box-shadow: rgba(0, 0, 0, 0.2) -4px 4px, 
+                rgba(0, 0, 0, 0.15) -8px 8px, 
+                rgba(0, 0, 0, 0.1) -12px 12px;
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
-    height: auto; /* Let height be determined by content */
-    min-height: fit-content; /* Ensures no unnecessary extra space */
-}
-
+    height: auto;
+    min-height: fit-content;
+  }
+  
+  /* Remove the old `width: 100%` if you had it */
+  .box-group > .card__content > .box {
+    min-width: 260px;
+    width: auto;
+    margin: 30 auto;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  }
+  
+  
 
 .box-group-title {
     font-size: 20px;
     font-weight: 600;
     color: var(--text-color);
     margin-bottom: 10px;
-    text-align: center; /* Center the title */
+    text-align: center;
 }
 
 .box {
@@ -108,7 +119,7 @@
     justify-content: center;
     background-color: var(--box-color);
     border-radius: 8px;
-    box-shadow: 0 5px 10px var(--box-shadow-color);
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
     padding: 20px;
     margin-bottom: 20px;
     width: 100%;
@@ -122,19 +133,40 @@
     color: white;
 }
 
+.box1 {
+    background-color: rgba(73, 213, 252, 0.7);
+  }
+
+.box2 {
+    background-color: rgba(73, 252, 171, 0.7);
+}
+
+.box4 {
+    background-color: rgba(252, 73, 73, 0.5);
+}
+
+.box5 {
+    color: var(--background-color);
+    background-color: #4474c0; /* Example: Moccasin */
+}
+
+.box6 {
+    color: var(--background-color);
+    background-color: rgba(255, 177, 68, 0.8);
+}
+
 .box i {
     font-size: 36px;
     margin-bottom: 10px;
 }
 
 .box .text {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
-    text-align: center; /* Center the text */
+    text-align: center;
 }
 
-
-/* Adjusts spacing for the "Add Sales" title */
+/* Sub-title styling */
 .sub-title {
     font-size: 16px;
     font-weight: 600;
@@ -144,76 +176,55 @@
     text-align: center;
 }
 
-
-/* Ensure the three sales boxes align properly */
 .box-row {
     display: flex;
-    justify-content: center; /* Centers items */
-    gap: 10px; /* Adjust spacing between boxes */
+    justify-content: center;
+    gap: 10px;
     width: 100%;
 }
 
-/* Reduce box size inside box-row */
 .box-row .box {
-    width: 50%; /* Make them smaller */
-    padding: 12px; /* Reduce padding */
-    font-size: 14px; /* Reduce text size */
+    width: 50%;
+    padding: 12px;
+    font-size: 14px;
 }
 
-/* Reduce text size inside the smaller boxes */
 .box-row .box .text {
-    font-size: 14px; /* Adjust this size as needed */
-    font-weight: 500; /* Optional: Make it less bold */
+    font-size: 12px;
+    font-weight: 500;
 }
 
-
-/* Adjust icon size inside the smaller boxes */
 .box-row .box i {
-    font-size: 24px; /* Reduce icon size */
+    font-size: 24px;
 }
 
-
-
-
-.greeting h2 {
-    /* text-align: center; */
-    margin-bottom: 20px;
-    font-size: 25px;
-    color: #333;
-}
-
-.greeting h2 strong {
-    font-weight: bold;
-    color: var(--header-color); /* Optional: Change color for the bold text */
-}
-
+/* User badge styling */
 .user-badge {
     display: flex;
     flex-direction: column;
-    background-color: #dee2e6; /* Light gray background */
-    color: #343a40; /* Dark gray text for contrast */
+    background-color: #dee2e6;
+    color: #343a40;
     padding: 5px 24px;
-    border-radius: 10px; /* Softer rounded corners */
+    border-radius: 10px;
     font-weight: 600;
     text-align: center;
-    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1); /* Softer shadow */
-    margin-right: 25px; /* More spacing from the right */
+    box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
+    margin-right: 25px;
     transition: all 0.3s ease-in-out;
 }
 
 .user-name {
     font-size: 18px;
     font-weight: bold;
-    color: #212529; /* Slightly darker for readability */
+    color: #212529;
 }
 
 .user-role {
     font-size: 14px;
     font-weight: 400;
-    color: #495057; /* Muted dark gray */
+    color: #495057;
     opacity: 0.9;
 }
-
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
@@ -221,3 +232,55 @@
         width: 100%;
     }
 }
+
+/* Card design integration within the existing sizing */
+
+/* Make the card positioned so .tools can be placed absolutely */
+.card {
+    background-color: #F8FBFE;
+    border-radius: 8px;
+    z-index: 1;
+    position: relative; /* key for absolute positioning inside */
+  }
+  
+  /* Absolutely position the tools in the top-right */
+  .card .tools {
+    position: absolute;
+    top: 5px;     /* adjust as needed */
+    right: 5px;   /* adjust as needed */
+    display: flex;
+    align-items: center;
+    margin-bottom: 0;  /* remove bottom margin so it doesn't push content */
+    padding: 0;        /* remove default padding if you like */
+  }
+  
+  /* .circle just provides spacing around the small dots */
+  .circle {
+    padding: 0 4px;  /* or 0 2px, if you want them closer together */
+  }
+  
+  /* Dot styling remains the same */
+  .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  
+  .red {
+    background-color: #ff605c;
+  }
+  .yellow {
+    background-color: #ffbd44;
+  }
+  .green {
+    background-color: #00ca4e;
+  }
+  
+  .card__content {
+    /* Increase only top padding so the content (including your title) sits lower */
+    padding: 30px 10px 10px 10px; 
+    /* top: 30px; right/left/bottom: 10px each, adjust as needed */
+  }
+  
+  

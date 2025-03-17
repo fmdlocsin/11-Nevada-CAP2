@@ -104,128 +104,168 @@ $username = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Guest";
 
     <section class="home">
     <header class="contractheader d-flex align-items-center justify-content-between">
-    <div class="container-header">
-        <h1 class="title">Dashboard</h1>
-    </div>
-            <div class="user-badge">
-                <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
-                <span class="user-role">Administrator</span>
-            </div>
-        </header>
-        
+        <div class="container-header">
+            <h1 class="title">Dashboard</h1>
+        </div>
+        <div class="user-badge">
+            <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
+            <span class="user-role">Administrator</span>
+        </div>
+    </header>
 
-        <div class="content" id="content-area">
-            <div class="container">
-                <div class="dash-content">
-                    <div class="overview">
+    <div class="content" id="content-area">
+        <div class="container">
+        <div class="dash-content">
+            <div class="overview">
+            <div class="boxes-container">
 
-                    <!-- <div class="greeting">
-                    <h2>Hi, <strong>Administrator</strong>!</h2>
-                    </div> -->
-
-                        <div class="boxes-container">
-                            
-                            <div class="box-group">
-                                <h3 class="box-group-title">Franchising Agreement</h3>
-                                <a href="admin-dashboard-brian.php" class="box box1">
-                                    <i class='bx bx-chart'></i>
-                                    <span class="text">Analytics</span>
-                                </a>
-                                <a href="pages/contract/franchiseeAgreement" class="box box1">
-                                    <i class='bx bx-folder-open'></i>
-                                    <span class="text">View Contracts</span>
-                                </a>
-
-                                <h4 class="sub-title">Add Contract</h4>
-                                
-                                <div class="box-row">
-                                    <a href="pages/contract/newDocumentFranchise" class="box box2">
-                                        <i class='bx bx-store-alt'></i>
-                                        <span class="text">Agreement Contract</span>
-                                    </a>
-                                    <a href="pages/contract/newDocumentLeasing" class="box box3">
-                                        <i class='bx bx-building-house'></i>
-                                        <span class="text">Leasing Contract</span>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="box-group">
-                                <h3 class="box-group-title">Sales Performance</h3>
-                                
-                                <!-- analytics -->
-                                <a href="admin-dashboard-julia.php" class="box box1">
-                                    <i class='bx bx-pie-chart'></i>
-                                    <span class="text">Analytics</span>
-                                </a>
-
-                                <!-- View Sales -->
-                                <a href="pages/salesPerformance/sales" class="box box4">
-                                    <i class='bx bx-bar-chart'></i>
-                                    <span class="text">View Sales</span>
-                                </a>
-
-                                <!-- Add Sales Title -->
-                                <h4 class="sub-title">Add Sales</h4>
-
-                                <!-- Add Sales: Dine-in, Takeout, Delivery -->
-                                <div class="box-row">
-                                    <a href="pages/salesPerformance/chooseFranchisee.php?tp=DineIn" class="box box5">
-                                        <i class='bx bx-restaurant'></i>
-                                        <span class="text">Dine-in</span>
-                                    </a>
-                                    <a href="pages/salesPerformance/chooseFranchisee.php?tp=TakeOut" class="box box6">
-                                        <i class='bx bx-shopping-bag'></i>
-                                        <span class="text">Takeout</span>
-                                    </a>
-                                    <a href="pages/salesPerformance/chooseFranchisee.php?tp=Delivery" class="box box7">
-                                        <i class='bx bx-car'></i>
-                                        <span class="text">Delivery</span>
-                                    </a>
-                                </div>
-
-                                <!-- View Expenses -->
-                                <a href="pages/salesPerformance/totalExpenses" class="box box5">
-                                    <i class='bx bx-money'></i>
-                                    <span class="text">View Expenses</span>
-                                </a>
-                            </div>
-
-                            <div class="box-group">
-                                <h3 class="box-group-title">Inventory</h3>
-
-                                <!-- analytics -->
-                                <a href="admin-dashboard-matthew.php" class="box box1">
-                                    <i class='bx bx-bar-chart-square'></i>
-                                    <span class="text">Analytics</span>
-                                </a>
-
-                                <a href="pages/inventory/inventory2" class="box box7">
-                                    <i class='bx bx-spreadsheet'></i>
-                                    <span class="text">View Inventory</span>
-                                </a>
-                            </div>
-
-                            <div class="box-group">
-                                <h3 class="box-group-title">Manpower Deployment</h3>
-                                <a href="pages/manpower/manpower_dashboard" class="box box5">
-                                    <i class='bx bx-street-view'></i>
-                                    <span class="text">Dashboard</span>
-                                </a>
-                                <a href="pages/manpower/totalEmployees" class="box box6">
-                                    <i class='bx bx-body'></i>
-                                    <span class="text">Employees</span>
-                                </a>
-                                <a href="pages/manpower/unassignedEmployees2" class="box box6">
-                                    <i class='bx bx-user-minus'></i>
-                                    <span class="text">Unassigned Employees</span>
-                                </a>
-                            </div>
-                        </div>
+                <!-- Franchising Agreement box-group with card tools integrated -->
+                <div class="box-group card">
+                <div class="tools">
+                    <!-- Tools placed at top-right -->
+                    <div class="circle">
+                        <span class="dot red"></span>
+                    </div>
+                    <div class="circle">
+                        <span class="dot yellow"></span>
+                    </div>
+                    <div class="circle">
+                        <span class="dot green"></span>
                     </div>
                 </div>
-            </div>
-        </div>
+                <div class="card__content">
+                    <h3 class="box-group-title">Franchising Agreement</h3>
+                    <a href="admin-dashboard-brian.php" class="box box1">
+                        <i class='bx bx-chart'></i>
+                        <span class="text">Analytics</span>
+                    </a>
+                    <a href="pages/contract/franchiseeAgreement" class="box box5">
+                        <i class='bx bx-folder-open'></i>
+                        <span class="text">View Contracts</span>
+                    </a>
+                    <h4 class="sub-title">Add Contract</h4>
+                    <div class="box-row">
+                        <a href="pages/contract/newDocumentFranchise" class="box box3">
+                            <i class='bx bx-store-alt'></i>
+                            <span class="text">Agreement Contract</span>
+                        </a>
+                        <a href="pages/contract/newDocumentLeasing" class="box box3">
+                            <i class='bx bx-building-house'></i>
+                            <span class="text">Leasing Contract</span>
+                        </a>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Sales Performance box-group with card tools integrated -->
+                <div class="box-group card">
+                <div class="tools">
+                    <div class="circle">
+                        <span class="dot red"></span>
+                    </div>
+                    <div class="circle">
+                        <span class="dot yellow"></span>
+                    </div>
+                    <div class="circle">
+                        <span class="dot green"></span>
+                    </div>
+                </div>
+                <div class="card__content">
+                    <h3 class="box-group-title">Sales Performance</h3>
+                    <a href="admin-dashboard-julia.php" class="box box2">
+                        <i class='bx bx-pie-chart'></i>
+                        <span class="text">Analytics</span>
+                    </a>
+                    <a href="pages/salesPerformance/sales" class="box box5">
+                        <i class='bx bx-bar-chart'></i>
+                        <span class="text">View Sales</span>
+                    </a>
+                    <h4 class="sub-title">Add Sales</h4>
+                    <div class="box-row">
+                        <a href="pages/salesPerformance/chooseFranchisee.php?tp=DineIn" class="box box3">
+                            <i class='bx bx-restaurant'></i>
+                            <span class="text">Dine-in</span>
+                        </a>
+                        <a href="pages/salesPerformance/chooseFranchisee.php?tp=TakeOut" class="box box3">
+                            <i class='bx bx-shopping-bag'></i>
+                            <span class="text">Takeout</span>
+                        </a>
+                        <a href="pages/salesPerformance/chooseFranchisee.php?tp=Delivery" class="box box3">
+                            <i class='bx bx-car'></i>
+                            <span class="text">Delivery</span>
+                        </a>
+                    </div>
+                    <a href="pages/salesPerformance/totalExpenses" class="box box6">
+                        <i class='bx bx-money'></i>
+                        <span class="text">View Expenses</span>
+                    </a>
+                </div>
+                </div>
+
+                <!-- Inventory box-group with card tools integrated -->
+                <div class="box-group card">
+                <div class="tools">
+                    <div class="circle">
+                        <span class="dot red"></span>
+                    </div>
+                    <div class="circle">
+                        <span class="dot yellow"></span>
+                    </div>
+                    <div class="circle">
+                        <span class="dot green"></span>
+                    </div>
+                </div>
+                <div class="card__content">
+                    <h3 class="box-group-title">Inventory</h3>
+                    <a href="admin-dashboard-matthew.php" class="box box4">
+                        <i class='bx bx-bar-chart-square'></i>
+                        <span class="text">Analytics</span>
+                    </a>
+                    <a href="pages/inventory/inventory2" class="box box5">
+                        <i class='bx bx-spreadsheet'></i>
+                        <span class="text">View Inventory</span>
+                    </a>
+                </div>
+                </div>
+
+                <!-- Manpower Deployment box-group with card tools integrated -->
+                <div class="box-group card">
+                <div class="tools">
+                    <div class="circle">
+                        <span class="dot red"></span>
+                    </div>
+                    <div class="circle">
+                        <span class="dot yellow"></span>
+                    </div>
+                    <div class="circle">
+                        <span class="dot green"></span>
+                    </div>
+                </div>
+                <div class="card__content">
+                    <h3 class="box-group-title">Manpower Deployment</h3>
+                    <a href="pages/manpower/manpower_dashboard" class="box box3">
+                        <i class='bx bx-street-view'></i>
+                        <span class="text">Dashboard</span>
+                    </a>
+                    <a href="pages/manpower/totalEmployees" class="box box6">
+                        <i class='bx bx-body'></i>
+                        <span class="text">Employees</span>
+                    </a>
+                    <a href="pages/manpower/unassignedEmployees2" class="box box6">
+                        <i class='bx bx-user-minus'></i>
+                        <span class="text">Unassigned Employees</span>
+                    </a>
+                </div>
+                </div>
+            </div> <!-- .boxes-container -->
+            </div> <!-- .overview -->
+        </div> <!-- .dash-content -->
+        </div> <!-- .container -->
+    </div> <!-- .content -->
     </section>
+
+
+
 
     <!-- JS -->
     <script src="https://code.jquery.com/jquery-3.7.1.js"
