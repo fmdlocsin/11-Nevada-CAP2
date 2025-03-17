@@ -145,11 +145,11 @@ $username = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Guest";
                     </a>
                     <h4 class="sub-title">Add Contract</h4>
                     <div class="box-row">
-                        <a href="pages/contract/newDocumentFranchise" class="box box3">
+                        <a href="pages/contract/newDocumentFranchise" class="box box7">
                             <i class='bx bx-store-alt'></i>
                             <span class="text">Agreement Contract</span>
                         </a>
-                        <a href="pages/contract/newDocumentLeasing" class="box box3">
+                        <a href="pages/contract/newDocumentLeasing" class="box box7">
                             <i class='bx bx-building-house'></i>
                             <span class="text">Leasing Contract</span>
                         </a>
@@ -182,20 +182,20 @@ $username = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Guest";
                     </a>
                     <h4 class="sub-title">Add Sales</h4>
                     <div class="box-row">
-                        <a href="pages/salesPerformance/chooseFranchisee.php?tp=DineIn" class="box box3">
+                        <a href="pages/salesPerformance/chooseFranchisee.php?tp=DineIn" class="box box7">
                             <i class='bx bx-restaurant'></i>
                             <span class="text">Dine-in</span>
                         </a>
-                        <a href="pages/salesPerformance/chooseFranchisee.php?tp=TakeOut" class="box box3">
+                        <a href="pages/salesPerformance/chooseFranchisee.php?tp=TakeOut" class="box box7">
                             <i class='bx bx-shopping-bag'></i>
                             <span class="text">Takeout</span>
                         </a>
-                        <a href="pages/salesPerformance/chooseFranchisee.php?tp=Delivery" class="box box3">
+                        <a href="pages/salesPerformance/chooseFranchisee.php?tp=Delivery" class="box box7">
                             <i class='bx bx-car'></i>
                             <span class="text">Delivery</span>
                         </a>
                     </div>
-                    <a href="pages/salesPerformance/totalExpenses" class="box box6">
+                    <a href="pages/salesPerformance/totalExpenses" class="box box8">
                         <i class='bx bx-money'></i>
                         <span class="text">View Expenses</span>
                     </a>
@@ -251,7 +251,7 @@ $username = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : "Guest";
                         <i class='bx bx-body'></i>
                         <span class="text">Employees</span>
                     </a>
-                    <a href="pages/manpower/unassignedEmployees2" class="box box6">
+                    <a href="pages/manpower/unassignedEmployees2" class="box box7">
                         <i class='bx bx-user-minus'></i>
                         <span class="text">Unassigned Employees</span>
                     </a>

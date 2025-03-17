@@ -99,7 +99,7 @@
     min-width: 260px;
     width: auto;
     margin: 30 auto;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
   }
   
   
@@ -119,30 +119,34 @@
     justify-content: center;
     background-color: var(--box-color);
     border-radius: 8px;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
     padding: 20px;
     margin-bottom: 20px;
     width: 100%;
-    transition: background-color 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     text-decoration: none;
     color: var(--text-color);
 }
 
 .box:hover {
-    background-color: var(--highlight-color);
-    color: white;
+    transform: translateY(-5px);
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.3);
 }
 
 .box1 {
-    background-color: rgba(73, 213, 252, 0.7);
+    background-color: #bbd5ff;
   }
 
 .box2 {
-    background-color: rgba(73, 252, 171, 0.7);
+    background-color: #bbd5ff;
 }
 
 .box4 {
-    background-color: rgba(252, 73, 73, 0.5);
+    background-color: #bbd5ff;
+}
+
+.box3 {
+    background-color: #bbd5ff;
 }
 
 .box5 {
@@ -152,7 +156,17 @@
 
 .box6 {
     color: var(--background-color);
-    background-color: rgba(255, 177, 68, 0.8);
+    background-color: #4474c0;
+}
+
+.box7 {
+    color: var(--background-color);
+    background-color: #2a4877;
+}
+
+.box8 {
+    color: var(--background-color);
+    background-color: #1c3052;
 }
 
 .box i {
