@@ -438,7 +438,7 @@ function fetchReport(type) {
                             franchiseTableBody.append(`
                                 <tr>
                                     <td>${index === 0 ? entry.branch_name : ""}</td>
-                                    ${type === "understaffed" ? `<td>${index === 0 ? `${entry.employee_count}/2` : ""}</td>` : ""}
+                                    ${type === "understaffed" ? `<td>${index === 0 ? `${entry.employee_count}/${entry.min_employees}` : ""}</td>` : ""}
                                     <td>${employee}</td>
                                     <td>${shifts[index] || "N/A"}</td>
                                     <td>${phoneNumbers[index] || "No phone info available"}</td>
