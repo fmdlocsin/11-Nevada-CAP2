@@ -22,8 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
         exit();
     }
 
-    // Retrieve branch location
-    $branchQuery = "SELECT location FROM agreement_contract WHERE ac_id = '$assignedAt'";
+    // Retrieve branch location and min_employees
+    $branchQuery = "SELECT location, min_employees FROM agreement_contract WHERE ac_id = '$assignedAt'";
     $branchResult = mysqli_query($con, $branchQuery);
     if (!$branchResult || mysqli_num_rows($branchResult) === 0) {
         $data['status'] = "error";
@@ -34,8 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     }
     $branchRow = mysqli_fetch_assoc($branchResult);
     $branch = $branchRow['location'];
+    $minEmployees = intval($branchRow['min_employees']);
 
-    // Check employee count
+    // Check current employee count for this branch
     $countQuery = "SELECT COUNT(*) AS count FROM user_information WHERE assigned_at = '$assignedAt'";
     $countResult = mysqli_query($con, $countQuery);
     if (!$countResult) {
@@ -48,21 +49,32 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $countRow = mysqli_fetch_assoc($countResult);
     $currentCount = intval($countRow['count']);
 
-    if ($currentCount >= 2) {
+    // Check if adding the selected employees would exceed the branch's min_employees
+    if ($currentCount >= $minEmployees) {
         $data['status'] = "error";
-        $data['message'] = "Maximum assignments (2) reached.";
+        $data['message'] = "Maximum assignments ($minEmployees) reached.";
         echo json_encode($data);
         exit();
     }
 
-    // Update employees
+    if (($currentCount + count($employeeIds)) > $minEmployees) {
+        $data['status'] = "error";
+        $data['message'] = "Assigning these employees would exceed the required number of $minEmployees for this branch.";
+        echo json_encode($data);
+        exit();
+    }
+
+    // Update employees with new assignment
     $all_success = true;
     foreach ($employeeIds as $employeeId) {
         try {
             $employeeId = intval($employeeId);
             $update_query = "
                 UPDATE user_information 
-                SET assigned_at = '$assignedAt', employee_status = 'assigned', franchisee = '$store', branch = '$branch'
+                SET assigned_at = '$assignedAt', 
+                    employee_status = 'assigned', 
+                    franchisee = '$store', 
+                    branch = '$branch'
                 WHERE user_id = $employeeId
             ";
             if (!mysqli_query($con, $update_query)) {

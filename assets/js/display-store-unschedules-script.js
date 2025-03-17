@@ -69,35 +69,18 @@ function showStoreDetails() {
                     // Clear the existing table rows
                     tableBody.empty();
 
-                    // Populate the table with new employee data
+                    // Populate the table with employee data
                     employees.forEach(function (employee) {
                         var rowHTML = `
                             <tr class="dynamic-row" data-user-id="${employee.user_id}">
                                 <td>${employee.user_name}</td>
-                                <td class="current-schedule">${
-                                    employee.user_shift || "Unscheduled"
-                                }</td>
+                                <td class="current-schedule">${employee.user_shift || "Unscheduled"}</td>
                                 <td>
                                     <select class="form-select w-100 shift-select" name="shift">
                                         <option selected disabled>Select schedule</option>
-                                        <option value="Morning Shift" ${
-                                            employee.time_in_sched ===
-                                            "Morning Shift"
-                                                ? "selected"
-                                                : ""
-                                        }>Morning Shift</option>
-                                        <option value="Afternoon Shift" ${
-                                            employee.time_in_sched ===
-                                            "Afternoon Shift"
-                                                ? "selected"
-                                                : ""
-                                        }>Afternoon Shift</option>
-                                        <option value="Full Time" ${
-                                            employee.time_in_sched ===
-                                            "Full Time"
-                                                ? "selected"
-                                                : ""
-                                        }>Full Time</option>
+                                        <option value="Morning Shift" ${employee.user_shift === "Morning Shift" ? "selected" : ""}>Morning Shift</option>
+                                        <option value="Afternoon Shift" ${employee.user_shift === "Afternoon Shift" ? "selected" : ""}>Afternoon Shift</option>
+                                        <option value="Full Time" ${employee.user_shift === "Full Time" ? "selected" : ""}>Full Time</option>
                                     </select>
                                 </td>
                             </tr>
@@ -105,11 +88,12 @@ function showStoreDetails() {
                         tableBody.append(rowHTML);
                     });
 
-                    // Update the count of employees
-                    $(".count-title").text(`${employees.length}/2`);
+                    // Always use the min_employees value from the response
+                    var minEmployees = response.min_employees || 0;
+                    // Update the count display dynamically: employees.length / minEmployees
+                    $(".count-title").text(`${employees.length}/${minEmployees}`);
                 } else {
                     console.log(response.message);
-                    // Display a message if no employees are found
                     $("#employees-section-unsched tbody").html(
                         `<tr><td colspan="3">No employees assigned to this branch.</td></tr>`
                     );
@@ -150,6 +134,7 @@ function showStoreDetails() {
         });
     });
 }
+
 
 function formatFranchiseeName(name) {
     return name

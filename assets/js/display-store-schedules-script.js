@@ -7,9 +7,7 @@ function getUrlParameter(name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
     var results = regex.exec(location.search);
-    return results === null
-        ? ""
-        : decodeURIComponent(results[1].replace(/\+/g, " "));
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
 function displayStoreSchedules() {
@@ -24,18 +22,13 @@ function displayStoreSchedules() {
         success: function (response) {
             if (response.status === "success") {
                 listContainer.empty();
-
                 response.employees.forEach(function (employee) {
                     var img = getFranchiseImage(employee.franchisee);
-                    var formattedFranchisee = formatFranchiseeName(
-                        employee.franchisee
-                    );
-
+                    var formattedFranchisee = formatFranchiseeName(employee.franchisee);
                     var storeHTML = `
                         <img class="logo brand-logo" src="../../assets/images/${img}" alt="${formattedFranchisee}">
                         <button class="select-branch" data-ac-id="${employee.assigned_at}">${employee.branch}</button>
                     `;
-
                     listContainer.append(storeHTML);
                 });
             } else {
@@ -52,7 +45,6 @@ function showStoreDetails() {
     $(document).on("click", ".select-branch", function () {
         // Remove active class from all buttons
         $(".select-branch").removeClass("active");
-
         // Add active class to the clicked button
         $(this).addClass("active");
 
@@ -67,19 +59,19 @@ function showStoreDetails() {
                 if (response.status === "success") {
                     var employees = response.employees;
                     var htmlContent = "";
-                    var count = employees.length;
-
                     employees.forEach(function (employee) {
                         htmlContent += `
                             <tr>
                                 <td>${employee.user_name}</td>
-                                <td>${employee.user_shift}</td>
+                                <td>${employee.user_shift || "Unscheduled"}</td>
                             </tr>
                         `;
                     });
-
                     $("#employees-section tbody").html(htmlContent);
-                    $(".count-title span").text(count);
+                    // Use the min_employees value returned in the response to update the count display
+                    var currentCount = employees.length;
+                    var minEmployees = response.min_employees || 0;
+                    $(".count-title").text(currentCount + "/" + minEmployees);
                 } else {
                     console.log(response.message);
                 }

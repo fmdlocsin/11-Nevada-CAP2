@@ -23,12 +23,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
-    // Query to get branches with 2 or more employees and their details
+    // Updated query:
+    // We select min_employees from agreement_contract and then filter
+    // only those branches where the number of assigned employees is greater than or equal to min_employees.
     $sql = "
         SELECT 
             ac.ac_id, 
             ac.location AS branch, 
             ac.franchisee, 
+            ac.min_employees,
             COUNT(ui.user_id) AS employee_count,
             GROUP_CONCAT(ua.user_name SEPARATOR ', ') AS employee_details
         FROM agreement_contract ac
@@ -37,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         LEFT JOIN users_accounts ua
             ON ui.user_id = ua.user_id
         WHERE ac.franchisee = '$franchisee'
-        GROUP BY ac.ac_id, ac.location, ac.franchisee
-        HAVING employee_count >= 2;
+        GROUP BY ac.ac_id, ac.location, ac.franchisee, ac.min_employees
+        HAVING employee_count >= ac.min_employees;
     ";
 
     // Log SQL query for debugging
@@ -54,13 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'branch' => $row['branch'],
                 'franchisee' => $row['franchisee'],
                 'employee_count' => $row['employee_count'],
+                'min_employees' => $row['min_employees'],
                 'employee_details' => $row['employee_details']
             ];
         }
         $data['status'] = 'success';
     } else {
         $data['status'] = 'error';
-        $data['message'] = 'No branches found with 2 or more employees assigned';
+        $data['message'] = 'No branches found with full manpower (minimum requirement met).';
     }
 } else {
     $data['status'] = 'error';

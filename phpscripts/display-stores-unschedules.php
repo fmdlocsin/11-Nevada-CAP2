@@ -25,14 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     $sql = "
-    SELECT ac.ac_id, ac.location AS branch, ac.franchisee, COUNT(ui.user_id) AS employee_count
+    SELECT 
+        ac.ac_id, 
+        ac.location AS branch, 
+        ac.franchisee, 
+        COUNT(ui.user_id) AS employee_count,
+        ac.min_employees
     FROM agreement_contract ac
     LEFT JOIN user_information ui 
         ON ac.ac_id = ui.assigned_at
     WHERE ac.franchisee = '$franchisee'
-    GROUP BY ac.ac_id, ac.location, ac.franchisee
-    HAVING employee_count <= 1
+    GROUP BY ac.ac_id, ac.location, ac.franchisee, ac.min_employees
+    HAVING employee_count < ac.min_employees
 ";
+
 
     
     $result = mysqli_query($con, $sql);
