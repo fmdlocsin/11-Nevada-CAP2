@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
     $agreementDate = isset($_POST['agreementDate']) ? $_POST['agreementDate'] : '';
     $location = isset($_POST['location']) ? $_POST['location'] : '';
     $areaCode = isset($_POST['areaCode']) ? $_POST['areaCode'] : '';
+    $minEmployees = isset($_POST['minEmployees']) ? $_POST['minEmployees'] : '';
     $franchiseFee = isset($_POST['franchiseFee']) ? $_POST['franchiseFee'] : '';
     $franchiseFeeNote = isset($_POST['franchiseFeeNote']) ? $_POST['franchiseFeeNote'] : '';
     $franchisePackage = isset($_POST['franchisePackage']) ? $_POST['franchisePackage'] : '';
@@ -59,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             agreement_date,
                             location,
                             area_code,
+                            min_employees,
                             franchise_fee,
                             ff_note,
                             franchise_package,
@@ -82,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == "POST") {
                             '$agreementDate',
                             '$location',
                             '$areaCode',
+                            '$minEmployees',
                             '$franchiseFee',
                             '$franchiseFeeNote',
                             '$franchisePackage',

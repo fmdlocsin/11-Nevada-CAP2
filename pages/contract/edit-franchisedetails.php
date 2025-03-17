@@ -87,6 +87,12 @@ function formatFranchiseeName($name)
                 </div>
 
                 <div class="mb-3">
+                    <label for="min_employees" class="form-label">Minimum Employees</label>
+                    <input type="number" step="1" class="form-control" id="min_employees" name="min_employees"
+                        value="<?php echo htmlspecialchars($data['min_employees']); ?>" required>
+                </div>
+                
+                <div class="mb-3">
                     <label for="agreement_date" class="form-label">End Date</label>
                     <input type="date" class="form-control" id="agreement_date" name="agreement_date"
                            value="<?php echo htmlspecialchars($data['agreement_date']); ?>" required>

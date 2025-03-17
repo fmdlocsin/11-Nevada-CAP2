@@ -119,10 +119,19 @@ include("../../phpscripts/check-login.php");
                             <input type="text" id="location" name="location"
                                 class="long-input">
 
-                            <label for="areaCcode" class="locLabel">Area Code <span class="text-danger">*</span></label>
+                            <label for="areaCcode" class="locLabel">Area Code: <span class="text-danger">*</span></label>
                             <input type="number" id="area-code" name="areacode" min="0" step="any">
                             
                         </div>
+                    </div>
+                </div>
+
+                <!-- MINIMUM EMPLOYEES -->
+                <div class="form-group-1">
+                    <label for="minEmployees">MINIMUM EMPLOYEES:</label>
+                    <div class="input-field">
+                        <label for="minEmployees" class="locLabel">Number of Employees Required: <span class="text-danger">*</span></label>
+                        <input type="number" id="minEmployees" name="minEmployees" min="0" step="1" class="short-input" required>
                     </div>
                 </div>
 

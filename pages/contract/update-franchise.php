@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $franchisee = mysqli_real_escape_string($con, $_POST['franchisee']);
     $location = mysqli_real_escape_string($con, $_POST['location']);
     $classification = mysqli_real_escape_string($con, $_POST['classification']);
+    $min_employees = mysqli_real_escape_string($con, $_POST['min_employees']);
     $agreement_date = mysqli_real_escape_string($con, $_POST['agreement_date']);
     $franchise_fee = mysqli_real_escape_string($con, $_POST['franchise_fee']);
     $franchise_package = mysqli_real_escape_string($con, $_POST['franchise_package']);
@@ -18,7 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $query = "UPDATE agreement_contract 
               SET franchisee = '$franchisee', 
                   location = '$location', 
-                  classification = '$classification', 
+                  classification = '$classification',
+                  min_employees = '$min_employees',
                   agreement_date = '$agreement_date', 
                   franchise_fee = '$franchise_fee', 
                   franchise_package = '$franchise_package', 

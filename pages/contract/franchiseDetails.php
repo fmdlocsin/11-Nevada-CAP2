@@ -135,6 +135,16 @@ function formatFranchiseeName($name)
                         <p><?php echo $data['area_code']; ?></p>
                     </div>
 
+                    <!-- Staffing Requirement Section -->
+                    <div class="contract-subtitle">
+                        <span>STAFFING REQUIREMENT</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Minimum Employees Required:</span>
+                        <p><?php echo $data['min_employees']; ?></p>
+                    </div>
+
+
                     <div class="contract-subtitle">
                         <span>FEES</span>
                     </div>
