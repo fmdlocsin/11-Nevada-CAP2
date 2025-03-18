@@ -126,14 +126,19 @@ include("../../phpscripts/check-login.php");
                     </div>
                 </div>
 
-                <!-- MINIMUM EMPLOYEES -->
+              <!-- MINIMUM EMPLOYEES -->
                 <div class="form-group-1">
                     <label for="minEmployees">MINIMUM EMPLOYEES:</label>
                     <div class="input-field">
-                        <label for="minEmployees" class="locLabel">Number of Employees Required: <span class="text-danger">*</span></label>
-                        <input type="number" id="minEmployees" name="minEmployees" min="0" step="1" class="short-input" required>
+                        <label for="minEmployees" class="locLabel">
+                            Number of Employees Required: <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" id="minEmployees" name="minEmployees" min="2" step="1" class="short-input" value="2" style="width: 80px;" required>
+                        <small class="text-muted" style="font-size: 12px; margin-top: 2px;">Minimum count cannot be below 2.</small>
                     </div>
                 </div>
+
+
 
 
                 <!-- FRANCHISE FEE -->
